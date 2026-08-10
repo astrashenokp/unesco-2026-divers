@@ -1,29 +1,43 @@
 # Ownership matrix
 
-Human names/GitHub handles should replace `Person A–D` once agreed.
+Human names/GitHub handles should replace `Person A–D` once agreed. The planned workload split is A 22%, B 24%, C 24%, D 30%.
 
-| Area | A Frontend | B Platform | C AI/Learning | D Security/Quality |
+| Area | A Frontend | B Backend/Domain | C AI/Learning | D Game/Data/Security |
 |---|---:|---:|---:|---:|
-| Flutter shell/design/accessibility | A/R | C | C | C |
-| API/domain/Postgres | C | A/R | C | C |
-| GCP runtime/IaC | I | R | I | A |
-| mission/content model | C | C | A/R | C |
-| prompts/provider adapters/evals | I | C | A/R | C |
-| security/privacy/moderation | C | C | C | A/R |
-| CI/CD/test strategy/observability | C | R | C | A/R |
+| Flutter/Web shell, design, accessibility | A/R | C | C | C |
+| API controllers, use cases and domain rules | C | A/R | C | C |
+| PostgreSQL/Redis, migrations, indexes, backup | I | R | I | A/R |
+| GCP runtime, IaC and platform operations | I | C | I | A/R |
+| mission/content model and learning rubric | C | C | A/R | C |
+| prompts, AI/retrieval adapters and evals | I | C | A/R | C |
+| gameplay, XP, streak, quests and progression | R | R | C | A/R |
+| non-AI integrations, flags and experiments | C | R | C | A/R |
+| client security/privacy remediation | A/R | C | C | C |
+| API/domain security remediation | C | A/R | C | C |
+| AI/content-safety remediation | C | C | A/R | C |
+| platform/data/IAM/supply-chain security | C | C | C | A/R |
+| CI/CD, observability, load and release automation | C | R | C | A/R |
 | OpenAPI/scenario contract | R | A | R | C |
-| pitch demo integration | A | R | R | R |
-| submission scope/product story | R | R | R | A (coordination) |
+| pitch/demo vertical integration | R | R | R | A/R |
+| submission scope/product story | R | R | R | R |
 
 Legend: `A` accountable, `R` responsible, `C` consulted, `I` informed.
 
 ## Path boundaries
 
 - A: `apps/learner`, `packages/design_system`, `docs/06-design`.
-- B: `services/api`, `infra`, DB migrations, API runtime.
-- C: `packages/verification`, `content`, `evals`, AI policy versions.
-- D: `.github/workflows`, security tooling/docs, release evidence, QA bot.
+- B: `services/api` controllers/use cases/domain, repository interfaces and API runtime behavior.
+- C: `packages/verification`, `content`, `evals`, AI policy versions and AI/retrieval adapters.
+- D: `packages/gameplay`, `packages/data_access`, DB migrations, `infra`, non-AI integration/runtime tooling, `.github/workflows`, security controls and release evidence.
 - Shared contract paths require cross-owner review and small dedicated PRs.
+
+## Security and QA routing
+
+Evidence Guardian audits all four areas but is not a human role and does not own remediation. A, B and C fix security/quality findings inside their paths; D fixes platform/data/infrastructure/integration findings, maintains automated gates and assists when a control crosses boundaries.
+
+## Backend/data rule
+
+B defines domain invariants, transaction intent and repository behavior. D owns physical schema, migrations, constraints, indexes, caching and recovery. Both must review compatibility, concurrency and rollback for a data change.
 
 ## Integration rule
 

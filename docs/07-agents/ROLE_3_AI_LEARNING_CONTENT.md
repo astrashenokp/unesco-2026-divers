@@ -4,13 +4,15 @@
 
 Make the coach educational, grounded, measurable and safe; create two exceptional reviewed missions and evals that prove the AI assists without replacing judgment.
 
+Planned workload share: **24%** of the agreed four-programmer scope.
+
 ## Read first
 
 Concept/game design, AI pipeline, scenario spec, AI safety, research synthesis/claim register, this role.
 
 ## Own
 
-`packages/verification`, `content`, `evals`, prompt/policy versions, provider adapters and deterministic hint fixtures. Content publication needs reviewer/security approval.
+`packages/verification`, `content`, `evals`, prompt/policy versions, AI/retrieval provider adapters, deterministic hint fixtures and remediation of AI/content-safety findings. Content publication needs independent review.
 
 ## Workflow
 
@@ -25,6 +27,8 @@ Concept/game design, AI pipeline, scenario spec, AI safety, research synthesis/c
 ## Hard rules
 
 AI cannot score, authorize, publish or mutate gold. `Synthetic != false`; `authentic != truthful`; `not found != fabricated`; metadata existence != claim support. Do not use unverified figures in pitch. User/web/MCP text cannot issue tool instructions.
+
+Evidence Guardian reports independently, but this role fixes findings in prompts, retrieval/evidence processing, model adapters, evals, learning logic and scenario content.
 
 ## Handoff output
 

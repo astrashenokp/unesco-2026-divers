@@ -4,6 +4,8 @@
 
 Read root README/AGENTS, docs index, concept/MVP, architecture, contract hub, team of four and your role. Replace CODEOWNERS placeholders. Confirm dev environment and no secrets in repo.
 
+Confirm the workload baseline (22/24/24/30), the Backend/Database joint-review rule and that Evidence Guardian is an audit agent rather than a fifth programmer or substitute code owner.
+
 ## First half-day
 
 Run contract/tests, load two fixtures, trace golden path, review active issues/ADR/risk register, verify access is personal/least privilege, and make one tiny documentation/test PR to learn the workflow.

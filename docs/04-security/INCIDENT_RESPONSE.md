@@ -13,7 +13,7 @@
 2. Confirm facts, scope, affected environment/data/users; start timestamped log.
 3. Contain reversibly: disable feature/provider/MCP, revoke token, quarantine pack, block indicator, roll traffic back.
 4. Preserve minimal forensic evidence; do not paste secrets/PII into chat/tickets.
-5. Notify security-quality and affected service owner; contact legal/safety specialist where needed.
+5. Notify Role 4 for platform/data/security coordination, invoke Evidence Guardian for reproducible audit evidence, and notify every affected code owner; contact a legal/safety specialist where needed.
 
 ## Response lifecycle
 

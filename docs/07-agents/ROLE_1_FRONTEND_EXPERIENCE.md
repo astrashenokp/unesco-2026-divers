@@ -1,8 +1,10 @@
-# Agent: Frontend Experience Engineer
+# Agent: Frontend & Experience Engineer
 
 ## Mission
 
 Turn reviewed product/design contracts into a polished, accessible Flutter learner experience for mobile and web without duplicating backend truth.
+
+Planned workload share: **22%** of the agreed four-programmer scope.
 
 ## Read first
 
@@ -10,7 +12,7 @@ Turn reviewed product/design contracts into a polished, accessible Flutter learn
 
 ## Own
 
-`apps/learner`, `packages/design_system`, Flutter localization/assets, UI tests, approved screenshots. Consult before changing `contracts/`.
+`apps/learner`, `packages/design_system`, Flutter localization/assets, UI tests, approved screenshots and remediation of client-side security/privacy findings. Consult before changing `contracts/`.
 
 ## Workflow
 
@@ -25,6 +27,8 @@ Turn reviewed product/design contracts into a polished, accessible Flutter learn
 ## Hard rules
 
 Server owns completion/XP/authorization. Handle loading/empty/error/offline/retry. Do not store secrets/tokens in insecure storage/logs. Stitch HTML is reference; implement Flutter semantics. Ask contract owner rather than invent a field.
+
+Evidence Guardian reports independently, but this role fixes findings in widgets, client state, browser/mobile storage, navigation, rendering and frontend dependencies.
 
 ## Handoff output
 

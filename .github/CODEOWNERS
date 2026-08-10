@@ -1,0 +1,13 @@
+# Replace placeholders with GitHub usernames before the first protected-branch merge.
+/apps/learner/                 @frontend-owner
+/packages/design_system/      @frontend-owner
+/services/api/                @platform-owner
+/infra/                       @platform-owner @security-owner
+/packages/verification/       @ai-owner
+/content/                     @ai-owner
+/evals/                       @ai-owner @security-owner
+/contracts/                   @platform-owner @frontend-owner @ai-owner
+/docs/04-security/            @security-owner
+/.github/workflows/           @security-owner
+/docs/07-agents/              @security-owner
+/.github/CODEOWNERS           @security-owner

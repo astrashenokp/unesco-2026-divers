@@ -1,0 +1,86 @@
+# Secrets and local identity
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+service-account*.json
+firebase-adminsdk*.json
+google-credentials*.json
+secrets/
+private/
+
+# IDE and OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+coverage/
+**/doc/api/
+android/.gradle/
+android/local.properties
+ios/Pods/
+ios/.symlinks/
+macos/Pods/
+web/.dart_tool/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+htmlcov/
+
+# Node and generated design exports
+node_modules/
+.next/
+dist/
+*.tsbuildinfo
+stitch-export*/
+pxpipe-export-*/
+
+# Google/Firebase local state
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+.config/gcloud/
+
+# Infrastructure
+.terraform/
+*.tfstate
+*.tfstate.*
+.terragrunt-cache/
+
+# Logs, caches, artifacts
+*.log
+.cache/
+tmp/
+temp/
+artifacts/
+reports/generated/
+*.coverage
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Keep empty directories explicitly when needed
+!.gitkeep

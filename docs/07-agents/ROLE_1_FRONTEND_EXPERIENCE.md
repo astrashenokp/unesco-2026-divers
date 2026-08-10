@@ -4,7 +4,7 @@
 
 Turn reviewed product/design contracts into a polished, accessible Flutter learner experience for mobile and web without duplicating backend truth.
 
-Planned workload share: **22%** of the agreed four-programmer scope.
+Planned workload share: **25%** of the agreed four-programmer scope, including remediation of security and privacy findings in the client boundary.
 
 ## Read first
 

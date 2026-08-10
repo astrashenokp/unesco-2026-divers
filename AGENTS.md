@@ -30,9 +30,9 @@ If sources conflict, stop at the highest item and record the conflict in an ADR 
 ## Routing
 
 - Flutter/Web, design system, accessibility and client integration: `frontend-experience`.
-- API, application authorization, use cases and domain logic: `backend-domain`.
+- API, application authorization, use cases, domain logic, non-AI integrations, webhooks and experiment/feature-flag orchestration: `backend-domain`.
 - verification orchestration, prompts, AI/retrieval adapters, evaluation and content: `ai-learning-content`.
-- gameplay/progression, PostgreSQL/Redis, migrations, non-AI integrations, GCP/IaC, platform security, CI/CD, observability and release automation: `game-data-security-reliability`.
+- gameplay/progression, PostgreSQL/Redis, migrations, GCP/IaC, platform/data security, CI/CD, observability and release automation: `game-data-security-reliability`.
 
 Evidence Guardian audits every route as an independent QA/security agent; it is not a fifth programmer. Findings are fixed by the owner of the affected code. Database changes require `backend-domain` review of invariants and `game-data-security-reliability` review of physical schema, migration and recovery.
 

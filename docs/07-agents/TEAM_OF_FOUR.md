@@ -4,10 +4,10 @@ The percentage is a planning baseline for the agreed scope, not a measure of sen
 
 | Role | Planned share | Primary code outcome |
 |---|---:|---|
-| 1 — Frontend & Experience | 22% | accessible Flutter/Web learner experience |
-| 2 — Backend & Domain | 24% | correct API and domain use cases |
-| 3 — AI, Learning & Content | 24% | grounded coach, evidence tools, evals and reviewed packs |
-| 4 — Game Platform, Data, Security & Reliability | 30% | progression, persistence, integrations and production-grade controls |
+| 1 — Frontend & Experience | 25% | accessible Flutter/Web learner experience and client security |
+| 2 — Backend & Domain | 25% | correct API/domain use cases and application integrations |
+| 3 — AI, Learning & Content | 25% | grounded coach, evidence tools, evals, reviewed packs and AI safety |
+| 4 — Game Platform, Data, Security & Reliability | 25% | progression, persistence, infrastructure security and reliability |
 
 ## Role 1 — [Frontend & Experience Engineer](ROLE_1_FRONTEND_EXPERIENCE.md)
 
@@ -15,7 +15,7 @@ Owns the Flutter/Web learner app, design system, localization, accessibility, of
 
 ## Role 2 — [Backend & Domain Engineer](ROLE_2_BACKEND_DOMAIN.md)
 
-Owns FastAPI endpoints, domain/use-case logic, application authorization, session/attempt orchestration, idempotent application behavior and OpenAPI/event producer contracts. Owns remediation of API and domain security findings. Does not independently own physical database design or cloud runtime.
+Owns FastAPI endpoints, domain/use-case logic, application authorization, session/attempt orchestration, non-AI application integrations/webhooks, feature-flag and experiment orchestration, idempotent application behavior and OpenAPI/event producer contracts. Owns remediation of API, domain and application-integration security findings. Does not independently own physical database design or cloud runtime.
 
 ## Role 3 — [AI, Learning & Content Engineer](ROLE_3_AI_LEARNING_CONTENT.md)
 
@@ -23,7 +23,7 @@ Owns evidence actions, Socratic policy/prompts, AI gateway/evals/fallback, missi
 
 ## Role 4 — [Game Platform, Data, Security & Reliability Engineer](ROLE_4_GAME_DATA_SECURITY_RELIABILITY.md)
 
-Owns progression and gamification code, PostgreSQL/Redis implementation, migrations/indexes/query performance, data integrity, backup/restore, external platform integrations, feature flags/experiments, infrastructure and data security, CI/CD, observability, performance and release automation. It runs the broadest cross-system coding scope but is not the sole fixer for security defects in code owned by Roles 1–3.
+Owns progression and gamification code, PostgreSQL/Redis implementation, migrations/indexes/query performance, data integrity, backup/restore, infrastructure and data security, CI/CD, observability, performance and release automation. It is not the sole fixer for security defects in code owned by Roles 1–3.
 
 ## Security and QA agent
 
@@ -40,7 +40,7 @@ Evidence Guardian is an independent automated reviewer, not a fifth programmer a
 - A consumes mocked OpenAPI/fixtures and delivers accessible client states.
 - B implements the API contract and domain use cases against repository interfaces.
 - C supplies versioned evidence packs, deterministic behavior and AI coach evaluation.
-- D implements progression/data/integration plumbing and keeps the complete flow observable, secure and repeatable.
+- D implements progression/data/runtime plumbing and keeps the complete flow observable, secure and repeatable.
 - Evidence Guardian audits the integrated flow; each code owner fixes findings in their boundary.
 
 Each role has a durable prompt in this folder. Human owners remain accountable for decisions made with agents.

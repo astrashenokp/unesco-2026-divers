@@ -4,7 +4,7 @@
 
 Make the coach educational, grounded, measurable and safe; create two exceptional reviewed missions and evals that prove the AI assists without replacing judgment.
 
-Planned workload share: **24%** of the agreed four-programmer scope.
+Planned workload share: **25%** of the agreed four-programmer scope, including AI, retrieval and content-safety remediation.
 
 ## Read first
 

@@ -1,0 +1,355 @@
+openapi: 3.1.0
+info:
+  title: Evidence Gym API
+  version: 0.1.0
+  description: MVP learner API. Prose semantics live in docs/03-contracts/API_CONTRACT.md.
+servers:
+  - url: https://api.example.invalid/v1
+security:
+  - firebaseBearer: []
+paths:
+  /catalog/path:
+    get:
+      operationId: getLearningPath
+      security: []
+      responses:
+        '200':
+          description: Published path
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LearningPath' }
+  /missions/{missionId}:
+    get:
+      operationId: getMission
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/MissionId'
+      responses:
+        '200':
+          description: Exact published mission
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Mission' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /attempts:
+    post:
+      operationId: startAttempt
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [missionId, missionVersion]
+              properties:
+                missionId: { type: string }
+                missionVersion: { type: string }
+      responses:
+        '201':
+          description: Attempt started or idempotently returned
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Attempt' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /attempts/{attemptId}/prediction:
+    post:
+      operationId: submitPrediction
+      parameters:
+        - $ref: '#/components/parameters/AttemptId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PredictionInput' }
+      responses:
+        '200':
+          description: Updated attempt
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Attempt' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /attempts/{attemptId}/evidence-actions:
+    post:
+      operationId: useEvidenceAction
+      parameters:
+        - $ref: '#/components/parameters/AttemptId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [actionId]
+              properties:
+                actionId: { type: string }
+                input: { type: object, additionalProperties: true, maxProperties: 10 }
+      responses:
+        '200':
+          description: Normalized evidence or safe degraded result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EvidenceResult' }
+        '429': { $ref: '#/components/responses/Problem' }
+  /attempts/{attemptId}/hints:
+    post:
+      operationId: requestHint
+      parameters:
+        - $ref: '#/components/parameters/AttemptId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Structured Socratic hint
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Hint' }
+  /attempts/{attemptId}/conclusion:
+    post:
+      operationId: completeAttempt
+      parameters:
+        - $ref: '#/components/parameters/AttemptId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConclusionInput' }
+      responses:
+        '200':
+          description: Atomic completion result
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [receiptId, xpAwarded, progress]
+                properties:
+                  receiptId: { type: string }
+                  xpAwarded: { type: integer, minimum: 0 }
+                  progress: { $ref: '#/components/schemas/Progress' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /receipts/{receiptId}:
+    get:
+      operationId: getReceipt
+      parameters:
+        - name: receiptId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Evidence Receipt
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Receipt' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /me/progress:
+    get:
+      operationId: getMyProgress
+      responses:
+        '200':
+          description: Learner progress projection
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Progress' }
+  /reports:
+    post:
+      operationId: reportContent
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [missionId, reason]
+              properties:
+                missionId: { type: string }
+                reason:
+                  enum: [incorrect, harmful, outdated, copyright, accessibility, other]
+                detail: { type: string, maxLength: 1000 }
+      responses:
+        '202': { description: Accepted without exposing moderation state }
+components:
+  securitySchemes:
+    firebaseBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Firebase-ID-Token
+  parameters:
+    MissionId:
+      name: missionId
+      in: path
+      required: true
+      schema: { type: string }
+    AttemptId:
+      name: attemptId
+      in: path
+      required: true
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: { type: string, minLength: 8, maxLength: 128 }
+  responses:
+    Problem:
+      description: Problem response
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    LearningPath:
+      type: object
+      required: [version, locale, nodes]
+      properties:
+        version: { type: string }
+        locale: { type: string }
+        nodes:
+          type: array
+          items:
+            type: object
+            required: [missionId, title, state]
+            properties:
+              missionId: { type: string }
+              title: { type: string }
+              state: { enum: [locked, available, completed] }
+    Mission:
+      type: object
+      additionalProperties: false
+      required: [id, version, title, claim, media, reactions, evidenceActions, skillTags]
+      properties:
+        id: { type: string }
+        version: { type: string }
+        title: { type: string }
+        claim: { type: string }
+        media:
+          type: object
+          required: [type, altText]
+          properties:
+            type: { enum: [image, video, audio, text] }
+            url: { type: string, format: uri }
+            altText: { type: string }
+            transcript: { type: string }
+        reactions:
+          type: array
+          items: { enum: [trust, suspicious, investigate] }
+        evidenceActions:
+          type: array
+          items:
+            type: object
+            required: [id, type, label]
+            properties:
+              id: { type: string }
+              type: { type: string }
+              label: { type: string }
+        skillTags: { type: array, items: { type: string } }
+    Attempt:
+      type: object
+      required: [id, missionId, missionVersion, state, version]
+      properties:
+        id: { type: string }
+        missionId: { type: string }
+        missionVersion: { type: string }
+        state: { enum: [ready, predicted, investigating, concluded, reflected, completed] }
+        version: { type: integer, minimum: 1 }
+    PredictionInput:
+      type: object
+      additionalProperties: false
+      required: [reaction, confidence, version]
+      properties:
+        reaction: { enum: [trust, suspicious, investigate] }
+        confidence: { type: integer, minimum: 0, maximum: 100 }
+        version: { type: integer, minimum: 1 }
+    EvidenceResult:
+      type: object
+      required: [actionId, status, items, limitations]
+      properties:
+        actionId: { type: string }
+        status: { enum: [ok, not_found, unavailable, blocked] }
+        items:
+          type: array
+          items:
+            type: object
+            required: [evidenceId, type, title, retrievedAt, verificationStatus]
+            properties:
+              evidenceId: { type: string }
+              type: { type: string }
+              title: { type: string }
+              sourceUrl: { type: string, format: uri }
+              retrievedAt: { type: string, format: date-time }
+              verificationStatus: { enum: [verified_metadata, curated, unverified, conflicting] }
+        limitations: { type: array, items: { type: string } }
+    Hint:
+      type: object
+      additionalProperties: false
+      required: [text, level, evidenceRefs, uncertainty, fallback]
+      properties:
+        text: { type: string }
+        level: { type: integer, minimum: 1, maximum: 5 }
+        suggestedActionId: { type: string }
+        evidenceRefs: { type: array, items: { type: string } }
+        uncertainty: { enum: [low, medium, high] }
+        fallback: { type: boolean }
+    AxisAssessment:
+      type: object
+      additionalProperties: false
+      required: [label, confidence]
+      properties:
+        label: { type: string }
+        confidence: { type: integer, minimum: 0, maximum: 100 }
+    ConclusionInput:
+      type: object
+      additionalProperties: false
+      required: [authenticity, claimVeracity, contextIntegrity, postConfidence, shareDecision, version]
+      properties:
+        authenticity: { $ref: '#/components/schemas/AxisAssessment' }
+        claimVeracity: { $ref: '#/components/schemas/AxisAssessment' }
+        contextIntegrity: { $ref: '#/components/schemas/AxisAssessment' }
+        postConfidence: { type: integer, minimum: 0, maximum: 100 }
+        shareDecision: { enum: [do_not_share, share_with_context, continue_investigating] }
+        version: { type: integer, minimum: 1 }
+    Progress:
+      type: object
+      required: [totalXp, skills]
+      properties:
+        totalXp: { type: integer, minimum: 0 }
+        skills:
+          type: array
+          items:
+            type: object
+            required: [skill, mastery]
+            properties:
+              skill: { type: string }
+              mastery: { type: number, minimum: 0, maximum: 1 }
+              dueAt: { type: string, format: date-time }
+    Receipt:
+      type: object
+      required: [id, attemptId, missionVersion, assessments, evidenceRefs, createdAt, hash, disclaimer]
+      properties:
+        id: { type: string }
+        attemptId: { type: string }
+        missionVersion: { type: string }
+        assessments:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items: { $ref: '#/components/schemas/AxisAssessment' }
+        evidenceRefs: { type: array, items: { type: string } }
+        createdAt: { type: string, format: date-time }
+        hash: { type: string }
+        disclaimer: { type: string }
+    Problem:
+      type: object
+      required: [type, title, status, code, traceId]
+      properties:
+        type: { type: string, format: uri-reference }
+        title: { type: string }
+        status: { type: integer }
+        code: { type: string }
+        detail: { type: string }
+        traceId: { type: string }

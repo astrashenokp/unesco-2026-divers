@@ -25,4 +25,4 @@ Mission card, confidence slider with numeric/text value, evidence-action chip/ca
 
 ## Design-to-code source
 
-Reviewed `DESIGN.md`/tokens and approved screenshots are design source. Stitch-generated HTML is reference only; frontend owner implements reusable Flutter components and semantics, then QA compares intent/accessibility—not raw DOM.
+Reviewed `DESIGN.md`/tokens and approved screenshots are design source. Stitch-generated HTML is reference only; Role 1 Frontend implements reusable Flutter components and semantics, then Evidence Guardian compares intent/accessibility—not raw DOM.

@@ -4,7 +4,7 @@ Google Stitch is a design-time accelerator and collaboration canvas. The officia
 
 ## Safe workflow
 
-1. Frontend owner creates a Stitch project using synthetic/curated demo content only.
+1. Role 1 Frontend creates a Stitch project using synthetic/curated demo content only.
 2. Generate three divergent directions from the product objective, audience and accessibility constraints.
 3. Team critiques against product principles, not novelty.
 4. Select one direction; extract Design DNA/context and maintain a reviewed `DESIGN.md`/token table.

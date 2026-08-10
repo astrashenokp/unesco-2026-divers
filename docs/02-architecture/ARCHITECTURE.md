@@ -89,7 +89,7 @@ See decisions in `docs/09-decisions/` and evolution in [Scaling roadmap](SCALING
 
 # Extended architecture handbook
 
-This extension turns the concise architecture into an implementation, review and operations handbook for a four-person team.
+This extension turns the concise architecture into an implementation, review and operations handbook for four balanced 25% roles: Frontend, Backend/Domain, AI/Learning/Content, and Game/Data/Security/Reliability.
 
 Requirement identifiers are stable review anchors. They do not claim the implementation already passes; every applicable item needs evidence in code, tests, dashboards, runbooks or reviewed content.
 
@@ -98,7 +98,7 @@ The machine-readable OpenAPI and scenario schemas remain normative for exact pay
 # A1. Architecture north star
 
 Architecture objective: make **Architecture north star** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Architecture lead.
+Accountable owner: All four roles + ADR DRI.
 Primary elements: `product thesis`, `core loop`, `three-axis model`, `deterministic fallback`, `reviewed content`, `measured learning`.
 
 ## A1.1 Responsibilities and boundaries
@@ -225,7 +225,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A2. Requirements and constraints
 
 Architecture objective: make **Requirements and constraints** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: All four owners.
+Accountable owner: All four roles + ADR DRI.
 Primary elements: `P0 scope`, `quality attributes`, `deadline`, `team capacity`, `external dependencies`, `ethical constraints`.
 
 ## A2.1 Responsibilities and boundaries
@@ -352,7 +352,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A3. System context and actors
 
 Architecture objective: make **System context and actors** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Architecture lead.
+Accountable owner: All four roles + ADR DRI.
 Primary elements: `learner`, `guest`, `educator`, `editor`, `evidence provider`, `cloud operator`.
 
 ## A3.1 Responsibilities and boundaries
@@ -479,7 +479,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A4. Platform boundary and modular monolith
 
 Architecture objective: make **Platform boundary and modular monolith** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform owner.
+Accountable owner: Roles 2/4 + ADR DRI.
 Primary elements: `identity`, `catalog`, `learning`, `evidence`, `coach`, `trust`.
 
 ## A4.1 Responsibilities and boundaries
@@ -606,7 +606,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A5. Flutter client architecture
 
 Architecture objective: make **Flutter client architecture** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Frontend owner.
+Accountable owner: Role 1 Frontend.
 Primary elements: `application shell`, `feature modules`, `design system`, `API client`, `local cache`, `accessibility layer`.
 
 ## A5.1 Responsibilities and boundaries
@@ -733,7 +733,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A6. Offline packs and synchronization
 
 Architecture objective: make **Offline packs and synchronization** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Frontend + platform.
+Accountable owner: Roles 1/2/4.
 Primary elements: `pack cache`, `sync queue`, `conflict resolver`, `connectivity state`, `asset cache`, `progress projection`.
 
 ## A6.1 Responsibilities and boundaries
@@ -860,7 +860,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A7. Edge and traffic management
 
 Architecture objective: make **Edge and traffic management** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + security.
+Accountable owner: Role 4 + Evidence Guardian.
 Primary elements: `HTTPS load balancer`, `Cloud Armor`, `CDN`, `rate limiter`, `ingress policy`, `TLS policy`.
 
 ## A7.1 Responsibilities and boundaries
@@ -987,7 +987,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A8. Identity authorization and consent
 
 Architecture objective: make **Identity authorization and consent** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + security.
+Accountable owner: Roles 2/4 + governance.
 Primary elements: `Firebase Authentication`, `token verifier`, `policy engine`, `consent ledger`, `admin MFA`, `service identity`.
 
 ## A8.1 Responsibilities and boundaries
@@ -1114,7 +1114,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A9. API application layer
 
 Architecture objective: make **API application layer** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform owner.
+Accountable owner: Role 2 Backend.
 Primary elements: `FastAPI routers`, `application services`, `Pydantic schemas`, `idempotency store`, `error mapper`, `generated clients`.
 
 ## A9.1 Responsibilities and boundaries
@@ -1241,7 +1241,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A10. Content catalog and learning path
 
 Architecture objective: make **Content catalog and learning path** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + AI/content.
+Accountable owner: Roles 2/3.
 Primary elements: `catalog index`, `pack manifest`, `mission projection`, `path selector`, `locale resolver`, `content cache`.
 
 ## A10.1 Responsibilities and boundaries
@@ -1368,7 +1368,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A11. Learning attempts and progression
 
 Architecture objective: make **Learning attempts and progression** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform owner.
+Accountable owner: Roles 2/4.
 Primary elements: `attempt aggregate`, `transition guard`, `progress projection`, `skill state`, `booster scheduler`, `completion service`.
 
 ## A11.1 Responsibilities and boundaries
@@ -1495,7 +1495,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A12. Evidence model and actions
 
 Architecture objective: make **Evidence model and actions** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: AI/content + platform.
+Accountable owner: Role 3 AI/Learning.
 Primary elements: `evidence graph`, `source record`, `action registry`, `normalizer`, `provenance record`, `limitation model`.
 
 ## A12.1 Responsibilities and boundaries
@@ -1622,7 +1622,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A13. Socratic coach and LLM gateway
 
 Architecture objective: make **Socratic coach and LLM gateway** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: AI/content owner.
+Accountable owner: Role 3 AI/Learning.
 Primary elements: `hint policy`, `prompt builder`, `LLM gateway`, `structured validator`, `deterministic hints`, `eval harness`.
 
 ## A13.1 Responsibilities and boundaries
@@ -1749,7 +1749,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A14. Scoring calibration and XP ledger
 
 Architecture objective: make **Scoring calibration and XP ledger** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + AI/content.
+Accountable owner: Roles 2/3/4.
 Primary elements: `process rubric`, `calibration calculator`, `XP rules`, `XP ledger`, `mastery updater`, `anti-gaming checks`.
 
 ## A14.1 Responsibilities and boundaries
@@ -1876,7 +1876,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A15. Evidence Receipt
 
 Architecture objective: make **Evidence Receipt** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform owner.
+Accountable owner: Roles 2/4.
 Primary elements: `receipt builder`, `receipt snapshot`, `hash service`, `source timeline`, `correction link`, `privacy-safe export`.
 
 ## A15.1 Responsibilities and boundaries
@@ -2003,7 +2003,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A16. Content authoring and editorial governance
 
 Architecture objective: make **Content authoring and editorial governance** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: AI/content + security.
+Accountable owner: Role 3 + Evidence Guardian.
 Primary elements: `draft workspace`, `review queue`, `license inventory`, `accessibility metadata`, `publisher gate`, `expiry scheduler`.
 
 ## A16.1 Responsibilities and boundaries
@@ -2130,7 +2130,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A17. Trust reporting moderation and corrections
 
 Architecture objective: make **Trust reporting moderation and corrections** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Security/quality owner.
+Accountable owner: Roles 2/3 + Evidence Guardian.
 Primary elements: `report intake`, `triage queue`, `quarantine switch`, `correction workflow`, `appeal record`, `audit trail`.
 
 ## A17.1 Responsibilities and boundaries
@@ -2257,7 +2257,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A18. Analytics experimentation and impact
 
 Architecture objective: make **Analytics experimentation and impact** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + research.
+Accountable owner: Roles 2/4 + research DRI.
 Primary elements: `event envelope`, `outbox consumer`, `aggregate metrics`, `experiment assignment`, `guardrail metrics`, `research export`.
 
 ## A18.1 Responsibilities and boundaries
@@ -2384,7 +2384,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A19. PostgreSQL data architecture
 
 Architecture objective: make **PostgreSQL data architecture** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform owner.
+Accountable owner: Role 4 + Role 2 invariant review.
 Primary elements: `Cloud SQL PostgreSQL`, `schema modules`, `indexes`, `connection pool`, `backup policy`, `migration runner`.
 
 ## A19.1 Responsibilities and boundaries
@@ -2511,7 +2511,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A20. Object storage media and pack distribution
 
 Architecture objective: make **Object storage media and pack distribution** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + content.
+Accountable owner: Role 4 Data/Runtime.
 Primary elements: `Cloud Storage`, `object manifest`, `signed URL`, `CDN cache`, `lifecycle rules`, `malware quarantine`.
 
 ## A20.1 Responsibilities and boundaries
@@ -2638,7 +2638,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A21. Async processing and transactional outbox
 
 Architecture objective: make **Async processing and transactional outbox** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform owner.
+Accountable owner: Roles 2/4.
 Primary elements: `outbox table`, `publisher`, `Pub/Sub`, `worker`, `inbox deduplication`, `dead-letter topic`.
 
 ## A21.1 Responsibilities and boundaries
@@ -2765,7 +2765,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A22. External evidence providers and adapters
 
 Architecture objective: make **External evidence providers and adapters** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: AI/content + platform.
+Accountable owner: Role 3 + Role 4 reliability.
 Primary elements: `provider interface`, `Crossref adapter`, `OpenAlex adapter`, `C2PA adapter`, `cache`, `circuit breaker`.
 
 ## A22.1 Responsibilities and boundaries
@@ -2892,7 +2892,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A23. Google Cloud deployment and IAM
 
 Architecture objective: make **Google Cloud deployment and IAM** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + security.
+Accountable owner: Role 4 + Evidence Guardian.
 Primary elements: `GCP projects`, `Cloud Run`, `Secret Manager`, `Workload Identity`, `IaC`, `state backend`.
 
 ## A23.1 Responsibilities and boundaries
@@ -3019,7 +3019,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A24. Application and AI security
 
 Architecture objective: make **Application and AI security** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Security owner.
+Accountable owner: Affected role + Evidence Guardian.
 Primary elements: `threat model`, `authorization controls`, `input validation`, `prompt boundary`, `supply-chain controls`, `detection rules`.
 
 ## A24.1 Responsibilities and boundaries
@@ -3146,7 +3146,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A25. Privacy minors and data governance
 
 Architecture objective: make **Privacy minors and data governance** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Security + product.
+Accountable owner: Affected role + governance.
 Primary elements: `data inventory`, `consent policy`, `retention jobs`, `deletion export`, `subprocessor register`, `cohort privacy`.
 
 ## A25.1 Responsibilities and boundaries
@@ -3273,7 +3273,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A26. Reliability graceful degradation and recovery
 
 Architecture objective: make **Reliability graceful degradation and recovery** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + security.
+Accountable owner: Role 4 + affected code owner.
 Primary elements: `SLOs`, `error budgets`, `kill switches`, `offline fallback`, `backup restore`, `disaster recovery`.
 
 ## A26.1 Responsibilities and boundaries
@@ -3400,7 +3400,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A27. Observability and operational intelligence
 
 Architecture objective: make **Observability and operational intelligence** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + security.
+Accountable owner: Role 4 + Evidence Guardian.
 Primary elements: `OpenTelemetry`, `Cloud Logging`, `Cloud Trace`, `metrics dashboards`, `alerts`, `runbooks`.
 
 ## A27.1 Responsibilities and boundaries
@@ -3527,7 +3527,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A28. Performance capacity and backpressure
 
 Architecture objective: make **Performance capacity and backpressure** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform owner.
+Accountable owner: Role 4 + affected code owner.
 Primary elements: `latency budget`, `connection pool`, `concurrency limit`, `queue depth`, `cache policy`, `load shedding`.
 
 ## A28.1 Responsibilities and boundaries
@@ -3654,7 +3654,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A29. Cost sustainability and FinOps
 
 Architecture objective: make **Cost sustainability and FinOps** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Platform + product.
+Accountable owner: Role 4 + affected role + governance.
 Primary elements: `budgets`, `resource labels`, `AI cost meter`, `cache economics`, `storage lifecycle`, `cost dashboard`.
 
 ## A29.1 Responsibilities and boundaries
@@ -3781,7 +3781,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A30. Verification testing and quality gates
 
 Architecture objective: make **Verification testing and quality gates** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Security/quality + all.
+Accountable owner: All four roles + Evidence Guardian.
 Primary elements: `unit tests`, `contract tests`, `integration tests`, `E2E tests`, `security tests`, `AI evals`.
 
 ## A30.1 Responsibilities and boundaries
@@ -3908,7 +3908,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A31. CI CD migrations and release engineering
 
 Architecture objective: make **CI CD migrations and release engineering** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Security/quality + platform.
+Accountable owner: Role 4 + Evidence Guardian.
 Primary elements: `GitHub Actions`, `artifact provenance`, `SBOM`, `staging gates`, `migration job`, `progressive release`.
 
 ## A31.1 Responsibilities and boundaries
@@ -4035,7 +4035,7 @@ Operational metric: decision freshness, segmented by environment and version wit
 # A32. Evolution scaling ownership and disaster scenarios
 
 Architecture objective: make **Evolution scaling ownership and disaster scenarios** correct, safe, observable, accessible, reversible and affordable across local, staging and production environments.
-Accountable owner: Architecture lead + all.
+Accountable owner: All four roles + ADR DRI.
 Primary elements: `extraction triggers`, `service boundaries`, `regional strategy`, `capacity plan`, `bus-factor map`, `scenario catalog`.
 
 ## A32.1 Responsibilities and boundaries
@@ -4162,836 +4162,836 @@ Operational metric: decision freshness, segmented by environment and version wit
 
 | Trace ID | Domain | Control question | Required evidence | Owner |
 |---|---|---|---|---|
-| ARC-TR-0001 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0002 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four owners |
-| ARC-TR-0003 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0004 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0005 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Frontend owner |
-| ARC-TR-0006 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Frontend + platform |
-| ARC-TR-0007 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0008 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0009 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0010 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0011 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0012 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0013 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | AI/content owner |
-| ARC-TR-0014 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0015 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0016 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + security |
-| ARC-TR-0017 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality owner |
-| ARC-TR-0018 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + research |
-| ARC-TR-0019 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0020 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + content |
-| ARC-TR-0021 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0022 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0023 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0024 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security owner |
-| ARC-TR-0025 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security + product |
-| ARC-TR-0026 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0027 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0028 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0029 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + product |
-| ARC-TR-0030 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security/quality + all |
-| ARC-TR-0031 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality + platform |
-| ARC-TR-0032 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Architecture lead + all |
-| ARC-TR-0033 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0034 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four owners |
-| ARC-TR-0035 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0036 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0037 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Frontend owner |
-| ARC-TR-0038 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Frontend + platform |
-| ARC-TR-0039 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0040 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0041 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0042 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0043 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0044 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0045 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | AI/content owner |
-| ARC-TR-0046 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0047 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0048 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + security |
-| ARC-TR-0049 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality owner |
-| ARC-TR-0050 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + research |
-| ARC-TR-0051 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0052 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + content |
-| ARC-TR-0053 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0054 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0055 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0056 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security owner |
-| ARC-TR-0057 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security + product |
-| ARC-TR-0058 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0059 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0060 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0061 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + product |
-| ARC-TR-0062 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security/quality + all |
-| ARC-TR-0063 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality + platform |
-| ARC-TR-0064 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Architecture lead + all |
-| ARC-TR-0065 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0066 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four owners |
-| ARC-TR-0067 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0068 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0069 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Frontend owner |
-| ARC-TR-0070 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Frontend + platform |
-| ARC-TR-0071 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0072 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0073 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0074 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0075 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0076 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0077 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | AI/content owner |
-| ARC-TR-0078 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0079 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0080 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + security |
-| ARC-TR-0081 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality owner |
-| ARC-TR-0082 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + research |
-| ARC-TR-0083 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0084 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + content |
-| ARC-TR-0085 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0086 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0087 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0088 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security owner |
-| ARC-TR-0089 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security + product |
-| ARC-TR-0090 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0091 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0092 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0093 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + product |
-| ARC-TR-0094 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security/quality + all |
-| ARC-TR-0095 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality + platform |
-| ARC-TR-0096 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Architecture lead + all |
-| ARC-TR-0097 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0098 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four owners |
-| ARC-TR-0099 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0100 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0101 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Frontend owner |
-| ARC-TR-0102 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Frontend + platform |
-| ARC-TR-0103 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0104 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0105 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0106 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0107 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0108 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0109 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | AI/content owner |
-| ARC-TR-0110 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0111 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0112 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + security |
-| ARC-TR-0113 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality owner |
-| ARC-TR-0114 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + research |
-| ARC-TR-0115 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0116 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + content |
-| ARC-TR-0117 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0118 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0119 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0120 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security owner |
-| ARC-TR-0121 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security + product |
-| ARC-TR-0122 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0123 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0124 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0125 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + product |
-| ARC-TR-0126 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security/quality + all |
-| ARC-TR-0127 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality + platform |
-| ARC-TR-0128 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Architecture lead + all |
-| ARC-TR-0129 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0130 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four owners |
-| ARC-TR-0131 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0132 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0133 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Frontend owner |
-| ARC-TR-0134 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Frontend + platform |
-| ARC-TR-0135 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0136 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0137 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0138 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0139 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0140 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0141 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | AI/content owner |
-| ARC-TR-0142 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0143 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0144 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + security |
-| ARC-TR-0145 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality owner |
-| ARC-TR-0146 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + research |
-| ARC-TR-0147 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0148 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + content |
-| ARC-TR-0149 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0150 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0151 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0152 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security owner |
-| ARC-TR-0153 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security + product |
-| ARC-TR-0154 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0155 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0156 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0157 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + product |
-| ARC-TR-0158 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security/quality + all |
-| ARC-TR-0159 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality + platform |
-| ARC-TR-0160 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Architecture lead + all |
-| ARC-TR-0161 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0162 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four owners |
-| ARC-TR-0163 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0164 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0165 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Frontend owner |
-| ARC-TR-0166 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Frontend + platform |
-| ARC-TR-0167 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0168 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0169 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0170 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0171 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0172 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0173 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | AI/content owner |
-| ARC-TR-0174 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0175 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0176 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + security |
-| ARC-TR-0177 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality owner |
-| ARC-TR-0178 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + research |
-| ARC-TR-0179 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0180 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + content |
-| ARC-TR-0181 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0182 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0183 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0184 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security owner |
-| ARC-TR-0185 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security + product |
-| ARC-TR-0186 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0187 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0188 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0189 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + product |
-| ARC-TR-0190 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security/quality + all |
-| ARC-TR-0191 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality + platform |
-| ARC-TR-0192 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Architecture lead + all |
-| ARC-TR-0193 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0194 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four owners |
-| ARC-TR-0195 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0196 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0197 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Frontend owner |
-| ARC-TR-0198 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Frontend + platform |
-| ARC-TR-0199 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0200 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0201 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0202 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0203 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0204 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0205 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | AI/content owner |
-| ARC-TR-0206 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0207 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0208 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + security |
-| ARC-TR-0209 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality owner |
-| ARC-TR-0210 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + research |
-| ARC-TR-0211 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0212 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + content |
-| ARC-TR-0213 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0214 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0215 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0216 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security owner |
-| ARC-TR-0217 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security + product |
-| ARC-TR-0218 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0219 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0220 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0221 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + product |
-| ARC-TR-0222 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security/quality + all |
-| ARC-TR-0223 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality + platform |
-| ARC-TR-0224 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Architecture lead + all |
-| ARC-TR-0225 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0226 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four owners |
-| ARC-TR-0227 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0228 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0229 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Frontend owner |
-| ARC-TR-0230 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Frontend + platform |
-| ARC-TR-0231 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0232 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0233 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0234 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0235 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0236 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0237 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | AI/content owner |
-| ARC-TR-0238 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0239 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0240 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + security |
-| ARC-TR-0241 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality owner |
-| ARC-TR-0242 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + research |
-| ARC-TR-0243 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0244 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + content |
-| ARC-TR-0245 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0246 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0247 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0248 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security owner |
-| ARC-TR-0249 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security + product |
-| ARC-TR-0250 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0251 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0252 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0253 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + product |
-| ARC-TR-0254 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security/quality + all |
-| ARC-TR-0255 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality + platform |
-| ARC-TR-0256 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Architecture lead + all |
-| ARC-TR-0257 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0258 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four owners |
-| ARC-TR-0259 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0260 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0261 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Frontend owner |
-| ARC-TR-0262 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Frontend + platform |
-| ARC-TR-0263 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0264 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0265 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0266 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0267 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0268 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0269 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | AI/content owner |
-| ARC-TR-0270 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0271 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0272 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + security |
-| ARC-TR-0273 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality owner |
-| ARC-TR-0274 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + research |
-| ARC-TR-0275 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0276 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + content |
-| ARC-TR-0277 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0278 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0279 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0280 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security owner |
-| ARC-TR-0281 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security + product |
-| ARC-TR-0282 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0283 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0284 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0285 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + product |
-| ARC-TR-0286 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security/quality + all |
-| ARC-TR-0287 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality + platform |
-| ARC-TR-0288 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Architecture lead + all |
-| ARC-TR-0289 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0290 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four owners |
-| ARC-TR-0291 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0292 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0293 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Frontend owner |
-| ARC-TR-0294 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Frontend + platform |
-| ARC-TR-0295 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0296 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0297 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0298 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0299 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0300 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0301 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | AI/content owner |
-| ARC-TR-0302 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0303 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0304 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + security |
-| ARC-TR-0305 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality owner |
-| ARC-TR-0306 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + research |
-| ARC-TR-0307 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0308 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + content |
-| ARC-TR-0309 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0310 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0311 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0312 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security owner |
-| ARC-TR-0313 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security + product |
-| ARC-TR-0314 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0315 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0316 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0317 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + product |
-| ARC-TR-0318 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security/quality + all |
-| ARC-TR-0319 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality + platform |
-| ARC-TR-0320 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Architecture lead + all |
-| ARC-TR-0321 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0322 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four owners |
-| ARC-TR-0323 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0324 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0325 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Frontend owner |
-| ARC-TR-0326 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Frontend + platform |
-| ARC-TR-0327 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0328 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0329 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0330 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0331 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0332 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0333 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | AI/content owner |
-| ARC-TR-0334 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0335 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0336 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + security |
-| ARC-TR-0337 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality owner |
-| ARC-TR-0338 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + research |
-| ARC-TR-0339 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0340 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + content |
-| ARC-TR-0341 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0342 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0343 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0344 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security owner |
-| ARC-TR-0345 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security + product |
-| ARC-TR-0346 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0347 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0348 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0349 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + product |
-| ARC-TR-0350 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security/quality + all |
-| ARC-TR-0351 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality + platform |
-| ARC-TR-0352 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Architecture lead + all |
-| ARC-TR-0353 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0354 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four owners |
-| ARC-TR-0355 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0356 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0357 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Frontend owner |
-| ARC-TR-0358 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Frontend + platform |
-| ARC-TR-0359 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0360 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0361 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0362 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0363 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0364 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0365 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | AI/content owner |
-| ARC-TR-0366 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0367 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0368 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + security |
-| ARC-TR-0369 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality owner |
-| ARC-TR-0370 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + research |
-| ARC-TR-0371 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0372 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + content |
-| ARC-TR-0373 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0374 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0375 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0376 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security owner |
-| ARC-TR-0377 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security + product |
-| ARC-TR-0378 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0379 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0380 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0381 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + product |
-| ARC-TR-0382 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security/quality + all |
-| ARC-TR-0383 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality + platform |
-| ARC-TR-0384 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Architecture lead + all |
-| ARC-TR-0385 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0386 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four owners |
-| ARC-TR-0387 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0388 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0389 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Frontend owner |
-| ARC-TR-0390 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Frontend + platform |
-| ARC-TR-0391 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0392 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0393 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0394 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0395 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0396 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0397 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | AI/content owner |
-| ARC-TR-0398 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0399 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0400 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + security |
-| ARC-TR-0401 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality owner |
-| ARC-TR-0402 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + research |
-| ARC-TR-0403 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0404 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + content |
-| ARC-TR-0405 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0406 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0407 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0408 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security owner |
-| ARC-TR-0409 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security + product |
-| ARC-TR-0410 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0411 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0412 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0413 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + product |
-| ARC-TR-0414 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security/quality + all |
-| ARC-TR-0415 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality + platform |
-| ARC-TR-0416 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Architecture lead + all |
-| ARC-TR-0417 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0418 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four owners |
-| ARC-TR-0419 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0420 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0421 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Frontend owner |
-| ARC-TR-0422 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Frontend + platform |
-| ARC-TR-0423 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0424 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0425 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0426 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0427 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0428 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0429 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | AI/content owner |
-| ARC-TR-0430 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0431 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0432 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + security |
-| ARC-TR-0433 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality owner |
-| ARC-TR-0434 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + research |
-| ARC-TR-0435 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0436 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + content |
-| ARC-TR-0437 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0438 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0439 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0440 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security owner |
-| ARC-TR-0441 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security + product |
-| ARC-TR-0442 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0443 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0444 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0445 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + product |
-| ARC-TR-0446 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security/quality + all |
-| ARC-TR-0447 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality + platform |
-| ARC-TR-0448 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Architecture lead + all |
-| ARC-TR-0449 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0450 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four owners |
-| ARC-TR-0451 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0452 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0453 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Frontend owner |
-| ARC-TR-0454 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Frontend + platform |
-| ARC-TR-0455 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0456 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0457 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0458 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0459 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0460 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0461 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | AI/content owner |
-| ARC-TR-0462 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0463 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0464 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + security |
-| ARC-TR-0465 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality owner |
-| ARC-TR-0466 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + research |
-| ARC-TR-0467 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0468 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + content |
-| ARC-TR-0469 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0470 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0471 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0472 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security owner |
-| ARC-TR-0473 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security + product |
-| ARC-TR-0474 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0475 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0476 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0477 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + product |
-| ARC-TR-0478 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security/quality + all |
-| ARC-TR-0479 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality + platform |
-| ARC-TR-0480 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Architecture lead + all |
-| ARC-TR-0481 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0482 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four owners |
-| ARC-TR-0483 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0484 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0485 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Frontend owner |
-| ARC-TR-0486 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Frontend + platform |
-| ARC-TR-0487 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0488 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0489 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0490 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0491 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0492 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0493 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | AI/content owner |
-| ARC-TR-0494 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0495 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0496 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + security |
-| ARC-TR-0497 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality owner |
-| ARC-TR-0498 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + research |
-| ARC-TR-0499 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0500 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + content |
-| ARC-TR-0501 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0502 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0503 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0504 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security owner |
-| ARC-TR-0505 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security + product |
-| ARC-TR-0506 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0507 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0508 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0509 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + product |
-| ARC-TR-0510 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security/quality + all |
-| ARC-TR-0511 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality + platform |
-| ARC-TR-0512 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Architecture lead + all |
-| ARC-TR-0513 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0514 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four owners |
-| ARC-TR-0515 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0516 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0517 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Frontend owner |
-| ARC-TR-0518 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Frontend + platform |
-| ARC-TR-0519 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0520 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0521 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0522 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0523 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0524 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0525 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | AI/content owner |
-| ARC-TR-0526 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0527 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0528 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + security |
-| ARC-TR-0529 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality owner |
-| ARC-TR-0530 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + research |
-| ARC-TR-0531 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0532 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + content |
-| ARC-TR-0533 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0534 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0535 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0536 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security owner |
-| ARC-TR-0537 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security + product |
-| ARC-TR-0538 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0539 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0540 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0541 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + product |
-| ARC-TR-0542 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security/quality + all |
-| ARC-TR-0543 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality + platform |
-| ARC-TR-0544 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Architecture lead + all |
-| ARC-TR-0545 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0546 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four owners |
-| ARC-TR-0547 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0548 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0549 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Frontend owner |
-| ARC-TR-0550 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Frontend + platform |
-| ARC-TR-0551 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0552 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0553 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0554 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0555 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0556 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0557 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | AI/content owner |
-| ARC-TR-0558 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0559 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0560 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + security |
-| ARC-TR-0561 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality owner |
-| ARC-TR-0562 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + research |
-| ARC-TR-0563 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0564 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + content |
-| ARC-TR-0565 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0566 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0567 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0568 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security owner |
-| ARC-TR-0569 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security + product |
-| ARC-TR-0570 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0571 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0572 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0573 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + product |
-| ARC-TR-0574 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security/quality + all |
-| ARC-TR-0575 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality + platform |
-| ARC-TR-0576 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Architecture lead + all |
-| ARC-TR-0577 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0578 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four owners |
-| ARC-TR-0579 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0580 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0581 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Frontend owner |
-| ARC-TR-0582 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Frontend + platform |
-| ARC-TR-0583 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0584 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0585 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0586 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0587 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0588 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0589 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | AI/content owner |
-| ARC-TR-0590 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0591 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0592 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + security |
-| ARC-TR-0593 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality owner |
-| ARC-TR-0594 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + research |
-| ARC-TR-0595 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0596 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + content |
-| ARC-TR-0597 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0598 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0599 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0600 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security owner |
-| ARC-TR-0601 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security + product |
-| ARC-TR-0602 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0603 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0604 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0605 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + product |
-| ARC-TR-0606 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security/quality + all |
-| ARC-TR-0607 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality + platform |
-| ARC-TR-0608 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Architecture lead + all |
-| ARC-TR-0609 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0610 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four owners |
-| ARC-TR-0611 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0612 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0613 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Frontend owner |
-| ARC-TR-0614 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Frontend + platform |
-| ARC-TR-0615 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0616 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0617 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0618 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0619 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0620 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0621 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | AI/content owner |
-| ARC-TR-0622 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0623 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0624 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + security |
-| ARC-TR-0625 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality owner |
-| ARC-TR-0626 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + research |
-| ARC-TR-0627 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0628 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + content |
-| ARC-TR-0629 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0630 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0631 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0632 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security owner |
-| ARC-TR-0633 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security + product |
-| ARC-TR-0634 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0635 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0636 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0637 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + product |
-| ARC-TR-0638 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security/quality + all |
-| ARC-TR-0639 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality + platform |
-| ARC-TR-0640 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Architecture lead + all |
-| ARC-TR-0641 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0642 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four owners |
-| ARC-TR-0643 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0644 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0645 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Frontend owner |
-| ARC-TR-0646 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Frontend + platform |
-| ARC-TR-0647 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0648 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0649 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0650 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0651 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0652 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0653 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | AI/content owner |
-| ARC-TR-0654 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0655 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0656 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + security |
-| ARC-TR-0657 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality owner |
-| ARC-TR-0658 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + research |
-| ARC-TR-0659 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0660 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + content |
-| ARC-TR-0661 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0662 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0663 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0664 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security owner |
-| ARC-TR-0665 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security + product |
-| ARC-TR-0666 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0667 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0668 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0669 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + product |
-| ARC-TR-0670 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security/quality + all |
-| ARC-TR-0671 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality + platform |
-| ARC-TR-0672 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Architecture lead + all |
-| ARC-TR-0673 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0674 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four owners |
-| ARC-TR-0675 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0676 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0677 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Frontend owner |
-| ARC-TR-0678 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Frontend + platform |
-| ARC-TR-0679 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0680 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0681 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0682 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0683 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0684 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0685 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | AI/content owner |
-| ARC-TR-0686 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0687 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0688 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + security |
-| ARC-TR-0689 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality owner |
-| ARC-TR-0690 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + research |
-| ARC-TR-0691 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0692 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + content |
-| ARC-TR-0693 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0694 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + platform |
-| ARC-TR-0695 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0696 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security owner |
-| ARC-TR-0697 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security + product |
-| ARC-TR-0698 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0699 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0700 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0701 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + product |
-| ARC-TR-0702 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security/quality + all |
-| ARC-TR-0703 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality + platform |
-| ARC-TR-0704 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Architecture lead + all |
-| ARC-TR-0705 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Architecture lead |
-| ARC-TR-0706 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four owners |
-| ARC-TR-0707 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0708 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0709 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Frontend owner |
-| ARC-TR-0710 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Frontend + platform |
-| ARC-TR-0711 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0712 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0713 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0714 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0715 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0716 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0717 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | AI/content owner |
-| ARC-TR-0718 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0719 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0720 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + security |
-| ARC-TR-0721 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security/quality owner |
-| ARC-TR-0722 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + research |
-| ARC-TR-0723 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0724 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + content |
-| ARC-TR-0725 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0726 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + platform |
-| ARC-TR-0727 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0728 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security owner |
-| ARC-TR-0729 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security + product |
-| ARC-TR-0730 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + security |
-| ARC-TR-0731 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0732 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0733 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + product |
-| ARC-TR-0734 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security/quality + all |
-| ARC-TR-0735 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality + platform |
-| ARC-TR-0736 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Architecture lead + all |
-| ARC-TR-0737 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Architecture lead |
-| ARC-TR-0738 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four owners |
-| ARC-TR-0739 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0740 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform owner |
-| ARC-TR-0741 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Frontend owner |
-| ARC-TR-0742 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Frontend + platform |
-| ARC-TR-0743 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0744 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0745 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0746 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + AI/content |
-| ARC-TR-0747 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0748 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0749 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | AI/content owner |
-| ARC-TR-0750 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0751 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0752 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + security |
-| ARC-TR-0753 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security/quality owner |
-| ARC-TR-0754 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + research |
-| ARC-TR-0755 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0756 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + content |
-| ARC-TR-0757 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0758 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | AI/content + platform |
-| ARC-TR-0759 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + security |
-| ARC-TR-0760 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security owner |
-| ARC-TR-0761 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Security + product |
-| ARC-TR-0762 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + security |
-| ARC-TR-0763 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0764 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0765 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + product |
-| ARC-TR-0766 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Security/quality + all |
-| ARC-TR-0767 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality + platform |
-| ARC-TR-0768 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Architecture lead + all |
-| ARC-TR-0769 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Architecture lead |
-| ARC-TR-0770 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four owners |
-| ARC-TR-0771 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0772 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform owner |
-| ARC-TR-0773 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Frontend owner |
-| ARC-TR-0774 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Frontend + platform |
-| ARC-TR-0775 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0776 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0777 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0778 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + AI/content |
-| ARC-TR-0779 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0780 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0781 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | AI/content owner |
-| ARC-TR-0782 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Platform + AI/content |
-| ARC-TR-0783 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform owner |
-| ARC-TR-0784 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | AI/content + security |
-| ARC-TR-0785 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security/quality owner |
-| ARC-TR-0786 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + research |
-| ARC-TR-0787 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform owner |
-| ARC-TR-0788 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + content |
-| ARC-TR-0789 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0790 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | AI/content + platform |
-| ARC-TR-0791 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform + security |
-| ARC-TR-0792 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Security owner |
-| ARC-TR-0793 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Security + product |
-| ARC-TR-0794 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + security |
-| ARC-TR-0795 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform + security |
-| ARC-TR-0796 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform owner |
-| ARC-TR-0797 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + product |
-| ARC-TR-0798 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Security/quality + all |
-| ARC-TR-0799 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Security/quality + platform |
-| ARC-TR-0800 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Architecture lead + all |
-| ARC-TR-0801 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Architecture lead |
-| ARC-TR-0802 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four owners |
-| ARC-TR-0803 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Architecture lead |
-| ARC-TR-0804 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform owner |
-| ARC-TR-0805 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Frontend owner |
-| ARC-TR-0806 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Frontend + platform |
-| ARC-TR-0807 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0808 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + security |
-| ARC-TR-0809 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0810 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + AI/content |
-| ARC-TR-0811 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0812 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0813 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | AI/content owner |
-| ARC-TR-0814 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Platform + AI/content |
-| ARC-TR-0815 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Platform owner |
-| ARC-TR-0816 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | AI/content + security |
-| ARC-TR-0817 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Security/quality owner |
-| ARC-TR-0818 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform + research |
-| ARC-TR-0819 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform owner |
-| ARC-TR-0820 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Platform + content |
-| ARC-TR-0821 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Platform owner |
-| ARC-TR-0822 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | AI/content + platform |
-| ARC-TR-0823 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Platform + security |
-| ARC-TR-0824 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Security owner |
-| ARC-TR-0825 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Security + product |
-| ARC-TR-0826 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Platform + security |
-| ARC-TR-0827 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Platform + security |
-| ARC-TR-0828 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Platform owner |
-| ARC-TR-0829 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Platform + product |
-| ARC-TR-0830 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Security/quality + all |
+| ARC-TR-0001 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0002 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0003 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0004 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + ADR DRI |
+| ARC-TR-0005 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 1 Frontend |
+| ARC-TR-0006 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 1/2/4 |
+| ARC-TR-0007 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0008 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + governance |
+| ARC-TR-0009 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 2 Backend |
+| ARC-TR-0010 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3 |
+| ARC-TR-0011 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0012 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 AI/Learning |
+| ARC-TR-0013 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 3 AI/Learning |
+| ARC-TR-0014 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3/4 |
+| ARC-TR-0015 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0016 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Evidence Guardian |
+| ARC-TR-0017 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0018 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + research DRI |
+| ARC-TR-0019 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Role 2 invariant review |
+| ARC-TR-0020 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 Data/Runtime |
+| ARC-TR-0021 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0022 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Role 4 reliability |
+| ARC-TR-0023 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0024 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Affected role + Evidence Guardian |
+| ARC-TR-0025 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Affected role + governance |
+| ARC-TR-0026 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0027 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0028 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0029 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + affected role + governance |
+| ARC-TR-0030 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + Evidence Guardian |
+| ARC-TR-0031 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0032 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0033 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0034 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0035 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0036 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + ADR DRI |
+| ARC-TR-0037 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 1 Frontend |
+| ARC-TR-0038 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 1/2/4 |
+| ARC-TR-0039 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0040 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + governance |
+| ARC-TR-0041 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 2 Backend |
+| ARC-TR-0042 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3 |
+| ARC-TR-0043 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0044 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 AI/Learning |
+| ARC-TR-0045 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 3 AI/Learning |
+| ARC-TR-0046 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3/4 |
+| ARC-TR-0047 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0048 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Evidence Guardian |
+| ARC-TR-0049 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0050 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + research DRI |
+| ARC-TR-0051 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Role 2 invariant review |
+| ARC-TR-0052 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 Data/Runtime |
+| ARC-TR-0053 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0054 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Role 4 reliability |
+| ARC-TR-0055 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0056 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Affected role + Evidence Guardian |
+| ARC-TR-0057 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Affected role + governance |
+| ARC-TR-0058 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0059 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0060 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0061 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + affected role + governance |
+| ARC-TR-0062 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + Evidence Guardian |
+| ARC-TR-0063 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0064 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0065 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0066 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0067 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0068 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + ADR DRI |
+| ARC-TR-0069 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 1 Frontend |
+| ARC-TR-0070 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 1/2/4 |
+| ARC-TR-0071 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0072 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + governance |
+| ARC-TR-0073 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 2 Backend |
+| ARC-TR-0074 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3 |
+| ARC-TR-0075 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0076 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 AI/Learning |
+| ARC-TR-0077 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 3 AI/Learning |
+| ARC-TR-0078 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3/4 |
+| ARC-TR-0079 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0080 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Evidence Guardian |
+| ARC-TR-0081 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0082 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + research DRI |
+| ARC-TR-0083 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Role 2 invariant review |
+| ARC-TR-0084 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 Data/Runtime |
+| ARC-TR-0085 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0086 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Role 4 reliability |
+| ARC-TR-0087 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0088 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Affected role + Evidence Guardian |
+| ARC-TR-0089 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Affected role + governance |
+| ARC-TR-0090 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0091 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0092 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0093 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + affected role + governance |
+| ARC-TR-0094 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + Evidence Guardian |
+| ARC-TR-0095 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0096 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0097 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0098 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0099 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0100 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + ADR DRI |
+| ARC-TR-0101 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 1 Frontend |
+| ARC-TR-0102 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 1/2/4 |
+| ARC-TR-0103 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0104 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + governance |
+| ARC-TR-0105 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 2 Backend |
+| ARC-TR-0106 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3 |
+| ARC-TR-0107 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0108 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 AI/Learning |
+| ARC-TR-0109 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 3 AI/Learning |
+| ARC-TR-0110 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3/4 |
+| ARC-TR-0111 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0112 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Evidence Guardian |
+| ARC-TR-0113 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0114 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + research DRI |
+| ARC-TR-0115 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Role 2 invariant review |
+| ARC-TR-0116 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 Data/Runtime |
+| ARC-TR-0117 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0118 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Role 4 reliability |
+| ARC-TR-0119 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0120 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Affected role + Evidence Guardian |
+| ARC-TR-0121 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Affected role + governance |
+| ARC-TR-0122 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0123 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0124 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0125 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + affected role + governance |
+| ARC-TR-0126 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + Evidence Guardian |
+| ARC-TR-0127 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0128 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0129 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0130 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0131 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0132 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + ADR DRI |
+| ARC-TR-0133 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 1 Frontend |
+| ARC-TR-0134 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 1/2/4 |
+| ARC-TR-0135 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0136 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + governance |
+| ARC-TR-0137 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 2 Backend |
+| ARC-TR-0138 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3 |
+| ARC-TR-0139 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0140 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 AI/Learning |
+| ARC-TR-0141 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 3 AI/Learning |
+| ARC-TR-0142 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3/4 |
+| ARC-TR-0143 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0144 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Evidence Guardian |
+| ARC-TR-0145 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0146 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + research DRI |
+| ARC-TR-0147 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Role 2 invariant review |
+| ARC-TR-0148 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 Data/Runtime |
+| ARC-TR-0149 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0150 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Role 4 reliability |
+| ARC-TR-0151 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0152 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Affected role + Evidence Guardian |
+| ARC-TR-0153 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Affected role + governance |
+| ARC-TR-0154 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0155 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0156 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0157 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + affected role + governance |
+| ARC-TR-0158 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + Evidence Guardian |
+| ARC-TR-0159 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0160 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0161 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0162 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0163 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0164 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + ADR DRI |
+| ARC-TR-0165 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 1 Frontend |
+| ARC-TR-0166 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 1/2/4 |
+| ARC-TR-0167 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0168 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + governance |
+| ARC-TR-0169 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 2 Backend |
+| ARC-TR-0170 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3 |
+| ARC-TR-0171 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0172 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 AI/Learning |
+| ARC-TR-0173 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 3 AI/Learning |
+| ARC-TR-0174 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3/4 |
+| ARC-TR-0175 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0176 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Evidence Guardian |
+| ARC-TR-0177 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0178 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + research DRI |
+| ARC-TR-0179 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Role 2 invariant review |
+| ARC-TR-0180 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 Data/Runtime |
+| ARC-TR-0181 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0182 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Role 4 reliability |
+| ARC-TR-0183 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0184 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Affected role + Evidence Guardian |
+| ARC-TR-0185 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Affected role + governance |
+| ARC-TR-0186 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0187 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0188 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0189 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + affected role + governance |
+| ARC-TR-0190 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + Evidence Guardian |
+| ARC-TR-0191 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0192 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0193 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0194 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0195 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0196 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + ADR DRI |
+| ARC-TR-0197 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 1 Frontend |
+| ARC-TR-0198 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 1/2/4 |
+| ARC-TR-0199 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0200 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + governance |
+| ARC-TR-0201 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 2 Backend |
+| ARC-TR-0202 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3 |
+| ARC-TR-0203 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0204 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 AI/Learning |
+| ARC-TR-0205 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 3 AI/Learning |
+| ARC-TR-0206 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3/4 |
+| ARC-TR-0207 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0208 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Evidence Guardian |
+| ARC-TR-0209 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0210 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + research DRI |
+| ARC-TR-0211 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Role 2 invariant review |
+| ARC-TR-0212 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 Data/Runtime |
+| ARC-TR-0213 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0214 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Role 4 reliability |
+| ARC-TR-0215 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0216 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Affected role + Evidence Guardian |
+| ARC-TR-0217 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Affected role + governance |
+| ARC-TR-0218 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0219 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0220 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0221 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + affected role + governance |
+| ARC-TR-0222 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + Evidence Guardian |
+| ARC-TR-0223 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0224 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0225 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0226 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0227 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0228 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + ADR DRI |
+| ARC-TR-0229 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 1 Frontend |
+| ARC-TR-0230 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 1/2/4 |
+| ARC-TR-0231 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0232 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + governance |
+| ARC-TR-0233 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 2 Backend |
+| ARC-TR-0234 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3 |
+| ARC-TR-0235 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0236 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 AI/Learning |
+| ARC-TR-0237 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 3 AI/Learning |
+| ARC-TR-0238 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3/4 |
+| ARC-TR-0239 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0240 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Evidence Guardian |
+| ARC-TR-0241 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0242 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + research DRI |
+| ARC-TR-0243 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Role 2 invariant review |
+| ARC-TR-0244 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 Data/Runtime |
+| ARC-TR-0245 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0246 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Role 4 reliability |
+| ARC-TR-0247 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0248 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Affected role + Evidence Guardian |
+| ARC-TR-0249 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Affected role + governance |
+| ARC-TR-0250 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0251 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0252 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0253 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + affected role + governance |
+| ARC-TR-0254 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + Evidence Guardian |
+| ARC-TR-0255 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0256 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0257 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0258 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0259 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0260 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + ADR DRI |
+| ARC-TR-0261 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 1 Frontend |
+| ARC-TR-0262 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 1/2/4 |
+| ARC-TR-0263 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0264 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + governance |
+| ARC-TR-0265 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 2 Backend |
+| ARC-TR-0266 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3 |
+| ARC-TR-0267 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0268 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 AI/Learning |
+| ARC-TR-0269 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 3 AI/Learning |
+| ARC-TR-0270 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3/4 |
+| ARC-TR-0271 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0272 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Evidence Guardian |
+| ARC-TR-0273 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0274 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + research DRI |
+| ARC-TR-0275 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Role 2 invariant review |
+| ARC-TR-0276 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 Data/Runtime |
+| ARC-TR-0277 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0278 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Role 4 reliability |
+| ARC-TR-0279 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0280 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Affected role + Evidence Guardian |
+| ARC-TR-0281 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Affected role + governance |
+| ARC-TR-0282 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0283 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0284 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0285 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + affected role + governance |
+| ARC-TR-0286 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + Evidence Guardian |
+| ARC-TR-0287 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0288 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0289 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0290 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0291 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0292 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + ADR DRI |
+| ARC-TR-0293 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 1 Frontend |
+| ARC-TR-0294 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 1/2/4 |
+| ARC-TR-0295 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0296 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + governance |
+| ARC-TR-0297 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 2 Backend |
+| ARC-TR-0298 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3 |
+| ARC-TR-0299 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0300 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 AI/Learning |
+| ARC-TR-0301 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 3 AI/Learning |
+| ARC-TR-0302 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3/4 |
+| ARC-TR-0303 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0304 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Evidence Guardian |
+| ARC-TR-0305 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0306 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + research DRI |
+| ARC-TR-0307 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Role 2 invariant review |
+| ARC-TR-0308 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 Data/Runtime |
+| ARC-TR-0309 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0310 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Role 4 reliability |
+| ARC-TR-0311 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0312 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Affected role + Evidence Guardian |
+| ARC-TR-0313 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Affected role + governance |
+| ARC-TR-0314 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0315 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0316 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0317 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + affected role + governance |
+| ARC-TR-0318 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + Evidence Guardian |
+| ARC-TR-0319 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0320 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0321 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0322 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0323 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0324 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + ADR DRI |
+| ARC-TR-0325 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 1 Frontend |
+| ARC-TR-0326 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 1/2/4 |
+| ARC-TR-0327 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0328 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + governance |
+| ARC-TR-0329 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 2 Backend |
+| ARC-TR-0330 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3 |
+| ARC-TR-0331 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0332 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 AI/Learning |
+| ARC-TR-0333 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 3 AI/Learning |
+| ARC-TR-0334 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3/4 |
+| ARC-TR-0335 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0336 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Evidence Guardian |
+| ARC-TR-0337 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0338 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + research DRI |
+| ARC-TR-0339 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Role 2 invariant review |
+| ARC-TR-0340 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 Data/Runtime |
+| ARC-TR-0341 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0342 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Role 4 reliability |
+| ARC-TR-0343 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0344 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Affected role + Evidence Guardian |
+| ARC-TR-0345 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Affected role + governance |
+| ARC-TR-0346 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0347 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0348 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0349 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + affected role + governance |
+| ARC-TR-0350 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + Evidence Guardian |
+| ARC-TR-0351 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0352 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0353 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0354 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0355 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0356 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + ADR DRI |
+| ARC-TR-0357 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 1 Frontend |
+| ARC-TR-0358 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 1/2/4 |
+| ARC-TR-0359 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0360 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + governance |
+| ARC-TR-0361 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 2 Backend |
+| ARC-TR-0362 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3 |
+| ARC-TR-0363 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0364 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 AI/Learning |
+| ARC-TR-0365 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 3 AI/Learning |
+| ARC-TR-0366 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3/4 |
+| ARC-TR-0367 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0368 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Evidence Guardian |
+| ARC-TR-0369 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0370 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + research DRI |
+| ARC-TR-0371 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Role 2 invariant review |
+| ARC-TR-0372 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 Data/Runtime |
+| ARC-TR-0373 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0374 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Role 4 reliability |
+| ARC-TR-0375 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0376 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Affected role + Evidence Guardian |
+| ARC-TR-0377 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Affected role + governance |
+| ARC-TR-0378 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0379 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0380 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0381 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + affected role + governance |
+| ARC-TR-0382 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + Evidence Guardian |
+| ARC-TR-0383 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0384 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0385 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0386 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0387 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0388 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + ADR DRI |
+| ARC-TR-0389 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 1 Frontend |
+| ARC-TR-0390 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 1/2/4 |
+| ARC-TR-0391 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0392 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + governance |
+| ARC-TR-0393 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 2 Backend |
+| ARC-TR-0394 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3 |
+| ARC-TR-0395 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0396 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 AI/Learning |
+| ARC-TR-0397 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 3 AI/Learning |
+| ARC-TR-0398 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3/4 |
+| ARC-TR-0399 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0400 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Evidence Guardian |
+| ARC-TR-0401 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0402 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + research DRI |
+| ARC-TR-0403 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Role 2 invariant review |
+| ARC-TR-0404 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 Data/Runtime |
+| ARC-TR-0405 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0406 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Role 4 reliability |
+| ARC-TR-0407 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0408 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Affected role + Evidence Guardian |
+| ARC-TR-0409 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Affected role + governance |
+| ARC-TR-0410 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0411 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0412 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0413 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + affected role + governance |
+| ARC-TR-0414 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + Evidence Guardian |
+| ARC-TR-0415 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0416 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0417 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0418 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0419 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0420 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + ADR DRI |
+| ARC-TR-0421 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 1 Frontend |
+| ARC-TR-0422 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 1/2/4 |
+| ARC-TR-0423 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0424 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + governance |
+| ARC-TR-0425 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 2 Backend |
+| ARC-TR-0426 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3 |
+| ARC-TR-0427 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0428 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 AI/Learning |
+| ARC-TR-0429 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 3 AI/Learning |
+| ARC-TR-0430 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3/4 |
+| ARC-TR-0431 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0432 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Evidence Guardian |
+| ARC-TR-0433 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0434 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + research DRI |
+| ARC-TR-0435 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Role 2 invariant review |
+| ARC-TR-0436 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 Data/Runtime |
+| ARC-TR-0437 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0438 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Role 4 reliability |
+| ARC-TR-0439 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0440 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Affected role + Evidence Guardian |
+| ARC-TR-0441 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Affected role + governance |
+| ARC-TR-0442 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0443 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0444 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0445 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + affected role + governance |
+| ARC-TR-0446 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + Evidence Guardian |
+| ARC-TR-0447 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0448 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0449 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0450 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0451 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0452 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + ADR DRI |
+| ARC-TR-0453 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 1 Frontend |
+| ARC-TR-0454 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 1/2/4 |
+| ARC-TR-0455 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0456 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + governance |
+| ARC-TR-0457 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 2 Backend |
+| ARC-TR-0458 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3 |
+| ARC-TR-0459 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0460 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 AI/Learning |
+| ARC-TR-0461 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 3 AI/Learning |
+| ARC-TR-0462 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3/4 |
+| ARC-TR-0463 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0464 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Evidence Guardian |
+| ARC-TR-0465 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0466 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + research DRI |
+| ARC-TR-0467 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Role 2 invariant review |
+| ARC-TR-0468 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 Data/Runtime |
+| ARC-TR-0469 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0470 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Role 4 reliability |
+| ARC-TR-0471 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0472 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Affected role + Evidence Guardian |
+| ARC-TR-0473 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Affected role + governance |
+| ARC-TR-0474 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0475 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0476 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0477 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + affected role + governance |
+| ARC-TR-0478 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + Evidence Guardian |
+| ARC-TR-0479 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0480 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0481 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0482 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0483 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0484 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + ADR DRI |
+| ARC-TR-0485 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 1 Frontend |
+| ARC-TR-0486 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 1/2/4 |
+| ARC-TR-0487 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0488 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + governance |
+| ARC-TR-0489 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 2 Backend |
+| ARC-TR-0490 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3 |
+| ARC-TR-0491 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0492 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 AI/Learning |
+| ARC-TR-0493 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 3 AI/Learning |
+| ARC-TR-0494 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3/4 |
+| ARC-TR-0495 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0496 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Evidence Guardian |
+| ARC-TR-0497 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0498 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + research DRI |
+| ARC-TR-0499 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Role 2 invariant review |
+| ARC-TR-0500 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 Data/Runtime |
+| ARC-TR-0501 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0502 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Role 4 reliability |
+| ARC-TR-0503 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0504 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Affected role + Evidence Guardian |
+| ARC-TR-0505 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Affected role + governance |
+| ARC-TR-0506 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0507 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0508 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0509 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + affected role + governance |
+| ARC-TR-0510 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + Evidence Guardian |
+| ARC-TR-0511 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0512 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0513 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0514 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0515 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0516 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + ADR DRI |
+| ARC-TR-0517 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 1 Frontend |
+| ARC-TR-0518 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 1/2/4 |
+| ARC-TR-0519 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0520 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + governance |
+| ARC-TR-0521 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 2 Backend |
+| ARC-TR-0522 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3 |
+| ARC-TR-0523 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0524 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 AI/Learning |
+| ARC-TR-0525 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 3 AI/Learning |
+| ARC-TR-0526 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3/4 |
+| ARC-TR-0527 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0528 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Evidence Guardian |
+| ARC-TR-0529 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0530 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + research DRI |
+| ARC-TR-0531 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Role 2 invariant review |
+| ARC-TR-0532 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 Data/Runtime |
+| ARC-TR-0533 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0534 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Role 4 reliability |
+| ARC-TR-0535 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0536 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Affected role + Evidence Guardian |
+| ARC-TR-0537 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Affected role + governance |
+| ARC-TR-0538 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0539 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0540 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0541 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + affected role + governance |
+| ARC-TR-0542 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + Evidence Guardian |
+| ARC-TR-0543 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0544 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0545 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0546 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0547 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0548 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + ADR DRI |
+| ARC-TR-0549 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 1 Frontend |
+| ARC-TR-0550 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 1/2/4 |
+| ARC-TR-0551 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0552 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + governance |
+| ARC-TR-0553 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 2 Backend |
+| ARC-TR-0554 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3 |
+| ARC-TR-0555 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0556 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 AI/Learning |
+| ARC-TR-0557 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 3 AI/Learning |
+| ARC-TR-0558 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3/4 |
+| ARC-TR-0559 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0560 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Evidence Guardian |
+| ARC-TR-0561 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0562 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + research DRI |
+| ARC-TR-0563 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Role 2 invariant review |
+| ARC-TR-0564 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 Data/Runtime |
+| ARC-TR-0565 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0566 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Role 4 reliability |
+| ARC-TR-0567 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0568 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Affected role + Evidence Guardian |
+| ARC-TR-0569 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Affected role + governance |
+| ARC-TR-0570 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0571 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0572 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0573 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + affected role + governance |
+| ARC-TR-0574 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + Evidence Guardian |
+| ARC-TR-0575 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0576 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0577 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0578 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0579 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0580 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + ADR DRI |
+| ARC-TR-0581 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 1 Frontend |
+| ARC-TR-0582 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 1/2/4 |
+| ARC-TR-0583 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0584 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + governance |
+| ARC-TR-0585 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 2 Backend |
+| ARC-TR-0586 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3 |
+| ARC-TR-0587 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0588 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 AI/Learning |
+| ARC-TR-0589 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 3 AI/Learning |
+| ARC-TR-0590 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3/4 |
+| ARC-TR-0591 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0592 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Evidence Guardian |
+| ARC-TR-0593 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0594 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + research DRI |
+| ARC-TR-0595 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Role 2 invariant review |
+| ARC-TR-0596 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 Data/Runtime |
+| ARC-TR-0597 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0598 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Role 4 reliability |
+| ARC-TR-0599 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0600 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Affected role + Evidence Guardian |
+| ARC-TR-0601 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Affected role + governance |
+| ARC-TR-0602 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0603 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0604 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0605 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + affected role + governance |
+| ARC-TR-0606 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + Evidence Guardian |
+| ARC-TR-0607 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0608 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0609 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0610 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0611 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0612 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + ADR DRI |
+| ARC-TR-0613 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 1 Frontend |
+| ARC-TR-0614 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 1/2/4 |
+| ARC-TR-0615 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0616 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + governance |
+| ARC-TR-0617 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 2 Backend |
+| ARC-TR-0618 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3 |
+| ARC-TR-0619 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0620 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 AI/Learning |
+| ARC-TR-0621 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 3 AI/Learning |
+| ARC-TR-0622 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3/4 |
+| ARC-TR-0623 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0624 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Evidence Guardian |
+| ARC-TR-0625 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0626 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + research DRI |
+| ARC-TR-0627 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Role 2 invariant review |
+| ARC-TR-0628 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 Data/Runtime |
+| ARC-TR-0629 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0630 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Role 4 reliability |
+| ARC-TR-0631 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0632 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Affected role + Evidence Guardian |
+| ARC-TR-0633 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Affected role + governance |
+| ARC-TR-0634 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0635 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0636 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0637 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + affected role + governance |
+| ARC-TR-0638 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + Evidence Guardian |
+| ARC-TR-0639 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0640 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0641 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0642 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0643 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0644 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + ADR DRI |
+| ARC-TR-0645 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 1 Frontend |
+| ARC-TR-0646 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 1/2/4 |
+| ARC-TR-0647 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0648 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + governance |
+| ARC-TR-0649 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 2 Backend |
+| ARC-TR-0650 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3 |
+| ARC-TR-0651 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0652 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 AI/Learning |
+| ARC-TR-0653 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 3 AI/Learning |
+| ARC-TR-0654 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3/4 |
+| ARC-TR-0655 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0656 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Evidence Guardian |
+| ARC-TR-0657 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0658 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + research DRI |
+| ARC-TR-0659 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Role 2 invariant review |
+| ARC-TR-0660 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 Data/Runtime |
+| ARC-TR-0661 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0662 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Role 4 reliability |
+| ARC-TR-0663 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0664 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Affected role + Evidence Guardian |
+| ARC-TR-0665 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Affected role + governance |
+| ARC-TR-0666 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0667 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0668 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0669 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + affected role + governance |
+| ARC-TR-0670 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + Evidence Guardian |
+| ARC-TR-0671 | CI CD migrations and release engineering | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0672 | Evolution scaling ownership and disaster scenarios | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0673 | Architecture north star | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0674 | Requirements and constraints | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0675 | System context and actors | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0676 | Platform boundary and modular monolith | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + ADR DRI |
+| ARC-TR-0677 | Flutter client architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 1 Frontend |
+| ARC-TR-0678 | Offline packs and synchronization | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 1/2/4 |
+| ARC-TR-0679 | Edge and traffic management | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0680 | Identity authorization and consent | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + governance |
+| ARC-TR-0681 | API application layer | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 2 Backend |
+| ARC-TR-0682 | Content catalog and learning path | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3 |
+| ARC-TR-0683 | Learning attempts and progression | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0684 | Evidence model and actions | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 AI/Learning |
+| ARC-TR-0685 | Socratic coach and LLM gateway | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 3 AI/Learning |
+| ARC-TR-0686 | Scoring calibration and XP ledger | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3/4 |
+| ARC-TR-0687 | Evidence Receipt | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0688 | Content authoring and editorial governance | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Evidence Guardian |
+| ARC-TR-0689 | Trust reporting moderation and corrections | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0690 | Analytics experimentation and impact | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + research DRI |
+| ARC-TR-0691 | PostgreSQL data architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Role 2 invariant review |
+| ARC-TR-0692 | Object storage media and pack distribution | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 Data/Runtime |
+| ARC-TR-0693 | Async processing and transactional outbox | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0694 | External evidence providers and adapters | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Role 4 reliability |
+| ARC-TR-0695 | Google Cloud deployment and IAM | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0696 | Application and AI security | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Affected role + Evidence Guardian |
+| ARC-TR-0697 | Privacy minors and data governance | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Affected role + governance |
+| ARC-TR-0698 | Reliability graceful degradation and recovery | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0699 | Observability and operational intelligence | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0700 | Performance capacity and backpressure | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0701 | Cost sustainability and FinOps | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + affected role + governance |
+| ARC-TR-0702 | Verification testing and quality gates | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + Evidence Guardian |
+| ARC-TR-0703 | CI CD migrations and release engineering | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0704 | Evolution scaling ownership and disaster scenarios | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + ADR DRI |
+| ARC-TR-0705 | Architecture north star | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | All four roles + ADR DRI |
+| ARC-TR-0706 | Requirements and constraints | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0707 | System context and actors | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0708 | Platform boundary and modular monolith | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + ADR DRI |
+| ARC-TR-0709 | Flutter client architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 1 Frontend |
+| ARC-TR-0710 | Offline packs and synchronization | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 1/2/4 |
+| ARC-TR-0711 | Edge and traffic management | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0712 | Identity authorization and consent | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + governance |
+| ARC-TR-0713 | API application layer | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 2 Backend |
+| ARC-TR-0714 | Content catalog and learning path | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3 |
+| ARC-TR-0715 | Learning attempts and progression | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0716 | Evidence model and actions | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 AI/Learning |
+| ARC-TR-0717 | Socratic coach and LLM gateway | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 3 AI/Learning |
+| ARC-TR-0718 | Scoring calibration and XP ledger | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3/4 |
+| ARC-TR-0719 | Evidence Receipt | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0720 | Content authoring and editorial governance | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Evidence Guardian |
+| ARC-TR-0721 | Trust reporting moderation and corrections | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0722 | Analytics experimentation and impact | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + research DRI |
+| ARC-TR-0723 | PostgreSQL data architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Role 2 invariant review |
+| ARC-TR-0724 | Object storage media and pack distribution | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 Data/Runtime |
+| ARC-TR-0725 | Async processing and transactional outbox | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0726 | External evidence providers and adapters | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Role 4 reliability |
+| ARC-TR-0727 | Google Cloud deployment and IAM | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0728 | Application and AI security | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Affected role + Evidence Guardian |
+| ARC-TR-0729 | Privacy minors and data governance | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Affected role + governance |
+| ARC-TR-0730 | Reliability graceful degradation and recovery | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 + affected code owner |
+| ARC-TR-0731 | Observability and operational intelligence | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0732 | Performance capacity and backpressure | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0733 | Cost sustainability and FinOps | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + affected role + governance |
+| ARC-TR-0734 | Verification testing and quality gates | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | All four roles + Evidence Guardian |
+| ARC-TR-0735 | CI CD migrations and release engineering | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0736 | Evolution scaling ownership and disaster scenarios | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + ADR DRI |
+| ARC-TR-0737 | Architecture north star | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | All four roles + ADR DRI |
+| ARC-TR-0738 | Requirements and constraints | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0739 | System context and actors | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0740 | Platform boundary and modular monolith | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/4 + ADR DRI |
+| ARC-TR-0741 | Flutter client architecture | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 1 Frontend |
+| ARC-TR-0742 | Offline packs and synchronization | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 1/2/4 |
+| ARC-TR-0743 | Edge and traffic management | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0744 | Identity authorization and consent | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + governance |
+| ARC-TR-0745 | API application layer | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 2 Backend |
+| ARC-TR-0746 | Content catalog and learning path | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/3 |
+| ARC-TR-0747 | Learning attempts and progression | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0748 | Evidence model and actions | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 AI/Learning |
+| ARC-TR-0749 | Socratic coach and LLM gateway | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 3 AI/Learning |
+| ARC-TR-0750 | Scoring calibration and XP ledger | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3/4 |
+| ARC-TR-0751 | Evidence Receipt | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0752 | Content authoring and editorial governance | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Evidence Guardian |
+| ARC-TR-0753 | Trust reporting moderation and corrections | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0754 | Analytics experimentation and impact | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + research DRI |
+| ARC-TR-0755 | PostgreSQL data architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Role 2 invariant review |
+| ARC-TR-0756 | Object storage media and pack distribution | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 Data/Runtime |
+| ARC-TR-0757 | Async processing and transactional outbox | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/4 |
+| ARC-TR-0758 | External evidence providers and adapters | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 3 + Role 4 reliability |
+| ARC-TR-0759 | Google Cloud deployment and IAM | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0760 | Application and AI security | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Affected role + Evidence Guardian |
+| ARC-TR-0761 | Privacy minors and data governance | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Affected role + governance |
+| ARC-TR-0762 | Reliability graceful degradation and recovery | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 4 + affected code owner |
+| ARC-TR-0763 | Observability and operational intelligence | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0764 | Performance capacity and backpressure | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0765 | Cost sustainability and FinOps | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + affected role + governance |
+| ARC-TR-0766 | Verification testing and quality gates | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | All four roles + Evidence Guardian |
+| ARC-TR-0767 | CI CD migrations and release engineering | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0768 | Evolution scaling ownership and disaster scenarios | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + ADR DRI |
+| ARC-TR-0769 | Architecture north star | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | All four roles + ADR DRI |
+| ARC-TR-0770 | Requirements and constraints | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0771 | System context and actors | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0772 | Platform boundary and modular monolith | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/4 + ADR DRI |
+| ARC-TR-0773 | Flutter client architecture | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 1 Frontend |
+| ARC-TR-0774 | Offline packs and synchronization | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 1/2/4 |
+| ARC-TR-0775 | Edge and traffic management | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0776 | Identity authorization and consent | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + governance |
+| ARC-TR-0777 | API application layer | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 2 Backend |
+| ARC-TR-0778 | Content catalog and learning path | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/3 |
+| ARC-TR-0779 | Learning attempts and progression | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0780 | Evidence model and actions | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 AI/Learning |
+| ARC-TR-0781 | Socratic coach and LLM gateway | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 3 AI/Learning |
+| ARC-TR-0782 | Scoring calibration and XP ledger | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Roles 2/3/4 |
+| ARC-TR-0783 | Evidence Receipt | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Roles 2/4 |
+| ARC-TR-0784 | Content authoring and editorial governance | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 3 + Evidence Guardian |
+| ARC-TR-0785 | Trust reporting moderation and corrections | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0786 | Analytics experimentation and impact | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 2/4 + research DRI |
+| ARC-TR-0787 | PostgreSQL data architecture | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Role 2 invariant review |
+| ARC-TR-0788 | Object storage media and pack distribution | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 Data/Runtime |
+| ARC-TR-0789 | Async processing and transactional outbox | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Roles 2/4 |
+| ARC-TR-0790 | External evidence providers and adapters | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 3 + Role 4 reliability |
+| ARC-TR-0791 | Google Cloud deployment and IAM | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Role 4 + Evidence Guardian |
+| ARC-TR-0792 | Application and AI security | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Affected role + Evidence Guardian |
+| ARC-TR-0793 | Privacy minors and data governance | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Affected role + governance |
+| ARC-TR-0794 | Reliability graceful degradation and recovery | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Role 4 + affected code owner |
+| ARC-TR-0795 | Observability and operational intelligence | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 4 + Evidence Guardian |
+| ARC-TR-0796 | Performance capacity and backpressure | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0797 | Cost sustainability and FinOps | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + affected role + governance |
+| ARC-TR-0798 | Verification testing and quality gates | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | All four roles + Evidence Guardian |
+| ARC-TR-0799 | CI CD migrations and release engineering | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Evidence Guardian |
+| ARC-TR-0800 | Evolution scaling ownership and disaster scenarios | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + ADR DRI |
+| ARC-TR-0801 | Architecture north star | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | All four roles + ADR DRI |
+| ARC-TR-0802 | Requirements and constraints | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | All four roles + ADR DRI |
+| ARC-TR-0803 | System context and actors | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | All four roles + ADR DRI |
+| ARC-TR-0804 | Platform boundary and modular monolith | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/4 + ADR DRI |
+| ARC-TR-0805 | Flutter client architecture | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Role 1 Frontend |
+| ARC-TR-0806 | Offline packs and synchronization | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Roles 1/2/4 |
+| ARC-TR-0807 | Edge and traffic management | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0808 | Identity authorization and consent | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + governance |
+| ARC-TR-0809 | API application layer | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 2 Backend |
+| ARC-TR-0810 | Content catalog and learning path | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Roles 2/3 |
+| ARC-TR-0811 | Learning attempts and progression | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0812 | Evidence model and actions | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 AI/Learning |
+| ARC-TR-0813 | Socratic coach and LLM gateway | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 3 AI/Learning |
+| ARC-TR-0814 | Scoring calibration and XP ledger | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Roles 2/3/4 |
+| ARC-TR-0815 | Evidence Receipt | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Roles 2/4 |
+| ARC-TR-0816 | Content authoring and editorial governance | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 3 + Evidence Guardian |
+| ARC-TR-0817 | Trust reporting moderation and corrections | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Roles 2/3 + Evidence Guardian |
+| ARC-TR-0818 | Analytics experimentation and impact | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Roles 2/4 + research DRI |
+| ARC-TR-0819 | PostgreSQL data architecture | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + Role 2 invariant review |
+| ARC-TR-0820 | Object storage media and pack distribution | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | Role 4 Data/Runtime |
+| ARC-TR-0821 | Async processing and transactional outbox | Does retry or concurrency preserve the declared source of truth? | contract test and fixture | Roles 2/4 |
+| ARC-TR-0822 | External evidence providers and adapters | Can consumers validate the contract without provider internals? | trace dashboard and alert drill | Role 3 + Role 4 reliability |
+| ARC-TR-0823 | Google Cloud deployment and IAM | Is server-side authorization proven by negative ownership cases? | versioned AI safety eval | Role 4 + Evidence Guardian |
+| ARC-TR-0824 | Application and AI security | Does the learner finish safely when a dependency is unavailable? | ADR with exit criterion | Affected role + Evidence Guardian |
+| ARC-TR-0825 | Privacy minors and data governance | Can operators diagnose failure without secrets or raw learner content? | fault injection and fallback result | Affected role + governance |
+| ARC-TR-0826 | Reliability graceful degradation and recovery | Are purpose, retention, deletion and aggregation explicit? | accessibility and localization evidence | Role 4 + affected code owner |
+| ARC-TR-0827 | Observability and operational intelligence | Is rollback, kill switch or forward recovery rehearsed? | load and cost budget report | Role 4 + Evidence Guardian |
+| ARC-TR-0828 | Performance capacity and backpressure | Are accessibility, localization and low-bandwidth states accepted? | negative authorization and audit test | Role 4 + affected code owner |
+| ARC-TR-0829 | Cost sustainability and FinOps | Does a test reproduce the highest-risk invariant and failure? | migration or restore rehearsal | Role 4 + affected role + governance |
+| ARC-TR-0830 | Verification testing and quality gates | Is added complexity gated by measurement, ADR, owner and cost? | source license and content review | All four roles + Evidence Guardian |
 
 ## End-of-document release rule
 

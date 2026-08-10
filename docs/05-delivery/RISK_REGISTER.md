@@ -7,7 +7,7 @@
 | third-party API outage/quota | H/M | adapter/cache/fixture/circuit | platform / health drop |
 | harmful/incorrect case | M/H | review/version/report/quarantine | quality / report |
 | demo network/device failure | M/H | offline bundle + recording | frontend / rehearsal |
-| secret/PII leak | M/H | OIDC, scan, redaction, rotation | security / alert |
+| secret/PII leak | M/H | OIDC, scan, redaction, rotation | affected code owner + Role 4 / alert |
 | copyright issue | M/H | license inventory/replacement | content / missing license |
 | weak differentiation | M/H | 3-axis/process/calibration/citation demo | all / user cannot restate |
 | architecture overbuild | H/M | modular monolith/extraction triggers | platform / infra > slice |

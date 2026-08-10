@@ -2,6 +2,17 @@
 
 This repository uses trunk-based development with short-lived branches and explicit path ownership.
 
+## Current ownership
+
+The four-programmer workload baseline is balanced at **25% per role**:
+
+- Role 1: Flutter/Web, experience, accessibility and frontend-security.
+- Role 2: API/domain, application integrations/webhooks, experiments and API-security.
+- Role 3: AI/retrieval, learning/content, evals and AI/content safety.
+- Role 4: gameplay, PostgreSQL/Redis, GCP/IaC, infrastructure/data security, CI/CD and reliability.
+
+Evidence Guardian audits independently but does not own fixes. Security remediation follows the affected code owner. Database changes require Role 2 review of domain/transaction intent and Role 4 review of physical schema, migration and recovery. The normative detail is the [ownership matrix](docs/03-contracts/OWNERSHIP_MATRIX.md).
+
 ## Before coding
 
 1. Choose one issue with acceptance criteria.

@@ -23,6 +23,17 @@ Evidence Gym delivers short, versioned media-literacy scenarios. The core invari
 
 The critical learning path should have a deterministic fallback when an AI provider is unavailable.
 
+## Engineering ownership
+
+| Role | Share | Architecture boundary |
+|---|---:|---|
+| 1 — Frontend & Experience | 25% | Flutter/Web, design system, accessibility, client integration and frontend-security |
+| 2 — Backend & Domain | 25% | API/use cases, application authorization, non-AI integrations, webhooks, flags/experiments and API-security |
+| 3 — AI, Learning & Content | 25% | evidence/AI adapters, prompts, evals, learning/content and AI/content safety |
+| 4 — Game Platform, Data, Security & Reliability | 25% | gameplay, PostgreSQL/Redis, migrations/recovery, GCP/IaC, platform/data security, CI/CD and observability |
+
+Evidence Guardian is an independent audit agent, not a fifth programmer. Findings are fixed by the owner of the affected code. Role 2 and Role 4 jointly review every data change: Role 2 owns the domain invariant and transaction intent; Role 4 owns physical persistence, migration and recovery.
+
 ## Data classes
 
 - Public: published product and scenario metadata intended for anyone.
@@ -70,3 +81,5 @@ Restricted data never enters prompts, screenshots, public logs, or design tools 
 - [Failure modes](FAILURE_MODES.md)
 - [Non-functional requirements](NON_FUNCTIONAL_REQUIREMENTS.md)
 - [Architecture decisions](../09-decisions/README.md)
+- [Team of four](../07-agents/TEAM_OF_FOUR.md)
+- [Ownership matrix](../03-contracts/OWNERSHIP_MATRIX.md)

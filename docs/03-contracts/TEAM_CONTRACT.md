@@ -22,7 +22,7 @@ Ship one credible vertical slice and an honest submission. No one optimizes thei
 3. Run the cheapest reversible test when possible.
 4. DRI decides inside their boundary; cross-boundary decisions use ADR and two owners.
 5. Scope/deadline tie is decided by the team lead using P0 and demo risk.
-6. Security/privacy owner may temporarily block a release for a concrete high/critical risk and must document remediation/retest.
+6. The affected code owner and Role 4 may temporarily block a release for a concrete high/critical security or privacy risk; Evidence Guardian may recommend the block with reproducible evidence. The finding, remediation and independent retest must be documented.
 
 ## Communication artifacts
 

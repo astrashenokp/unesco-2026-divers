@@ -9,7 +9,7 @@ Evidence Gym — український за походженням, глоба�
 1. Прочитайте [канонічний концепт](docs/01-product/CONCEPT.md).
 2. Звіртеся з [MVP та межами](docs/01-product/MVP_SCOPE.md).
 3. Відкрийте [архітектуру](docs/02-architecture/ARCHITECTURE.md) і [контракти](docs/03-contracts/README.md).
-4. Знайдіть свою роль у [команді з чотирьох](docs/07-agents/TEAM_OF_FOUR.md).
+4. Знайдіть свою роль у [команді з чотирьох](docs/07-agents/TEAM_OF_FOUR.md): workload збалансовано 25% на кожного, а security-виправлення належать власнику відповідного коду.
 5. Працюйте за [Git-процесом](docs/05-delivery/GIT_WORKFLOW.md) і Definition of Done.
 
 Для нетехнічної підготовки:

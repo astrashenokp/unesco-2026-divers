@@ -51,4 +51,4 @@
 
 ## Control ownership
 
-Security-quality owns policy/evidence; each feature owner implements controls in their paths. A checklist without passing negative tests is not a control.
+Security ownership follows the code boundary: Role 1 owns frontend controls, Role 2 API/domain/application-integration controls, Role 3 AI/retrieval/content-safety controls, and Role 4 platform/data/infrastructure/pipeline controls plus the shared gate implementation. Evidence Guardian independently audits evidence; it does not own remediation. A checklist without passing negative tests is not a control.

@@ -97,7 +97,7 @@ Frontend, backend, AI/content і QA можуть працювати парале
 
 - дизайн не використовує binary red/green truth cue;
 - усі P0 екрани мають accessibility annotations;
-- frontend owner має reusable component map;
+- Role 1 Frontend має reusable component map;
 - QA bot отримує тільки read-only approved Stitch IDs.
 
 ## Фаза 4 — Skeleton і developer platform

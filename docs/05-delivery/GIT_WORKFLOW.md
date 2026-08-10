@@ -31,4 +31,4 @@ Required checks; CODEOWNERS; one approval normally, two for contracts/auth/priva
 
 ## Emergency
 
-Hotfix branch, smallest reversible change, security owner + service owner, same tests, deploy progressively, then follow-up review. Never bypass audit and forget to reconstruct it.
+Hotfix branch, smallest reversible change, affected code owner + Role 4 security coordination, Evidence Guardian retest, same tests, progressive deploy, then follow-up review. Never bypass audit and forget to reconstruct it.

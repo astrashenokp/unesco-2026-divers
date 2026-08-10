@@ -1,0 +1,52 @@
+name: Content correction or safety issue
+description: Report a factual, provenance, rights, pedagogy, or safety concern
+title: "[Content]: "
+labels: ["content", "correction-review"]
+body:
+  - type: input
+    id: scenario
+    attributes:
+      label: Scenario and version
+      placeholder: scenario-id / version / language
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Concern type
+      options:
+        - Factual accuracy or missing context
+        - Source or provenance
+        - Copyright, license, permission, or attribution
+        - Harmful content, privacy, or personal safety
+        - Bias, inclusion, or accessibility
+        - Learning rubric or feedback
+        - Translation or localisation
+        - Other content integrity concern
+    validations:
+      required: true
+  - type: textarea
+    id: concern
+    attributes:
+      label: Concern and supporting evidence
+      description: Link authoritative sources when safe. Do not paste harmful or personal material unnecessarily.
+    validations:
+      required: true
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Suggested urgency
+      options:
+        - Critical — restrict immediately
+        - High — pause distribution pending review
+        - Medium — correct in controlled release
+        - Low — editorial queue
+    validations:
+      required: true
+  - type: checkboxes
+    id: disclosure
+    attributes:
+      label: Safe report
+      options:
+        - label: This public report does not expose private people, credentials, or restricted evidence.
+          required: true

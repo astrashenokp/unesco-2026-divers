@@ -1,0 +1,42 @@
+name: Research or validation study
+description: Propose a study that informs a concrete decision
+title: "[Research]: "
+labels: ["research", "needs-protocol"]
+body:
+  - type: textarea
+    id: decision
+    attributes:
+      label: Decision this study informs
+      description: State the decision that changes based on the result.
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Research question and method
+      description: Include audience, setting, planned N/rationale, and method.
+    validations:
+      required: true
+  - type: textarea
+    id: measures
+    attributes:
+      label: Measures and thresholds
+      description: Define success, failure, and stop conditions before collection.
+    validations:
+      required: true
+  - type: textarea
+    id: safeguards
+    attributes:
+      label: Consent, safeguarding, privacy, and retention
+      description: Link the reviewed protocol; never place participant details here.
+    validations:
+      required: true
+  - type: checkboxes
+    id: readiness
+    attributes:
+      label: Readiness
+      options:
+        - label: The study can use participant codes and minimum necessary data.
+          required: true
+        - label: Recruitment will not begin before required approval/consent is ready.
+          required: true

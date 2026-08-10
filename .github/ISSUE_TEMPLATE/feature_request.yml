@@ -1,0 +1,44 @@
+name: Product outcome proposal
+description: Propose a user-facing outcome or documented capability
+title: "[Proposal]: "
+labels: ["proposal", "needs-evidence"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and affected users
+      description: Describe observed need, not a preferred feature alone.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and uncertainty
+      description: Link research, observations, or sources; label assumptions.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome and acceptance evidence
+      description: What should improve, and what evidence would prove it?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and non-goals
+      description: Include the option to make no change.
+    validations:
+      required: true
+  - type: checkboxes
+    id: impacts
+    attributes:
+      label: Review areas
+      options:
+        - label: Safety or harmful-content implications
+        - label: Privacy, consent, or data implications
+        - label: Accessibility or inclusion implications
+        - label: Content rights or attribution implications
+        - label: Public claim or measurement implications
+        - label: Partner, cost, or sustainability implications

@@ -1,0 +1,25 @@
+{
+  "name": "stitch-qa-readonly",
+  "transport": "streamable-http",
+  "url": "https://stitch.googleapis.com/mcp",
+  "authentication": {
+    "type": "bearer-from-environment",
+    "environmentVariable": "STITCH_API_KEY"
+  },
+  "policy": {
+    "allowedToolIntents": [
+      "list_projects",
+      "get_project",
+      "list_screens",
+      "get_screen",
+      "fetch_screen_image",
+      "fetch_screen_html",
+      "extract_design_context"
+    ],
+    "deniedToolIntents": ["delete", "publish", "share", "deploy", "admin"],
+    "requireHumanConfirmationForWrites": true,
+    "maxCallsPerRun": 50,
+    "timeoutSeconds": 300
+  },
+  "note": "Illustrative policy consumed by the planned QA adaptor; not a drop-in Codex configuration. Confirm current official tool names before use."
+}

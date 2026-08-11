@@ -4,27 +4,31 @@ Role 1 (Frontend & Experience) owned. Design rationale: `docs/06-design/DESIGN_S
 
 ## Status
 
-**Not yet verified locally** — this has not been through `flutter analyze` or `flutter test` on a machine with the SDK installed. It is written against `contracts/openapi.yaml` and reviewed by hand, but hand review is not a compiler. Treat the first `flutter analyze` as the real check and fix whatever it reports.
+Verified on **Flutter 3.44.9 / Dart 3.12.2**:
+
+- `flutter analyze` — no issues, in both `apps/learner` and `packages/design_system`
+- `flutter test` — 6/6 passing
+- `flutter build web --release` — succeeds
+
+Not yet checked by hand: real-device behaviour, 200% text on a physical screen, and a screen-reader pass. Those are in the checklist at the end of [`SCREEN_REFERENCE.md`](../../docs/06-design/SCREEN_REFERENCE.md).
 
 ## Run it
 
-1. Install Flutter (stable, **3.29 or newer** — the code uses `Color.withValues()` and `CardThemeData`, which are not in 3.24): https://docs.flutter.dev/get-started/install
-2. From `apps/learner/`, generate the platform folders that don't exist yet. This is additive — it will not touch `lib/` or `pubspec.yaml`:
-   ```
-   flutter create --org com.evidencegym --project-name evidence_gym_learner .
-   ```
-3. `flutter pub get`
-4. `flutter analyze`
-5. Run it:
-   - Laptop/web: `flutter run -d chrome`
-   - Phone or emulator: `flutter run`
-6. On the auth screen choose one:
+1. Install Flutter (stable, **3.29 or newer**): https://docs.flutter.dev/get-started/install
+2. `flutter pub get`
+3. Run it:
+   - Laptop/web: `flutter run -d chrome` — the `web/` folder is committed, so this works immediately
+   - Phone or emulator: `flutter run`, after adding that platform once with
+     `flutter create --platforms=android,ios .`
+4. On the auth screen choose one:
    - **Enter demo** with the key below — fully offline, nothing else needed. This is the path to demo to judges.
      ```
      EVIDENCE-GYM-DEMO
      ```
    - **Continue as guest** — talks to a live API at `http://localhost:8000/` (override with `flutter run --dart-define=API_BASE_URL=https://your-api/`). Guest auth is **not** wired to Firebase yet; see the TODO in `lib/features/auth/auth_screen.dart`.
-7. `flutter test` — six widget/invariant tests in `test/smoke_test.dart`.
+5. `flutter test` — six widget/invariant tests in `test/smoke_test.dart`.
+
+> `pumpAndSettle` will hang in any test that renders a mascot: Lupa and Slid animate continuously, so there is never a frame-idle to settle on. Pump a bounded number of frames instead — see `_settle` in the test file.
 
 ### Seeing both layouts
 

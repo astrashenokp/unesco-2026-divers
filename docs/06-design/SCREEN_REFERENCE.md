@@ -247,7 +247,9 @@ Tick these before calling the client demo-ready.
 - [x] Phone and laptop layouts from one codebase
 - [x] Demo path runs with no backend
 - [x] A failed report is never confirmed as sent
-- [ ] `flutter analyze` clean — **not yet run**
+- [x] `flutter analyze` clean in both packages (Flutter 3.44.9)
+- [x] `flutter test` passing (6/6)
+- [x] `flutter build web --release` succeeds
 - [ ] Verified at 200% text on a real device
 - [ ] Verified with a screen reader (TalkBack / VoiceOver)
 - [x] A connection failure is presented as a connection failure, never as something the server said

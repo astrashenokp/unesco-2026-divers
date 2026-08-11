@@ -1,5 +1,6 @@
 """Checks that scaffold behavior remains compatible with the normative contract."""
 
+import json
 from pathlib import Path
 
 import yaml
@@ -10,11 +11,20 @@ from evidence_gym_api.app import create_app
 from conftest import REPOSITORY_ROOT
 
 CONTRACT_PATH = REPOSITORY_ROOT / "contracts" / "openapi.yaml"
+MISSION_FIXTURE_SCHEMA_PATH = (
+    REPOSITORY_ROOT / "contracts" / "mission-fixture.schema.json"
+)
+SCENARIO_PACK_SCHEMA_PATH = REPOSITORY_ROOT / "contracts" / "scenario-pack.schema.json"
 
 
 def load_contract() -> dict:
     with CONTRACT_PATH.open(encoding="utf-8") as contract_file:
         return yaml.safe_load(contract_file)
+
+
+def load_json(path: Path) -> dict:
+    with path.open(encoding="utf-8") as json_file:
+        return json.load(json_file)
 
 
 def operations(contract: dict):
@@ -95,6 +105,55 @@ def test_all_local_references_resolve() -> None:
                 visit(child)
 
     visit(contract)
+
+
+def test_json_contracts_parse_as_objects() -> None:
+    for path in (MISSION_FIXTURE_SCHEMA_PATH, SCENARIO_PACK_SCHEMA_PATH):
+        schema = load_json(path)
+
+        assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+        assert schema["type"] == "object"
+        assert schema["additionalProperties"] is False
+
+
+def test_mission_fixture_schema_is_strict_demo_contract() -> None:
+    schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
+
+    assert "testsCriticalIgnoring" in schema["required"]
+    assert schema["properties"]["testsCriticalIgnoring"]["type"] == "boolean"
+
+    evidence_action = schema["$defs"]["evidenceAction"]
+    assert evidence_action["additionalProperties"] is False
+    assert "deterministicResponse" in evidence_action["required"]
+
+    deterministic_response = schema["$defs"]["deterministicEvidenceResponse"]
+    assert deterministic_response["additionalProperties"] is False
+    assert deterministic_response["required"] == [
+        "actionId",
+        "status",
+        "items",
+        "limitations",
+    ]
+
+
+def test_mission_fixture_schema_local_references_resolve() -> None:
+    schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
+
+    def visit(value):
+        if isinstance(value, dict):
+            reference = value.get("$ref")
+            if reference is not None:
+                assert reference.startswith("#/")
+                target = schema
+                for component in reference[2:].split("/"):
+                    target = target[component]
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(schema)
 
 
 def test_documented_error_responses_use_problem_component() -> None:

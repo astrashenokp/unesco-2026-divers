@@ -1,0 +1,640 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidence-gym.example.invalid/schemas/mission-fixture.v1.json",
+  "title": "Evidence Gym Mission Fixture",
+  "description": "Schema-first contract for reviewed P0 mission JSON used by catalog, learning policy, AI coaching, and deterministic demo evidence actions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "version",
+    "locale",
+    "title",
+    "testsCriticalIgnoring",
+    "learning",
+    "presentation",
+    "evidenceActions",
+    "goldEvidenceGraph",
+    "acceptedAssessments",
+    "hintLadder",
+    "rubric",
+    "safety",
+    "review"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,80}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "locale": { "$ref": "#/$defs/locale" },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "testsCriticalIgnoring": {
+      "type": "boolean",
+      "description": "Explicit fixture-level policy flag. When true, the pinned mission version may accept a conclusion without evidence actions under ADR-008."
+    },
+    "learning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "objective",
+        "skillTags",
+        "priorKnowledge",
+        "likelyMisconception",
+        "responsibleSharingGoal"
+      ],
+      "properties": {
+        "objective": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "skillTags": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/skillTag" }
+        },
+        "priorKnowledge": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "likelyMisconception": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "responsibleSharingGoal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim",
+        "context",
+        "media",
+        "allowedReactions",
+        "initialConfidencePrompt",
+        "conclusionPrompt"
+      ],
+      "properties": {
+        "claim": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "context": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "media": { "$ref": "#/$defs/media" },
+        "allowedReactions": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": ["trust", "suspicious", "investigate"]
+          }
+        },
+        "initialConfidencePrompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "conclusionPrompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "evidenceActions": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/evidenceAction" }
+    },
+    "goldEvidenceGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence", "relationships", "limitations"],
+      "properties": {
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/goldEvidence" }
+        },
+        "relationships": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidenceRelationship" }
+        },
+        "limitations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shortText" }
+        }
+      }
+    },
+    "acceptedAssessments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authenticity", "claimVeracity", "contextIntegrity"],
+      "properties": {
+        "authenticity": { "$ref": "#/$defs/acceptedAxis" },
+        "claimVeracity": { "$ref": "#/$defs/acceptedAxis" },
+        "contextIntegrity": { "$ref": "#/$defs/acceptedAxis" }
+      }
+    },
+    "hintLadder": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/hint" }
+    },
+    "forbiddenLeakageTerms": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/shortText" },
+      "default": []
+    },
+    "rubric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["processLevels", "confidenceCalibration", "minimumCompletionEvidence"],
+      "properties": {
+        "processLevels": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/processLevel" }
+        },
+        "confidenceCalibration": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "minimumCompletionEvidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimumAge",
+        "contentWarnings",
+        "supervisedOnly",
+        "riskNotes",
+        "privacyNotes",
+        "license"
+      ],
+      "properties": {
+        "minimumAge": {
+          "type": "integer",
+          "minimum": 13,
+          "maximum": 30
+        },
+        "contentWarnings": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/shortText" }
+        },
+        "supervisedOnly": { "type": "boolean" },
+        "riskNotes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shortText" }
+        },
+        "privacyNotes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shortText" }
+        },
+        "license": { "$ref": "#/$defs/license" }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "authorIds",
+        "reviewerIds",
+        "reviewedAt",
+        "expiresAt",
+        "correctionPolicy"
+      ],
+      "properties": {
+        "status": {
+          "enum": ["draft", "review", "approved", "restricted", "withdrawn"]
+        },
+        "authorIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "reviewerIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "reviewedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "correctionPolicy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    }
+  },
+  "$defs": {
+    "acceptedAxis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["acceptedLabels", "confidenceRange", "rationaleEvidenceRefs"],
+      "properties": {
+        "acceptedLabels": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/axisLabel" }
+        },
+        "confidenceRange": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["minimum", "maximum"],
+          "properties": {
+            "minimum": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "maximum": { "type": "integer", "minimum": 0, "maximum": 100 }
+          }
+        },
+        "rationaleEvidenceRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/evidenceId" }
+        }
+      }
+    },
+    "axisLabel": {
+      "enum": [
+        "authentic",
+        "synthetic",
+        "altered",
+        "unknown",
+        "supported",
+        "contradicted",
+        "unsupported",
+        "misleading_context",
+        "accurate_context",
+        "insufficient_evidence",
+        "not_applicable"
+      ]
+    },
+    "deterministicEvidenceResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actionId", "status", "items", "limitations"],
+      "properties": {
+        "actionId": { "type": "string", "minLength": 1 },
+        "status": {
+          "enum": ["ok", "not_found", "unavailable", "blocked"]
+        },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/evidenceResultItem" }
+        },
+        "limitations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shortText" }
+        }
+      }
+    },
+    "evidenceAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "label",
+        "description",
+        "skillTags",
+        "cost",
+        "deterministicResponse"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": {
+          "enum": [
+            "source_identity",
+            "primary_source",
+            "corroboration",
+            "context_time_place",
+            "provenance",
+            "citation_integrity",
+            "claim_decomposition"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "skillTags": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/skillTag" }
+        },
+        "cost": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3
+        },
+        "deterministicResponse": { "$ref": "#/$defs/deterministicEvidenceResponse" }
+      }
+    },
+    "evidenceId": {
+      "type": "string",
+      "pattern": "^E-[A-Za-z0-9._-]+$"
+    },
+    "evidenceRelationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fromEvidenceId", "toEvidenceId", "relationship"],
+      "properties": {
+        "fromEvidenceId": { "$ref": "#/$defs/evidenceId" },
+        "toEvidenceId": { "$ref": "#/$defs/evidenceId" },
+        "relationship": {
+          "enum": ["same_lineage", "independent_corroboration", "contradicts", "limits", "supports_context"]
+        }
+      }
+    },
+    "evidenceResultItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidenceId", "type", "title", "retrievedAt", "verificationStatus"],
+      "properties": {
+        "evidenceId": { "$ref": "#/$defs/evidenceId" },
+        "type": {
+          "enum": ["article", "metadata", "image", "video", "post", "registry_record", "source_note"]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "verificationStatus": {
+          "enum": ["verified_metadata", "curated", "unverified", "conflicting"]
+        }
+      }
+    },
+    "goldEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidenceId",
+        "type",
+        "title",
+        "source",
+        "claimRelationship",
+        "limitations"
+      ],
+      "properties": {
+        "evidenceId": { "$ref": "#/$defs/evidenceId" },
+        "type": {
+          "enum": ["article", "metadata", "image", "video", "post", "registry_record", "source_note"]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "source": { "$ref": "#/$defs/sourceRef" },
+        "claimRelationship": {
+          "enum": ["supports", "contradicts", "contextualizes", "does_not_establish", "not_found_in_queried_sources"]
+        },
+        "limitations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shortText" }
+        }
+      }
+    },
+    "hint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "text",
+        "allowedBeforeConclusion",
+        "suggestedActionId",
+        "evidenceRefs",
+        "uncertainty"
+      ],
+      "properties": {
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "allowedBeforeConclusion": { "type": "boolean" },
+        "suggestedActionId": {
+          "type": ["string", "null"]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/evidenceId" }
+        },
+        "uncertainty": {
+          "enum": ["low", "medium", "high"]
+        }
+      }
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identifier", "attribution", "useBasis"],
+      "properties": {
+        "identifier": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "attribution": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "useBasis": {
+          "enum": ["licensed", "public_domain", "fair_use_reviewed", "team_created", "metadata_only"]
+        }
+      }
+    },
+    "locale": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+    },
+    "media": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "altText"],
+      "properties": {
+        "type": {
+          "enum": ["image", "video", "audio", "text"]
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "altText": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "transcript": {
+          "type": "string",
+          "maxLength": 5000
+        }
+      }
+    },
+    "processLevel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "criteria", "xpGuidance", "skillTags"],
+      "properties": {
+        "level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "criteria": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "xpGuidance": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "skillTags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/skillTag" }
+        }
+      }
+    },
+    "shortText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "skillTag": {
+      "enum": [
+        "source_identity",
+        "primary_source",
+        "corroboration",
+        "context_time_place",
+        "provenance",
+        "citation_integrity",
+        "claim_decomposition",
+        "uncertainty",
+        "responsible_sharing"
+      ]
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sourceType",
+        "publisher",
+        "retrievedAt",
+        "license",
+        "limitations"
+      ],
+      "properties": {
+        "sourceType": {
+          "enum": ["official", "news", "academic_registry", "fact_check", "platform_post", "metadata", "team_fixture"]
+        },
+        "publisher": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "author": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "canonicalUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "canonicalId": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "retrievedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "snapshotHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "license": { "$ref": "#/$defs/license" },
+        "limitations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/shortText" }
+        }
+      }
+    }
+  }
+}

@@ -39,7 +39,9 @@ Settings tab → text size to 200%, "Simpler wording" on, "Reduce animation" on.
 - **Onboarding carousel** (3 slides, never auto-advances) → **auth / demo-key** → **shell**.
 - **Shell** with three destinations: Path, Progress, Settings. `NavigationBar` on phones, `NavigationRail` on laptops, same order and labels in both.
 - **Path** — the winding skill map, each node revealing with a spring as it scrolls in.
-- **Mission** — the full flow: predict → investigate (evidence actions + opt-in Socratic coach) → three-axis conclusion → receipt.
+- **Mission** — the full flow: predict → investigate (tactile evidence props + opt-in Socratic coach) → three-axis conclusion → receipt.
+- **Evidence receipt** — the full document: three-axis conclusion, evidence actually looked at, pinned mission version, integrity marker, disclaimer.
+- **Report** — wired to `POST /v1/reports`; a failed send is never confirmed as sent, and demo mode says plainly that nothing left the device.
 - **Progress** — segmented skill meters and process XP, with XP explicitly framed as "how you investigate", not a measure of the person.
 - **Settings** — language (укр/eng), simpler wording, reduce animation, text size.
 - **Report dialog** on every mission.
@@ -48,13 +50,12 @@ Settings tab → text size to 200%, "Simpler wording" on, "Reduce animation" on.
 
 ## Known gaps (flagged, not hidden)
 
-- **Settings don't persist** across restarts — needs `shared_preferences`, deliberately not added because it couldn't be compiled here.
-- **Guest auth isn't real** — `_placeholderGuestTokenProvider` returns null. Needs `flutterfire configure` + `signInAnonymously()` (ADR-008).
-- **Report doesn't reach the server** — the dialog is complete but `onSubmit` is an empty TODO; `POST /v1/reports` isn't in the client yet. It does not fake success.
-- **No `.arb` codegen** — `lib/l10n/strings.dart` is hand-written with the same shape a generated class would have, because `flutter gen-l10n` couldn't be run here. Swapping it later touches no call sites.
-- **Receipt is minimal** — shows XP and receipt id; doesn't yet fetch `GET /receipts/{id}` for the full evidence timeline.
-- **No offline pack download**, no booster/spaced-repetition UI, no teacher views (all P1/P2 anyway).
+- **Settings don't persist** across restarts — needs `shared_preferences`.
+- **Guest auth isn't real** — `_placeholderGuestTokenProvider` returns null. Needs `flutterfire configure` + `signInAnonymously()` (ADR-008). The demo key is the working path until then.
+- **No `.arb` codegen** — `lib/l10n/strings.dart` is hand-written with the same shape a generated class would have. Swapping it later touches no call sites.
+- **No offline/degraded banner** yet, no offline pack download, no booster/spaced-repetition UI, no teacher views (the last three are P1/P2 anyway).
 - **Difficulty levels**: the contract has no difficulty field, so per-mission levels would need Role 2/3 to add one. What's here instead is the reading-level work — "Simpler wording" — which is genuinely Role 1's boundary.
+- **Nothing has been run.** See Status above.
 
 ## Layout
 

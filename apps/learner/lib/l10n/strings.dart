@@ -273,6 +273,17 @@ class Strings {
         'Дякуємо. Це перегляне людина.',
       );
 
+  /// Demo mode has no moderation queue, so it must not claim one.
+  String get reportSentDemo => _s(
+        'Recorded for this demo only — nothing was sent anywhere.',
+        'Записано лише для цього демо — нічого нікуди не надіслано.',
+      );
+
+  String get reportFailed => _s(
+        'Couldn\'t send that. Please try again.',
+        'Не вдалося надіслати. Спробуй ще раз.',
+      );
+
   // ------------------------------------------------------------ navigation
   String get navPath => _s('Path', 'Шлях');
   String get navProgress => _s('Progress', 'Прогрес');

@@ -163,12 +163,12 @@ class _MissionScreenState extends State<MissionScreen> {
     showReportDialog(
       context: context,
       missionId: widget.missionId,
-      onSubmit: (reason, detail) async {
-        // TODO(Role 1): wire to POST /v1/reports once the client method
-        // exists. Deliberately not faking success on the network here —
-        // the dialog only ever promises that a human will look, which is
-        // true as soon as this is connected.
-      },
+      isDemo: widget.repository.isDemo,
+      onSubmit: (reason, detail) => widget.repository.reportContent(
+        missionId: widget.missionId,
+        reason: reason,
+        detail: detail,
+      ),
     );
   }
 

@@ -14,18 +14,28 @@ import '../../l10n/strings.dart';
 Future<void> showReportDialog({
   required BuildContext context,
   required String missionId,
+  required bool isDemo,
   required Future<void> Function(String reason, String? detail) onSubmit,
 }) {
   return showDialog<void>(
     context: context,
-    builder: (context) => _ReportDialog(missionId: missionId, onSubmit: onSubmit),
+    builder: (context) =>
+        _ReportDialog(missionId: missionId, isDemo: isDemo, onSubmit: onSubmit),
   );
 }
 
 class _ReportDialog extends StatefulWidget {
-  const _ReportDialog({required this.missionId, required this.onSubmit});
+  const _ReportDialog({
+    required this.missionId,
+    required this.isDemo,
+    required this.onSubmit,
+  });
 
   final String missionId;
+
+  /// In demo mode nothing leaves the device, so the confirmation must not
+  /// claim a reviewer will see it.
+  final bool isDemo;
   final Future<void> Function(String reason, String? detail) onSubmit;
 
   @override
@@ -46,19 +56,28 @@ class _ReportDialogState extends State<_ReportDialog> {
   Future<void> _submit() async {
     if (_reason == null || _sending) return;
     setState(() => _sending = true);
+
     final messenger = ScaffoldMessenger.of(context);
-    final confirmation = Strings.of(context).reportSent;
+    final navigator = Navigator.of(context);
+    final s = Strings.of(context);
+    final confirmation = widget.isDemo ? s.reportSentDemo : s.reportSent;
+    final failure = s.reportFailed;
+
     try {
       await widget.onSubmit(
         _reason!,
         _detailController.text.trim().isEmpty ? null : _detailController.text.trim(),
       );
-    } finally {
-      if (mounted) {
-        Navigator.of(context).pop();
-        messenger.showSnackBar(SnackBar(content: Text(confirmation)));
-      }
+    } catch (_) {
+      // A failed send must not be confirmed as received. Keep the dialog
+      // open with its content intact so the report isn't silently lost.
+      if (mounted) setState(() => _sending = false);
+      messenger.showSnackBar(SnackBar(content: Text(failure)));
+      return;
     }
+
+    navigator.pop();
+    messenger.showSnackBar(SnackBar(content: Text(confirmation)));
   }
 
   @override

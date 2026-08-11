@@ -164,6 +164,27 @@ class EvidenceGymApiClient {
     return Receipt.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
 
+  /// Reports harmful or incorrect content. The server answers `202` and
+  /// deliberately never reveals moderation state, so a reporter cannot
+  /// probe what happened to a case.
+  Future<void> reportContent({
+    required String missionId,
+    required String reason,
+    String? detail,
+    required String idempotencyKey,
+  }) async {
+    final res = await _client.post(
+      _uri('/reports'),
+      headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
+      body: jsonEncode({
+        'missionId': missionId,
+        'reason': reason,
+        if (detail != null) 'detail': detail,
+      }),
+    );
+    if (res.statusCode != 202) _throwProblem(res);
+  }
+
   Future<Progress> getMyProgress() async {
     final res = await _client.get(
       _uri('/me/progress'),

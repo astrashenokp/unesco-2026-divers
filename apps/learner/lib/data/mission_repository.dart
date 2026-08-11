@@ -7,6 +7,11 @@ import 'models.dart';
 /// demo mode or talking to a live backend (ROLE_1_FRONTEND_EXPERIENCE.md:
 /// "no raw endpoint calls in widgets").
 abstract class MissionRepository {
+  /// True when nothing leaves the device. The UI uses this to avoid
+  /// promising things a demo cannot deliver — e.g. that a report will
+  /// actually reach a human reviewer.
+  bool get isDemo;
+
   Future<LearningPath> getLearningPath();
   Future<Mission> getMission(String missionId);
   Future<Attempt> startAttempt(String missionId, String missionVersion);
@@ -22,13 +27,24 @@ abstract class MissionRepository {
   );
   Future<Hint> requestHint(String attemptId, String missionId);
   Future<Progress> getMyProgress();
+  Future<Receipt> getReceipt(String receiptId);
+  Future<void> reportContent({
+    required String missionId,
+    required String reason,
+    String? detail,
+  });
 }
 
 /// Fully offline, deterministic — powers the demo-key path
 /// (SCREEN_INVENTORY.md "Demo route"). No network calls at all.
 class DemoMissionRepository implements MissionRepository {
+  @override
+  bool get isDemo => true;
+
   final _attemptState = <String, Attempt>{};
   final _usedActions = <String, Set<String>>{};
+  final _evidenceIds = <String, List<String>>{};
+  final _receipts = <String, Receipt>{};
   var _receiptCounter = 0;
   var _earnedXp = 0;
   final _skillHits = <String, int>{};
@@ -120,13 +136,18 @@ class DemoMissionRepository implements MissionRepository {
     }
     _usedActions.putIfAbsent(attemptId, () => {}).add(actionId);
     final key = '$missionId:$actionId';
-    return demoEvidenceResults[key] ??
+    final result = demoEvidenceResults[key] ??
         EvidenceResult(
           actionId: actionId,
           status: 'not_found',
           items: const [],
           limitations: const ['No demo fixture for this action.'],
         );
+    // Remember what was actually looked at, so the receipt can cite it.
+    _evidenceIds
+        .putIfAbsent(attemptId, () => [])
+        .addAll(result.items.map((i) => i.evidenceId));
+    return result;
   }
 
   @override
@@ -147,8 +168,23 @@ class DemoMissionRepository implements MissionRepository {
       _skillHits[tag] = (_skillHits[tag] ?? 0) + usedCount;
     }
 
+    final receiptId = 'demo-receipt-$_receiptCounter';
+    _receipts[receiptId] = Receipt(
+      id: receiptId,
+      attemptId: attemptId,
+      missionVersion: _attemptState[attemptId]?.missionVersion ?? '1.0.0',
+      assessments: [input.authenticity, input.claimVeracity, input.contextIntegrity],
+      evidenceRefs: List<String>.from(_evidenceIds[attemptId] ?? const []),
+      createdAt: DateTime.now(),
+      // Demo receipts are not signed. The real hash is produced
+      // server-side; inventing a convincing-looking one here would be
+      // exactly the fake-provenance move this product argues against.
+      hash: 'demo-unsigned',
+      disclaimer: 'demo_receipt_disclaimer',
+    );
+
     return (
-      receiptId: 'demo-receipt-$_receiptCounter',
+      receiptId: receiptId,
       xpAwarded: xp,
       progress: _buildProgress(),
     );
@@ -192,6 +228,36 @@ class DemoMissionRepository implements MissionRepository {
     await _pause();
     return _buildProgress();
   }
+
+  @override
+  Future<Receipt> getReceipt(String receiptId) async {
+    await _pause();
+    final receipt = _receipts[receiptId];
+    if (receipt == null) {
+      throw EvidenceGymApiException(
+        Problem(
+          type: 'about:blank',
+          title: 'Receipt not found',
+          status: 404,
+          code: 'demo_receipt_not_found',
+          traceId: 'demo',
+        ),
+      );
+    }
+    return receipt;
+  }
+
+  @override
+  Future<void> reportContent({
+    required String missionId,
+    required String reason,
+    String? detail,
+  }) async {
+    // Demo mode has no moderation queue. The report is accepted and
+    // dropped, exactly as the dialog promises — it never claims a human
+    // has seen it, only that one will once this is connected.
+    await _pause();
+  }
 }
 
 /// Talks to the real API via [EvidenceGymApiClient], generating a fresh
@@ -199,6 +265,9 @@ class DemoMissionRepository implements MissionRepository {
 class LiveMissionRepository implements MissionRepository {
   LiveMissionRepository(this._client);
   final EvidenceGymApiClient _client;
+
+  @override
+  bool get isDemo => false;
 
   @override
   Future<LearningPath> getLearningPath() => _client.getLearningPath();
@@ -253,4 +322,20 @@ class LiveMissionRepository implements MissionRepository {
 
   @override
   Future<Progress> getMyProgress() => _client.getMyProgress();
+
+  @override
+  Future<Receipt> getReceipt(String receiptId) => _client.getReceipt(receiptId);
+
+  @override
+  Future<void> reportContent({
+    required String missionId,
+    required String reason,
+    String? detail,
+  }) =>
+      _client.reportContent(
+        missionId: missionId,
+        reason: reason,
+        detail: detail,
+        idempotencyKey: _client.newIdempotencyKey(),
+      );
 }

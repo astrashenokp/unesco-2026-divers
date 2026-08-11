@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/api_client.dart';
+import '../../app_settings.dart';
 import '../../data/demo_fixtures.dart';
 import '../../data/mission_repository.dart';
 import '../../l10n/strings.dart';
@@ -62,7 +63,10 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
     setState(() => _error = null);
-    _open(DemoMissionRepository());
+    // The settings object is stable for the app's lifetime, so reading
+    // .locale through it later always yields the current language.
+    final settings = AppSettingsScope.of(context);
+    _open(DemoMissionRepository(localeCode: () => settings.locale.languageCode));
   }
 
   @override

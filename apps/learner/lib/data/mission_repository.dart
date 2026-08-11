@@ -38,6 +38,13 @@ abstract class MissionRepository {
 /// Fully offline, deterministic — powers the demo-key path
 /// (SCREEN_INVENTORY.md "Demo route"). No network calls at all.
 class DemoMissionRepository implements MissionRepository {
+  /// Reads the current language at call time rather than at construction,
+  /// so switching language in settings re-localizes the demo content
+  /// without rebuilding the repository.
+  DemoMissionRepository({required this.localeCode});
+
+  final String Function() localeCode;
+
   @override
   bool get isDemo => true;
 
@@ -54,13 +61,13 @@ class DemoMissionRepository implements MissionRepository {
   @override
   Future<LearningPath> getLearningPath() async {
     await _pause();
-    return demoLearningPath;
+    return demoLearningPathFor(localeCode());
   }
 
   @override
   Future<Mission> getMission(String missionId) async {
     await _pause();
-    final mission = demoMissions[missionId];
+    final mission = demoMissionsFor(localeCode())[missionId];
     if (mission == null) {
       throw EvidenceGymApiException(
         const Problem(
@@ -136,7 +143,7 @@ class DemoMissionRepository implements MissionRepository {
     }
     _usedActions.putIfAbsent(attemptId, () => {}).add(actionId);
     final key = '$missionId:$actionId';
-    final result = demoEvidenceResults[key] ??
+    final result = demoEvidenceResultsFor(localeCode())[key] ??
         EvidenceResult(
           actionId: actionId,
           status: 'not_found',
@@ -164,7 +171,7 @@ class DemoMissionRepository implements MissionRepository {
     // Credit the skills the mission actually exercises, so the demo
     // progress screen reflects what the learner just did.
     final missionId = _attemptState[attemptId]?.missionId;
-    for (final tag in demoMissions[missionId]?.skillTags ?? const <String>[]) {
+    for (final tag in demoMissionsFor(localeCode())[missionId]?.skillTags ?? const <String>[]) {
       _skillHits[tag] = (_skillHits[tag] ?? 0) + usedCount;
     }
 
@@ -194,7 +201,7 @@ class DemoMissionRepository implements MissionRepository {
   Future<Hint> requestHint(String attemptId, String missionId) async {
     await _pause();
     final used = _usedActions[attemptId] ?? const <String>{};
-    final mission = demoMissions[missionId];
+    final mission = demoMissionsFor(localeCode())[missionId];
     // Suggest the first action the learner hasn't tried yet, and phrase
     // it as a question — the demo coach must model the same Socratic
     // behaviour as the real one, never hand over a verdict.

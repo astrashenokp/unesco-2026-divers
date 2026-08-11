@@ -1,0 +1,29 @@
+name: evidence_gym_learner
+description: Evidence Gym learner app (Flutter, mobile + web). Role 1 owned.
+version: 0.1.0
+publish_to: "none"
+
+# Flutter 3.29 / Dart 3.7 is the floor because this code uses
+# Color.withValues() and CardThemeData, both of which landed in the
+# Material colour/theme normalization after 3.24.
+environment:
+  sdk: ">=3.7.0 <4.0.0"
+  flutter: ">=3.29.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  design_system:
+    path: ../../packages/design_system
+  http: ^1.2.0
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

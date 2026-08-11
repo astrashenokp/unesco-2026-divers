@@ -31,9 +31,11 @@ Required invariants:
 - `mission_id` and `mission_version` are pinned for the lifetime of an attempt.
 - `version` starts at 1 and every successful domain mutation increments it once.
 - `save(..., expected_version=N)` succeeds only while the stored version is `N`.
-- An idempotency scope is `(learner_id, operation, key)`.
+- An idempotency scope is `(route, learner_id, key)`.
 - Same scope and fingerprint replays the stored original result.
 - Same scope with a different fingerprint is a conflict.
+- Idempotency results expire after 24 hours. After expiry the same key may be
+  reused; Role 4 owns TTL enforcement and the cleanup job.
 - `StartAttempt`: idempotency lookup, exact mission-policy lookup, attempt insert and
   idempotency-result insert share one transaction.
 - `SubmitPrediction`: idempotency lookup, attempt ownership/version validation,
@@ -51,8 +53,7 @@ database errors to callers.
 - Stored result snapshots contain only the domain response required for replay.
 - Authorization must be evaluated before returning any attempt outside its
   learner-scoped idempotency record.
-- Define retention and deletion behavior for attempts and idempotency records
-  before production collection.
+- Delete expired idempotency records without retaining request bodies or tokens.
 
 ## Verification
 
@@ -68,14 +69,14 @@ for rollback, duplicate keys and concurrent stale-version updates.
 
 ## Risks / assumptions
 
-- The scenario schema does not yet expose the documented `critical ignoring`
-  policy; `MissionPolicy.tests_critical_ignoring` must come only from trusted,
-  reviewed, version-pinned content after producer/consumer agreement.
-- Idempotency retention duration is not yet specified.
+- `MissionPolicy.tests_critical_ignoring` maps the reviewed, version-pinned
+  `testsCriticalIgnoring` contract field and must never come from the client.
 - A new idempotency key submitted after a prediction has already succeeded is a
   state conflict, not a replay.
-- The `reflected` transition is intentionally unresolved by the current prose
-  contract.
+- Conclusion uses one atomic transaction. `concluded`, `reflected` and
+  `completed` are internal ordered stages, but no intermediate checkpoint is
+  expected to survive rollback. A same-key retry repeats the transaction; after
+  a successful commit it replays the original completion response.
 
 ## Next
 

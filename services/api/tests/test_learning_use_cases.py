@@ -1,4 +1,5 @@
 import asyncio
+from datetime import timedelta
 
 import pytest
 
@@ -30,6 +31,7 @@ from evidence_gym_api.learning.testing import (
     InMemoryIdempotencyRepository,
     InMemoryMissionPolicyReader,
     InMemoryTransactionManager,
+    FixedClock,
     SequentialAttemptIdGenerator,
 )
 from evidence_gym_api.learning.use_cases import (
@@ -50,21 +52,23 @@ MISSION_ID = MissionId("mission-test-1")
 MISSION_VERSION = MissionVersion("1.2.3")
 
 
-def make_dependencies():
+def make_dependencies(clock: FixedClock | None = None):
     attempts = InMemoryAttemptRepository()
     idempotency = InMemoryIdempotencyRepository()
     missions = InMemoryMissionPolicyReader(
         (MissionPolicy(MISSION_ID, MISSION_VERSION),)
     )
     transactions = InMemoryTransactionManager()
+    clock = clock or FixedClock()
     start = StartAttempt(
         attempts,
         missions,
         idempotency,
         SequentialAttemptIdGenerator(),
         transactions,
+        clock,
     )
-    submit = SubmitPrediction(attempts, idempotency, transactions)
+    submit = SubmitPrediction(attempts, idempotency, transactions, clock)
     return attempts, start, submit
 
 
@@ -111,6 +115,17 @@ def test_start_attempt_replays_same_key_and_rejects_changed_request() -> None:
     )
     with pytest.raises(IdempotencyConflict):
         run(start.execute(LEARNER, changed))
+
+
+def test_idempotency_key_can_be_reused_after_24_hour_retention() -> None:
+    clock = FixedClock()
+    _, start, _ = make_dependencies(clock)
+    first = run(start.execute(LEARNER, start_command()))
+
+    clock.current += timedelta(hours=24)
+    second = run(start.execute(LEARNER, start_command()))
+
+    assert second.id != first.id
 
 
 def test_concurrent_start_retries_create_one_attempt() -> None:
@@ -173,6 +188,16 @@ def test_submit_prediction_rejects_key_reuse_with_changed_payload() -> None:
 
     with pytest.raises(IdempotencyConflict):
         run(submit.execute(LEARNER, prediction_command(attempt.id, confidence=90)))
+
+
+def test_prediction_key_is_scoped_to_route_not_individual_attempt() -> None:
+    _, start, submit = make_dependencies()
+    first = run(start.execute(LEARNER, start_command("start-key-0001")))
+    second = run(start.execute(LEARNER, start_command("start-key-0002")))
+    run(submit.execute(LEARNER, prediction_command(first.id)))
+
+    with pytest.raises(IdempotencyConflict):
+        run(submit.execute(LEARNER, prediction_command(second.id)))
 
 
 def test_submit_prediction_rejects_unknown_attempt() -> None:

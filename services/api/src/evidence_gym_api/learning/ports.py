@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from contextlib import AbstractAsyncContextManager
+from datetime import datetime
 from typing import Protocol
 
 from evidence_gym_api.learning.attempt import Attempt
@@ -24,7 +25,7 @@ class MissionPolicy:
 @dataclass(frozen=True, slots=True)
 class IdempotencyScope:
     learner_id: LearnerId
-    operation: str
+    route: str
     key: IdempotencyKey
 
 
@@ -32,6 +33,7 @@ class IdempotencyScope:
 class StoredAttemptResult:
     request_fingerprint: str
     attempt: Attempt
+    expires_at: datetime
 
 
 class AttemptRepository(Protocol):
@@ -53,7 +55,9 @@ class AttemptIdGenerator(Protocol):
 
 
 class IdempotencyRepository(Protocol):
-    async def get(self, scope: IdempotencyScope) -> StoredAttemptResult | None: ...
+    async def get(
+        self, scope: IdempotencyScope, *, at: datetime
+    ) -> StoredAttemptResult | None: ...
 
     async def put(
         self, scope: IdempotencyScope, result: StoredAttemptResult
@@ -62,3 +66,7 @@ class IdempotencyRepository(Protocol):
 
 class TransactionManager(Protocol):
     def transaction(self) -> AbstractAsyncContextManager[None]: ...
+
+
+class Clock(Protocol):
+    def now(self) -> datetime: ...

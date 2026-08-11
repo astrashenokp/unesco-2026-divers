@@ -5,6 +5,7 @@ Contracts are the shared boundary between four owners. Prose explains intent; ma
 - [API contract](API_CONTRACT.md) → `contracts/openapi.yaml`
 - [Event contracts](EVENT_CONTRACTS.md)
 - [Scenario pack specification](SCENARIO_PACK_SPEC.md) → `contracts/scenario-pack.schema.json` and `contracts/mission-fixture.schema.json`
+- Socratic coach output → `contracts/coach-output.schema.json`
 - [Team contract](TEAM_CONTRACT.md)
 - [Ownership matrix](OWNERSHIP_MATRIX.md)
 - [Definition of Done](DEFINITION_OF_DONE.md)

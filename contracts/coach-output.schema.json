@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://evidence-gym.example.invalid/schemas/coach-output.v1.json",
+  "title": "Evidence Gym Socratic Coach Output",
+  "description": "Structured output contract for bounded AI coaching before it is mapped to the public Hint API response.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "text",
+    "level",
+    "suggestedActionId",
+    "evidenceRefs",
+    "uncertainty",
+    "safetyFlags",
+    "fallback"
+  ],
+  "properties": {
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 600
+    },
+    "level": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "suggestedActionId": {
+      "type": ["string", "null"],
+      "maxLength": 120
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^E-[A-Za-z0-9._-]+$"
+      }
+    },
+    "uncertainty": {
+      "enum": ["low", "medium", "high"]
+    },
+    "safetyFlags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "none",
+          "needs_more_evidence",
+          "possible_leakage",
+          "unsupported_citation",
+          "prompt_injection_detected",
+          "harm_sensitive",
+          "provider_degraded"
+        ]
+      }
+    },
+    "fallback": {
+      "type": "boolean"
+    }
+  }
+}

@@ -11,6 +11,7 @@ from evidence_gym_api.app import create_app
 from conftest import REPOSITORY_ROOT
 
 CONTRACT_PATH = REPOSITORY_ROOT / "contracts" / "openapi.yaml"
+COACH_OUTPUT_SCHEMA_PATH = REPOSITORY_ROOT / "contracts" / "coach-output.schema.json"
 MISSION_FIXTURE_SCHEMA_PATH = (
     REPOSITORY_ROOT / "contracts" / "mission-fixture.schema.json"
 )
@@ -108,7 +109,11 @@ def test_all_local_references_resolve() -> None:
 
 
 def test_json_contracts_parse_as_objects() -> None:
-    for path in (MISSION_FIXTURE_SCHEMA_PATH, SCENARIO_PACK_SCHEMA_PATH):
+    for path in (
+        COACH_OUTPUT_SCHEMA_PATH,
+        MISSION_FIXTURE_SCHEMA_PATH,
+        SCENARIO_PACK_SCHEMA_PATH,
+    ):
         schema = load_json(path)
 
         assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
@@ -133,6 +138,29 @@ def test_mission_fixture_schema_is_strict_demo_contract() -> None:
         "status",
         "items",
         "limitations",
+    ]
+
+
+def test_coach_output_schema_is_bounded_and_policy_visible() -> None:
+    schema = load_json(COACH_OUTPUT_SCHEMA_PATH)
+
+    assert schema["additionalProperties"] is False
+    assert schema["required"] == [
+        "text",
+        "level",
+        "suggestedActionId",
+        "evidenceRefs",
+        "uncertainty",
+        "safetyFlags",
+        "fallback",
+    ]
+    assert schema["properties"]["level"] == {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5,
+    }
+    assert "prompt_injection_detected" in schema["properties"]["safetyFlags"]["items"][
+        "enum"
     ]
 
 

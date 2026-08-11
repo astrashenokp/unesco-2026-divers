@@ -17,3 +17,5 @@ export 'src/components/coach_bubble.dart';
 export 'src/components/skill_meter.dart';
 export 'src/components/reveal_on_scroll.dart';
 export 'src/components/pressable.dart';
+export 'src/components/living_background.dart';
+export 'src/components/path_trail.dart';

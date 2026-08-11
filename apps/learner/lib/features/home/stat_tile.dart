@@ -1,0 +1,99 @@
+import 'package:design_system/design_system.dart';
+import 'package:flutter/material.dart';
+
+/// One number in the path header: XP, streak, or today's goal.
+///
+/// Read-only by design. The streak in particular is never presented as
+/// something at risk — `GAME_AND_LEARNING_DESIGN.md` requires it to be
+/// non-punitive, so there is no countdown, no warning colour, and no
+/// "don't lose it" copy.
+class StatTile extends StatelessWidget {
+  const StatTile({
+    super.key,
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.tint,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color tint;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Semantics(
+      label: '$value $label',
+      child: ExcludeSemantics(
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: tokens.space(1.5),
+            vertical: tokens.space(1),
+          ),
+          decoration: BoxDecoration(
+            color: tokens.surfaceRaised,
+            borderRadius: BorderRadius.circular(tokens.space(1.5)),
+            border: Border.all(color: tint.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: tint),
+              SizedBox(width: tokens.space(1)),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    value,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
+                  Text(label, style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Lupa plus a line of encouragement, used at the top of the path.
+class LupaGreeting extends StatelessWidget {
+  const LupaGreeting({super.key, required this.line, this.size = 84});
+
+  final String line;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Lupa(mood: LupaMood.idle, size: size),
+        SizedBox(width: tokens.space(1.5)),
+        Expanded(
+          child: Semantics(
+            liveRegion: true,
+            child: Container(
+              padding: EdgeInsets.all(tokens.space(1.5)),
+              decoration: BoxDecoration(
+                color: tokens.surfaceRaised,
+                borderRadius: BorderRadius.circular(tokens.space(2)),
+                border: Border.all(color: tokens.action.withValues(alpha: 0.25)),
+              ),
+              child: Text(line, style: Theme.of(context).textTheme.bodyLarge),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

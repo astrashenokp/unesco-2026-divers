@@ -101,6 +101,44 @@ class Strings {
   String get stateAvailable => _s('available', 'доступно');
   String get stateCompleted => _s('completed', 'пройдено');
   String get boosterDue => _s('practice due', 'час повторити');
+  String get lockedReason =>
+      _s('Finish the one before it', 'Заверши попередню');
+
+  // Path header
+  String statXp(int xp) => _s('$xp XP', '$xp XP');
+  String get statXpLabel => _s('earned', 'зароблено');
+  String statStreak(int days) => _s('$days days', '$days дн.');
+  String get statStreakLabel => _s('in a row', 'поспіль');
+  String statGoal(int done, int total) => _s('$done of $total', '$done з $total');
+  String get statGoalLabel => _s('today', 'сьогодні');
+  String pathProgress(int done, int total) =>
+      _s('$done of $total missions done', 'Пройдено $done з $total місій');
+
+  /// What Lupa says on the path screen. Never a verdict, never pressure.
+  String lupaPathLine({required int completed, required int total}) {
+    if (completed == 0) {
+      return _p(
+        'Ready to look closely at something?',
+        'Готова придивитися до чогось уважніше?',
+        'Want to start?',
+        'Хочеш почати?',
+      );
+    }
+    if (completed >= total) {
+      return _p(
+        'You have been through everything here. The habit is the point, not the score.',
+        'Ти пройшла тут усе. Головне — звичка, а не бали.',
+        'You finished everything here.',
+        'Ти пройшла тут усе.',
+      );
+    }
+    return _p(
+      'Nice work. Take the next one whenever you feel like it.',
+      'Гарна робота. Наступну візьми, коли захочеш.',
+      'Good. Next one when you want.',
+      'Добре. Наступна — коли захочеш.',
+    );
+  }
 
   // --------------------------------------------------------------- mission
   String get missionStartError => _s('Couldn\'t start this mission.', 'Не вдалося почати цю місію.');

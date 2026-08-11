@@ -61,7 +61,7 @@ class _HomeShellState extends State<HomeShell> {
 
     if (formFactor.isPhone) {
       return Scaffold(
-        body: SafeArea(child: body),
+        body: LivingBackground(child: SafeArea(child: body)),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _index,
           onDestinationSelected: (i) => setState(() => _index = i),
@@ -101,7 +101,9 @@ class _HomeShellState extends State<HomeShell> {
               ],
             ),
             const VerticalDivider(width: 1),
-            Expanded(child: body),
+            // The background sits behind the content pane only — the rail
+            // keeps a solid surface so its labels stay crisp.
+            Expanded(child: LivingBackground(child: body)),
           ],
         ),
       ),

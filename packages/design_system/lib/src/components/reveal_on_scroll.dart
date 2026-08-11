@@ -36,15 +36,27 @@ class _RevealOnScrollState extends State<RevealOnScroll> {
   @override
   void initState() {
     super.initState();
-    // If we're already on screen at first layout, reveal without waiting
-    // for a scroll event that may never come (short lists, big windows).
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeReveal());
+    // Reveal after the first frame if we're already on screen, and again
+    // shortly after as a safety net: with a staggered list the later
+    // items lay out over several frames, and a missed first check used to
+    // leave them permanently invisible.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _maybeReveal();
+      Future<void>.delayed(const Duration(milliseconds: 120), _maybeReveal);
+    });
   }
 
   void _maybeReveal() {
     if (_revealed || !mounted) return;
     final box = context.findRenderObject() as RenderBox?;
-    if (box == null || !box.hasSize) return;
+    // No render object yet, or a zero-size box: reveal rather than wait.
+    // A page short enough not to scroll produces no scroll notifications,
+    // so anything still hidden here would stay hidden forever — which is
+    // exactly what the first build did on a three-node path.
+    if (box == null || !box.hasSize) {
+      setState(() => _revealed = true);
+      return;
+    }
     final viewportHeight = MediaQuery.sizeOf(context).height;
     final topY = box.localToGlobal(Offset.zero).dy;
     if (topY < viewportHeight * 0.92) {

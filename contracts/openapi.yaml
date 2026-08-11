@@ -70,6 +70,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Attempt' }
+        '404': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/Problem' }
   /attempts/{attemptId}/evidence-actions:
     post:
@@ -94,6 +95,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/EvidenceResult' }
+        '404': { $ref: '#/components/responses/Problem' }
         '429': { $ref: '#/components/responses/Problem' }
   /attempts/{attemptId}/hints:
     post:
@@ -107,6 +109,7 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Hint' }
+        '404': { $ref: '#/components/responses/Problem' }
   /attempts/{attemptId}/conclusion:
     post:
       operationId: completeAttempt
@@ -130,6 +133,7 @@ paths:
                   receiptId: { type: string }
                   xpAwarded: { type: integer, minimum: 0 }
                   progress: { $ref: '#/components/schemas/Progress' }
+        '404': { $ref: '#/components/responses/Problem' }
         '409': { $ref: '#/components/responses/Problem' }
   /receipts/{receiptId}:
     get:
@@ -248,6 +252,7 @@ components:
               type: { type: string }
               label: { type: string }
         skillTags: { type: array, items: { type: string } }
+        testsCriticalIgnoring: { type: boolean, default: false }
     Attempt:
       type: object
       required: [id, missionId, missionVersion, state, version]

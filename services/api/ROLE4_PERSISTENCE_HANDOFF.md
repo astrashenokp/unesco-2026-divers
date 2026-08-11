@@ -68,14 +68,15 @@ for rollback, duplicate keys and concurrent stale-version updates.
 
 ## Risks / assumptions
 
-- The scenario schema does not yet expose the documented `critical ignoring`
-  policy; `MissionPolicy.tests_critical_ignoring` must come only from trusted,
-  reviewed, version-pinned content after producer/consumer agreement.
-- Idempotency retention duration is not yet specified.
+- `MissionPolicy.tests_critical_ignoring` now comes from the version-pinned
+  mission fixture field `testsCriticalIgnoring`, defined by
+  `contracts/mission-fixture.schema.json` and ADR-008. Use only trusted,
+  reviewed, version-pinned content.
+- Idempotency retention is 24 hours per `(route, principal, key)` under ADR-008.
 - A new idempotency key submitted after a prediction has already succeeded is a
   state conflict, not a replay.
-- The `reflected` transition is intentionally unresolved by the current prose
-  contract.
+- `reflected` is resolved by ADR-008 as an internal checkpoint inside
+  `POST /attempts/{id}/conclusion`, not a separate client endpoint.
 
 ## Next
 

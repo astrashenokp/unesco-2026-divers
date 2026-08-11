@@ -1,10 +1,10 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/api_client.dart';
 import '../../data/mission_repository.dart';
 import '../../data/models.dart';
 import '../../l10n/strings.dart';
+import '../common/failure_view.dart';
 import '../mission/mission_screen.dart';
 
 /// The skill path — the winding, Duolingo-style map of missions.
@@ -61,23 +61,10 @@ class _PathScreenState extends State<PathScreen> {
         }
 
         if (snapshot.hasError) {
-          final message = snapshot.error is EvidenceGymApiException
-              ? (snapshot.error! as EvidenceGymApiException).problem.title
-              : s.pathError;
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.all(tokens.space(3)),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Lupa(mood: LupaMood.thinking, size: 80),
-                  SizedBox(height: tokens.space(2)),
-                  Text(message, textAlign: TextAlign.center),
-                  SizedBox(height: tokens.space(2)),
-                  ElevatedButton(onPressed: _retry, child: Text(s.retry)),
-                ],
-              ),
-            ),
+          return FailureView(
+            error: snapshot.error,
+            onRetry: _retry,
+            isDemo: widget.repository.isDemo,
           );
         }
 

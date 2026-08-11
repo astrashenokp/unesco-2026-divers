@@ -15,6 +15,12 @@ class EvidenceGymApiException implements Exception {
   bool get isConflict => problem.status == 409;
   bool get isRateLimited => problem.status == 429;
 
+  /// The request never reached a server. Status 0 is not a real HTTP
+  /// status — it is this client's marker for "no answer at all", which
+  /// the UI must present as a connection problem rather than as
+  /// something the server said.
+  bool get isOffline => problem.status == 0;
+
   @override
   String toString() => 'EvidenceGymApiException(${problem.status} ${problem.code})';
 }
@@ -55,6 +61,31 @@ class EvidenceGymApiClient {
 
   Uri _uri(String path) => baseUrl.resolve('v1$path');
 
+  /// Runs an HTTP call and converts a transport failure into a Problem.
+  ///
+  /// Anything that is not already an [EvidenceGymApiException] — DNS
+  /// failure, no route, TLS error, timeout — becomes `status: 0`. This
+  /// deliberately avoids `dart:io`'s `SocketException`, which does not
+  /// exist on web; `http` surfaces its own `ClientException` there, and
+  /// catching broadly covers both without a platform split.
+  Future<http.Response> _send(Future<http.Response> Function() call) async {
+    try {
+      return await call();
+    } on EvidenceGymApiException {
+      rethrow;
+    } catch (_) {
+      throw EvidenceGymApiException(
+        const Problem(
+          type: 'about:blank',
+          title: 'No connection',
+          status: 0,
+          code: 'network_unreachable',
+          traceId: 'local',
+        ),
+      );
+    }
+  }
+
   Never _throwProblem(http.Response response) {
     Map<String, dynamic> body;
     try {
@@ -67,13 +98,13 @@ class EvidenceGymApiClient {
   }
 
   Future<LearningPath> getLearningPath() async {
-    final res = await _client.get(_uri('/catalog/path'));
+    final res = await _send(() async => _client.get(_uri('/catalog/path')));
     if (res.statusCode != 200) _throwProblem(res);
     return LearningPath.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
 
   Future<Mission> getMission(String missionId) async {
-    final res = await _client.get(_uri('/missions/$missionId'));
+    final res = await _send(() async => _client.get(_uri('/missions/$missionId')));
     if (res.statusCode != 200) _throwProblem(res);
     return Mission.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
@@ -83,11 +114,11 @@ class EvidenceGymApiClient {
     required String missionVersion,
     required String idempotencyKey,
   }) async {
-    final res = await _client.post(
+    final res = await _send(() async => _client.post(
       _uri('/attempts'),
       headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
       body: jsonEncode({'missionId': missionId, 'missionVersion': missionVersion}),
-    );
+    ));
     if (res.statusCode != 201) _throwProblem(res);
     return Attempt.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
@@ -97,11 +128,11 @@ class EvidenceGymApiClient {
     required PredictionInput input,
     required String idempotencyKey,
   }) async {
-    final res = await _client.post(
+    final res = await _send(() async => _client.post(
       _uri('/attempts/$attemptId/prediction'),
       headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
       body: jsonEncode(input.toJson()),
-    );
+    ));
     if (res.statusCode != 200) _throwProblem(res);
     return Attempt.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
@@ -112,11 +143,11 @@ class EvidenceGymApiClient {
     Map<String, dynamic>? input,
     required String idempotencyKey,
   }) async {
-    final res = await _client.post(
+    final res = await _send(() async => _client.post(
       _uri('/attempts/$attemptId/evidence-actions'),
       headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
       body: jsonEncode({'actionId': actionId, if (input != null) 'input': input}),
-    );
+    ));
     if (res.statusCode != 200) _throwProblem(res);
     return EvidenceResult.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
@@ -125,10 +156,10 @@ class EvidenceGymApiClient {
     required String attemptId,
     required String idempotencyKey,
   }) async {
-    final res = await _client.post(
+    final res = await _send(() async => _client.post(
       _uri('/attempts/$attemptId/hints'),
       headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
-    );
+    ));
     if (res.statusCode != 200) _throwProblem(res);
     return Hint.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
@@ -141,11 +172,11 @@ class EvidenceGymApiClient {
     required ConclusionInput input,
     required String idempotencyKey,
   }) async {
-    final res = await _client.post(
+    final res = await _send(() async => _client.post(
       _uri('/attempts/$attemptId/conclusion'),
       headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
       body: jsonEncode(input.toJson()),
-    );
+    ));
     if (res.statusCode != 200) _throwProblem(res);
     final json = jsonDecode(res.body) as Map<String, dynamic>;
     return (
@@ -156,10 +187,10 @@ class EvidenceGymApiClient {
   }
 
   Future<Receipt> getReceipt(String receiptId) async {
-    final res = await _client.get(
+    final res = await _send(() async => _client.get(
       _uri('/receipts/$receiptId'),
       headers: await _headers(withIdempotencyKey: false),
-    );
+    ));
     if (res.statusCode != 200) _throwProblem(res);
     return Receipt.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }
@@ -173,7 +204,7 @@ class EvidenceGymApiClient {
     String? detail,
     required String idempotencyKey,
   }) async {
-    final res = await _client.post(
+    final res = await _send(() async => _client.post(
       _uri('/reports'),
       headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
       body: jsonEncode({
@@ -181,15 +212,15 @@ class EvidenceGymApiClient {
         'reason': reason,
         if (detail != null) 'detail': detail,
       }),
-    );
+    ));
     if (res.statusCode != 202) _throwProblem(res);
   }
 
   Future<Progress> getMyProgress() async {
-    final res = await _client.get(
+    final res = await _send(() async => _client.get(
       _uri('/me/progress'),
       headers: await _headers(withIdempotencyKey: false),
-    );
+    ));
     if (res.statusCode != 200) _throwProblem(res);
     return Progress.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
   }

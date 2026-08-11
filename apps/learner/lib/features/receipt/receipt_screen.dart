@@ -1,11 +1,11 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/api_client.dart';
 import '../../data/mission_repository.dart';
 import '../../data/models.dart';
 import '../../l10n/axis_localization.dart';
 import '../../l10n/strings.dart';
+import '../common/failure_view.dart';
 
 /// The Evidence Receipt: a reproducible record of how one attempt was
 /// investigated, pinned to the exact mission version.
@@ -56,21 +56,10 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             );
           }
           if (snapshot.hasError) {
-            final message = snapshot.error is EvidenceGymApiException
-                ? (snapshot.error! as EvidenceGymApiException).problem.title
-                : s.pathError;
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(tokens.space(3)),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(message, textAlign: TextAlign.center),
-                    SizedBox(height: tokens.space(2)),
-                    ElevatedButton(onPressed: _retry, child: Text(s.retry)),
-                  ],
-                ),
-              ),
+            return FailureView(
+              error: snapshot.error,
+              onRetry: _retry,
+              isDemo: widget.repository.isDemo,
             );
           }
 

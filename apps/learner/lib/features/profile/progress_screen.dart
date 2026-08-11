@@ -1,10 +1,10 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/api_client.dart';
 import '../../data/mission_repository.dart';
 import '../../data/models.dart';
 import '../../l10n/strings.dart';
+import '../common/failure_view.dart';
 
 /// Skill mastery and process XP.
 ///
@@ -46,10 +46,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
           );
         }
         if (snapshot.hasError) {
-          final message = snapshot.error is EvidenceGymApiException
-              ? (snapshot.error! as EvidenceGymApiException).problem.title
-              : s.pathError;
-          return _ErrorState(message: message, retryLabel: s.retry, onRetry: _retry);
+          return FailureView(
+            error: snapshot.error,
+            onRetry: _retry,
+            isDemo: widget.repository.isDemo,
+          );
         }
 
         final progress = snapshot.data!;
@@ -101,34 +102,3 @@ class _ProgressScreenState extends State<ProgressScreen> {
   }
 }
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({
-    required this.message,
-    required this.retryLabel,
-    required this.onRetry,
-  });
-
-  final String message;
-  final String retryLabel;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(tokens.space(3)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Lupa(mood: LupaMood.thinking, size: 80),
-            SizedBox(height: tokens.space(2)),
-            Text(message, textAlign: TextAlign.center),
-            SizedBox(height: tokens.space(2)),
-            ElevatedButton(onPressed: onRetry, child: Text(retryLabel)),
-          ],
-        ),
-      ),
-    );
-  }
-}

@@ -6,6 +6,7 @@ import '../../data/mission_repository.dart';
 import '../../data/models.dart';
 import '../../l10n/axis_localization.dart';
 import '../../l10n/strings.dart';
+import '../common/failure_view.dart';
 import '../receipt/receipt_screen.dart';
 import '../report/report_dialog.dart';
 
@@ -199,14 +200,10 @@ class _MissionScreenState extends State<MissionScreen> {
             );
           }
           if (snapshot.hasError) {
-            final message = snapshot.error is EvidenceGymApiException
-                ? (snapshot.error! as EvidenceGymApiException).problem.title
-                : s.missionStartError;
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(tokens.space(3)),
-                child: Text(message, textAlign: TextAlign.center),
-              ),
+            return FailureView(
+              error: snapshot.error,
+              onRetry: () => setState(() => _bootstrapFuture = _bootstrap()),
+              isDemo: widget.repository.isDemo,
             );
           }
 

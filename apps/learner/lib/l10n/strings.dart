@@ -358,8 +358,19 @@ class Strings {
 
   // -------------------------------------------------------------- a11y/etc
   String get demoBadge => _s('DEMO DATA', 'ДЕМО-ДАНІ');
-  String get offlineBanner => _s(
-        'You\'re offline. You can keep going with the downloaded pack.',
-        'Ти офлайн. Можеш продовжувати із завантаженим паком.',
+
+  /// Shown when a request never reached a server. Deliberately does not
+  /// blame the learner's connection outright — the server may equally be
+  /// down — and does not promise offline content we have not downloaded.
+  String get offlineTitle => _s('No connection', 'Немає з\'єднання');
+  String get offlineBody => _s(
+        'We couldn\'t reach the server. Your progress on this screen is safe — '
+            'try again when you\'re back online.',
+        'Не вдалося зв\'язатися із сервером. Твій прогрес на цьому екрані '
+            'збережено — спробуй ще раз, коли з\'явиться мережа.',
+      );
+  String get offlineDemoHint => _s(
+        'The demo pack works fully offline.',
+        'Демо-пак працює повністю офлайн.',
       );
 }

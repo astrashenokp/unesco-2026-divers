@@ -250,8 +250,9 @@ Tick these before calling the client demo-ready.
 - [ ] `flutter analyze` clean — **not yet run**
 - [ ] Verified at 200% text on a real device
 - [ ] Verified with a screen reader (TalkBack / VoiceOver)
+- [x] A connection failure is presented as a connection failure, never as something the server said
 - [ ] Guest auth actually authenticates
 - [ ] Settings persist across restart
-- [ ] Offline/degraded banner implemented
+- [ ] Offline *pack download* (P1) — the banner exists; downloadable content does not
 
 The unticked items are the honest gap list. Nothing above should be described as done until it is ticked.

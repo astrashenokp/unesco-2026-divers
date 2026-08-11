@@ -124,6 +124,7 @@ class Strings {
   String get startInvestigating => _s('Start investigating', 'Почати перевірку');
   String get investigateTitle => _s('Investigate', 'Перевірка');
   String get whatYouFound => _s('What you found', 'Що ти знайшла');
+  String propUsed(String label) => _s('$label, already checked', '$label, вже перевірено');
   String get notFoundInSources =>
       _s('Not found in the queried sources.', 'Не знайдено в перевірених джерелах.');
   String get conclude => _s('Draw a conclusion', 'Зробити висновок');

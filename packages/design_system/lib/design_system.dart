@@ -11,6 +11,7 @@ export 'src/components/three_axis_chip.dart';
 export 'src/components/confidence_slider.dart';
 export 'src/components/mission_card.dart';
 export 'src/components/evidence_action_chip.dart';
+export 'src/components/prop_tile.dart';
 export 'src/components/path_node.dart';
 export 'src/components/coach_bubble.dart';
 export 'src/components/skill_meter.dart';

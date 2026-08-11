@@ -548,14 +548,20 @@ class _InvestigatingStep extends StatelessWidget {
         children: [
           Text(s.investigateTitle, style: Theme.of(context).textTheme.titleLarge),
           const SectionRule(),
+          // The checks are objects the learner picks up, not a toolbar.
           Wrap(
-            spacing: tokens.space(1),
-            runSpacing: tokens.space(1),
+            spacing: tokens.space(1.5),
+            runSpacing: tokens.space(1.5),
             children: [
-              for (final action in mission.evidenceActions)
-                EvidenceActionChip(
+              for (final (index, action) in mission.evidenceActions.indexed)
+                PropTile(
+                  prop: propForActionType(action.type),
                   label: action.label,
+                  semanticLabel: collected.containsKey(action.id)
+                      ? s.propUsed(action.label)
+                      : action.label,
                   used: collected.containsKey(action.id),
+                  delayIndex: index,
                   onTap: () => onAction(action),
                 ),
             ],

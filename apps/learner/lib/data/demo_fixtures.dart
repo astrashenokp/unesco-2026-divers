@@ -7,10 +7,10 @@ import 'models.dart';
 /// SCREEN_INVENTORY.md ("Demo route").
 const demoAccessKey = 'EVIDENCE-GYM-DEMO';
 
-final demoLearningPath = LearningPath(
+const demoLearningPath = LearningPath(
   version: '2026.08.0-demo',
   locale: 'en',
-  nodes: const [
+  nodes: [
     LearningPathNode(missionId: 'viral-flood-photo', title: 'The flood photo', state: 'available'),
     LearningPathNode(missionId: 'citation-hunt-01', title: 'The suspicious citation', state: 'locked'),
     LearningPathNode(missionId: 'context-swap-01', title: 'Old clip, new caption', state: 'locked'),
@@ -18,26 +18,26 @@ final demoLearningPath = LearningPath(
 );
 
 final demoMissions = <String, Mission>{
-  'viral-flood-photo': Mission(
+  'viral-flood-photo': const Mission(
     id: 'viral-flood-photo',
     version: '1.0.0',
     title: 'The flood photo',
     claim:
         'A photo circulating online claims to show flooding in your region '
         'from this week\'s storm.',
-    media: const MissionMedia(
+    media: MissionMedia(
       type: 'image',
       altText:
           'A dramatic photo of a flooded city street with a partially submerged car.',
     ),
-    reactions: const ['trust', 'suspicious', 'investigate'],
-    evidenceActions: const [
+    reactions: ['trust', 'suspicious', 'investigate'],
+    evidenceActions: [
       EvidenceActionSpec(id: 'check_source', type: 'source', label: 'Check the source'),
       EvidenceActionSpec(id: 'check_date', type: 'date', label: 'Check the date'),
       EvidenceActionSpec(id: 'reverse_search', type: 'provenance', label: 'Reverse image search'),
       EvidenceActionSpec(id: 'check_corroboration', type: 'corroboration', label: 'Find other reports'),
     ],
-    skillTags: const ['source_identity', 'context_time_place', 'provenance'],
+    skillTags: ['source_identity', 'context_time_place', 'provenance'],
   ),
 };
 

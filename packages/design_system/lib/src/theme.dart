@@ -1,3 +1,7 @@
+// Scoped import: the iOS/macOS transition lives in cupertino, not
+// material, and importing cupertino wholesale would make several names
+// ambiguous against material.
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 import 'tokens.dart';

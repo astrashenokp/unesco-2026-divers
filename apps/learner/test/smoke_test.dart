@@ -7,10 +7,21 @@ import 'package:flutter_test/flutter_test.dart';
 
 AppSettings _english() => AppSettings(locale: const Locale('en'));
 
+/// Lupa and Slid animate continuously by design, so `pumpAndSettle` never
+/// returns — it waits for a frame-idle that will not come. Pump a bounded
+/// number of frames instead, which is long enough to cover a route
+/// transition plus the demo repository's simulated latency.
+Future<void> _settle(WidgetTester tester) async {
+  await tester.pump();
+  for (var i = 0; i < 4; i++) {
+    await tester.pump(const Duration(milliseconds: 400));
+  }
+}
+
 void main() {
   testWidgets('onboarding shows the first slide in the selected language', (tester) async {
     await tester.pumpWidget(EvidenceGymApp(settings: _english()));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.text('Investigate, don\'t guess.'), findsOneWidget);
     expect(find.text('Skip'), findsOneWidget);
@@ -18,17 +29,17 @@ void main() {
 
   testWidgets('defaults to Ukrainian', (tester) async {
     await tester.pumpWidget(const EvidenceGymApp());
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.text('Перевіряй, а не вгадуй.'), findsOneWidget);
   });
 
   testWidgets('Skip reaches the auth screen', (tester) async {
     await tester.pumpWidget(EvidenceGymApp(settings: _english()));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     await tester.tap(find.text('Skip'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.text('Continue as guest'), findsOneWidget);
     expect(find.text('Enter demo'), findsOneWidget);
@@ -36,13 +47,13 @@ void main() {
 
   testWidgets('a wrong demo key is rejected and does not navigate', (tester) async {
     await tester.pumpWidget(EvidenceGymApp(settings: _english()));
-    await tester.pumpAndSettle();
+    await _settle(tester);
     await tester.tap(find.text('Skip'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     await tester.enterText(find.byType(TextField), 'NOPE');
     await tester.tap(find.text('Enter demo'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.textContaining(demoAccessKey), findsOneWidget);
     expect(find.text('Your path'), findsNothing);
@@ -50,21 +61,22 @@ void main() {
 
   testWidgets('the demo key opens the path with the demo pack', (tester) async {
     await tester.pumpWidget(EvidenceGymApp(settings: _english()));
-    await tester.pumpAndSettle();
+    await _settle(tester);
     await tester.tap(find.text('Skip'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     await tester.enterText(find.byType(TextField), demoAccessKey);
     await tester.tap(find.text('Enter demo'));
-    await tester.pumpAndSettle();
+    await _settle(tester);
 
     expect(find.text('Your path'), findsOneWidget);
     expect(find.text('The flood photo'), findsWidgets);
   });
 
-  testWidgets('every axis offers an explicit uncertainty answer', (tester) async {
-    // "Insufficient evidence" being selectable is a product invariant, not
-    // a nicety: CONCEPT.md treats it as a first-class outcome.
+  test('every axis offers an explicit uncertainty answer', () {
+    // A product invariant, not a nicety: CONCEPT.md treats "insufficient
+    // evidence" as a first-class outcome, so no axis may force the
+    // learner into a confident answer.
     for (final axis in AxisKind.values) {
       expect(
         axisOptionCodes(axis).any((o) => o.tone == AxisTone.unknown),

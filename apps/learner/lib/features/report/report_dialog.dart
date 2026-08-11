@@ -104,15 +104,25 @@ class _ReportDialogState extends State<_ReportDialog> {
           children: [
             Text(s.reportReason, style: Theme.of(context).textTheme.bodyMedium),
             SizedBox(height: tokens.space(1)),
-            for (final entry in reasons.entries)
-              RadioListTile<String>(
-                value: entry.key,
-                groupValue: _reason,
-                onChanged: (v) => setState(() => _reason = v),
-                title: Text(entry.value),
-                contentPadding: EdgeInsets.zero,
-                dense: true,
+            // RadioGroup owns the selection; per-tile groupValue/onChanged
+            // were deprecated after 3.32. The ancestor also gives the set
+            // proper radio-group semantics for a screen reader.
+            RadioGroup<String>(
+              groupValue: _reason,
+              onChanged: (v) => setState(() => _reason = v),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final entry in reasons.entries)
+                    RadioListTile<String>(
+                      value: entry.key,
+                      title: Text(entry.value),
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                    ),
+                ],
               ),
+            ),
             SizedBox(height: tokens.space(1)),
             TextField(
               controller: _detailController,

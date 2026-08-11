@@ -63,7 +63,7 @@ class DemoMissionRepository implements MissionRepository {
     final mission = demoMissions[missionId];
     if (mission == null) {
       throw EvidenceGymApiException(
-        Problem(
+        const Problem(
           type: 'about:blank',
           title: 'Mission not found in demo pack',
           status: 404,
@@ -97,7 +97,7 @@ class DemoMissionRepository implements MissionRepository {
     final current = _attemptState[attemptId];
     if (current == null) {
       throw EvidenceGymApiException(
-        Problem(
+        const Problem(
           type: 'about:blank',
           title: 'Attempt not found',
           status: 404,
@@ -235,7 +235,7 @@ class DemoMissionRepository implements MissionRepository {
     final receipt = _receipts[receiptId];
     if (receipt == null) {
       throw EvidenceGymApiException(
-        Problem(
+        const Problem(
           type: 'about:blank',
           title: 'Receipt not found',
           status: 404,

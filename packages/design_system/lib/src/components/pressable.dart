@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../tokens.dart';
-
 /// Wraps any tappable surface with the 120ms press-scale described in the
 /// motion language. Purely tactile: it adds no semantics of its own, so
 /// the wrapped child must still carry its own button semantics.
@@ -21,7 +19,6 @@ class _PressableState extends State<Pressable> {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
     final reduceMotion = MediaQuery.of(context).disableAnimations;
     final enabled = widget.onTap != null;
 

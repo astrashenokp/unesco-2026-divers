@@ -1,0 +1,482 @@
+{
+  "schemaVersion": 1,
+  "id": "authentic-media-wrong-context",
+  "version": "0.1.0",
+  "locale": "en",
+  "title": "Real Image, Wrong Story",
+  "testsCriticalIgnoring": false,
+  "learning": {
+    "objective": "Practice separating media authenticity from claim veracity and context integrity when a real-looking flood image is shared with an urgent caption.",
+    "skillTags": [
+      "source_identity",
+      "primary_source",
+      "corroboration",
+      "context_time_place",
+      "provenance",
+      "uncertainty",
+      "responsible_sharing"
+    ],
+    "priorKnowledge": "Learners know that images can be reposted outside their original time and place.",
+    "likelyMisconception": "If a photo looks authentic, the caption must be trustworthy.",
+    "responsibleSharingGoal": "Do not amplify an urgent claim until source, date, place, and independent context are checked."
+  },
+  "presentation": {
+    "claim": "Breaking: central Munich is flooding right now after a dam failure, with hundreds injured.",
+    "context": "A dramatic flood image appears in a fast-moving group chat. The caption asks people to repost immediately.",
+    "media": {
+      "type": "image",
+      "url": "asset://p0-demo/media/flood-context-card.jpg",
+      "altText": "A street-level flood scene with cars partly submerged and people standing near high water."
+    },
+    "allowedReactions": [
+      "trust",
+      "suspicious",
+      "investigate"
+    ],
+    "initialConfidencePrompt": "Before investigating, how confident are you that the caption is accurate?",
+    "conclusionPrompt": "After checking evidence, assess the image, the claim, and the context separately."
+  },
+  "evidenceActions": [
+    {
+      "id": "action-source-identity",
+      "type": "source_identity",
+      "label": "Check original poster",
+      "description": "Inspect whether the account is the original source or only reposting an unattributed image.",
+      "skillTags": [
+        "source_identity"
+      ],
+      "cost": 1,
+      "deterministicResponse": {
+        "actionId": "action-source-identity",
+        "status": "ok",
+        "items": [
+          {
+            "evidenceId": "E-POST-REPOST",
+            "type": "post",
+            "title": "Repost account with no original media attribution",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "curated"
+          }
+        ],
+        "limitations": [
+          "A repost alone does not prove the claim false, but it weakens source identity."
+        ]
+      }
+    },
+    {
+      "id": "action-provenance-scan",
+      "type": "provenance",
+      "label": "Scan provenance",
+      "description": "Check whether the image has preserved origin metadata or content credentials.",
+      "skillTags": [
+        "provenance"
+      ],
+      "cost": 1,
+      "deterministicResponse": {
+        "actionId": "action-provenance-scan",
+        "status": "ok",
+        "items": [
+          {
+            "evidenceId": "E-MEDIA-METADATA",
+            "type": "metadata",
+            "title": "Camera-origin demo metadata packet",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "verified_metadata"
+          }
+        ],
+        "limitations": [
+          "Metadata supports origin history, not whether the caption is true."
+        ]
+      }
+    },
+    {
+      "id": "action-primary-source",
+      "type": "primary_source",
+      "label": "Trace earliest source",
+      "description": "Look for the earliest known appearance of the image in the reviewed source packet.",
+      "skillTags": [
+        "primary_source",
+        "context_time_place"
+      ],
+      "cost": 2,
+      "deterministicResponse": {
+        "actionId": "action-primary-source",
+        "status": "ok",
+        "items": [
+          {
+            "evidenceId": "E-ORIGINAL-CAPTION",
+            "type": "source_note",
+            "title": "Original caption places the image in Riverbend City, May 2023",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "curated"
+          }
+        ],
+        "limitations": [
+          "This demo source packet is deterministic and must be replaced with independently reviewed media before public publication."
+        ]
+      }
+    },
+    {
+      "id": "action-context-check",
+      "type": "context_time_place",
+      "label": "Check time and place",
+      "description": "Compare the caption's time and location with curated context records.",
+      "skillTags": [
+        "context_time_place",
+        "corroboration"
+      ],
+      "cost": 2,
+      "deterministicResponse": {
+        "actionId": "action-context-check",
+        "status": "ok",
+        "items": [
+          {
+            "evidenceId": "E-MUNICH-NO-MATCH",
+            "type": "source_note",
+            "title": "Demo municipal bulletin has no matching Munich flood alert",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "curated"
+          }
+        ],
+        "limitations": [
+          "Absence in one curated bulletin is not universal proof; it should be weighed with the original source trace."
+        ]
+      }
+    },
+    {
+      "id": "action-corroboration",
+      "type": "corroboration",
+      "label": "Look for independent confirmation",
+      "description": "Check whether independent reviewed sources support the urgent caption.",
+      "skillTags": [
+        "corroboration",
+        "uncertainty"
+      ],
+      "cost": 2,
+      "deterministicResponse": {
+        "actionId": "action-corroboration",
+        "status": "ok",
+        "items": [
+          {
+            "evidenceId": "E-INDEPENDENT-CONTEXT",
+            "type": "source_note",
+            "title": "Independent demo context supports old-location explanation",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "curated"
+          }
+        ],
+        "limitations": [
+          "Independent corroboration here concerns the demo packet, not a live emergency feed."
+        ]
+      }
+    }
+  ],
+  "goldEvidenceGraph": {
+    "evidence": [
+      {
+        "evidenceId": "E-POST-REPOST",
+        "type": "post",
+        "title": "Repost account with no original media attribution",
+        "source": {
+          "sourceType": "team_fixture",
+          "publisher": "Evidence Gym P0 demo source packet",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "team_created"
+          },
+          "limitations": [
+            "Training fixture, not a public fact-check record."
+          ]
+        },
+        "claimRelationship": "contextualizes",
+        "limitations": [
+          "Reposting behavior is a source-quality clue, not a verdict."
+        ]
+      },
+      {
+        "evidenceId": "E-MEDIA-METADATA",
+        "type": "metadata",
+        "title": "Camera-origin demo metadata packet",
+        "source": {
+          "sourceType": "team_fixture",
+          "publisher": "Evidence Gym P0 demo source packet",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "metadata_only"
+          },
+          "limitations": [
+            "Provenance metadata does not establish the caption's truth."
+          ]
+        },
+        "claimRelationship": "contextualizes",
+        "limitations": [
+          "Authenticity and veracity remain separate axes."
+        ]
+      },
+      {
+        "evidenceId": "E-ORIGINAL-CAPTION",
+        "type": "source_note",
+        "title": "Original caption places the image in Riverbend City, May 2023",
+        "source": {
+          "sourceType": "team_fixture",
+          "publisher": "Evidence Gym P0 demo source packet",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "team_created"
+          },
+          "limitations": [
+            "Fictionalized safe training packet for deterministic demo."
+          ]
+        },
+        "claimRelationship": "contradicts",
+        "limitations": [
+          "The old-location record contradicts the Munich-right-now framing."
+        ]
+      },
+      {
+        "evidenceId": "E-MUNICH-NO-MATCH",
+        "type": "source_note",
+        "title": "Demo municipal bulletin has no matching Munich flood alert",
+        "source": {
+          "sourceType": "team_fixture",
+          "publisher": "Evidence Gym P0 demo source packet",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "team_created"
+          },
+          "limitations": [
+            "Not a live official emergency source."
+          ]
+        },
+        "claimRelationship": "does_not_establish",
+        "limitations": [
+          "This narrows confidence but should not be treated as universal proof alone."
+        ]
+      },
+      {
+        "evidenceId": "E-INDEPENDENT-CONTEXT",
+        "type": "source_note",
+        "title": "Independent demo context supports old-location explanation",
+        "source": {
+          "sourceType": "team_fixture",
+          "publisher": "Evidence Gym P0 demo source packet",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "team_created"
+          },
+          "limitations": [
+            "Training corroboration, not a live web result."
+          ]
+        },
+        "claimRelationship": "contradicts",
+        "limitations": [
+          "Corroborates the context mismatch."
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "fromEvidenceId": "E-ORIGINAL-CAPTION",
+        "toEvidenceId": "E-INDEPENDENT-CONTEXT",
+        "relationship": "independent_corroboration"
+      },
+      {
+        "fromEvidenceId": "E-MEDIA-METADATA",
+        "toEvidenceId": "E-ORIGINAL-CAPTION",
+        "relationship": "supports_context"
+      },
+      {
+        "fromEvidenceId": "E-POST-REPOST",
+        "toEvidenceId": "E-ORIGINAL-CAPTION",
+        "relationship": "limits"
+      }
+    ],
+    "limitations": [
+      "This is a deterministic P0 fixture. Public release requires replacing demo source notes with reviewed, licensed evidence."
+    ]
+  },
+  "acceptedAssessments": {
+    "authenticity": {
+      "acceptedLabels": [
+        "authentic"
+      ],
+      "confidenceRange": {
+        "minimum": 60,
+        "maximum": 100
+      },
+      "rationaleEvidenceRefs": [
+        "E-MEDIA-METADATA"
+      ]
+    },
+    "claimVeracity": {
+      "acceptedLabels": [
+        "contradicted",
+        "unsupported"
+      ],
+      "confidenceRange": {
+        "minimum": 55,
+        "maximum": 100
+      },
+      "rationaleEvidenceRefs": [
+        "E-ORIGINAL-CAPTION",
+        "E-INDEPENDENT-CONTEXT"
+      ]
+    },
+    "contextIntegrity": {
+      "acceptedLabels": [
+        "misleading_context"
+      ],
+      "confidenceRange": {
+        "minimum": 65,
+        "maximum": 100
+      },
+      "rationaleEvidenceRefs": [
+        "E-ORIGINAL-CAPTION",
+        "E-MUNICH-NO-MATCH",
+        "E-INDEPENDENT-CONTEXT"
+      ]
+    }
+  },
+  "hintLadder": [
+    {
+      "level": 1,
+      "text": "What would you need to know before reposting an urgent image like this?",
+      "allowedBeforeConclusion": true,
+      "suggestedActionId": null,
+      "evidenceRefs": [],
+      "uncertainty": "high"
+    },
+    {
+      "level": 2,
+      "text": "Try separating the image from the caption. Which part can be checked first?",
+      "allowedBeforeConclusion": true,
+      "suggestedActionId": "action-provenance-scan",
+      "evidenceRefs": [],
+      "uncertainty": "high"
+    },
+    {
+      "level": 3,
+      "text": "A real image can still be reused with a wrong time or place. Trace the earliest source.",
+      "allowedBeforeConclusion": true,
+      "suggestedActionId": "action-primary-source",
+      "evidenceRefs": [
+        "E-MEDIA-METADATA"
+      ],
+      "uncertainty": "medium"
+    },
+    {
+      "level": 4,
+      "text": "The reviewed source packet points to an older Riverbend City context, so check whether the Munich caption has independent support.",
+      "allowedBeforeConclusion": true,
+      "suggestedActionId": "action-corroboration",
+      "evidenceRefs": [
+        "E-ORIGINAL-CAPTION"
+      ],
+      "uncertainty": "medium"
+    },
+    {
+      "level": 5,
+      "text": "After conclusion, compare your axes: the image can be authentic while the caption's time and place are misleading.",
+      "allowedBeforeConclusion": false,
+      "suggestedActionId": null,
+      "evidenceRefs": [
+        "E-MEDIA-METADATA",
+        "E-ORIGINAL-CAPTION",
+        "E-INDEPENDENT-CONTEXT"
+      ],
+      "uncertainty": "low"
+    }
+  ],
+  "forbiddenLeakageTerms": [
+    "the answer is false",
+    "final verdict",
+    "gold label"
+  ],
+  "rubric": {
+    "processLevels": [
+      {
+        "level": 0,
+        "criteria": "Concludes from instinct or visual appearance only.",
+        "xpGuidance": 1,
+        "skillTags": []
+      },
+      {
+        "level": 1,
+        "criteria": "Checks source identity or provenance but does not test context.",
+        "xpGuidance": 2,
+        "skillTags": [
+          "source_identity",
+          "provenance"
+        ]
+      },
+      {
+        "level": 2,
+        "criteria": "Finds the earlier source or date/place mismatch.",
+        "xpGuidance": 4,
+        "skillTags": [
+          "primary_source",
+          "context_time_place"
+        ]
+      },
+      {
+        "level": 3,
+        "criteria": "Corroborates context independently and separates media from caption.",
+        "xpGuidance": 6,
+        "skillTags": [
+          "corroboration",
+          "uncertainty"
+        ]
+      },
+      {
+        "level": 4,
+        "criteria": "Makes a calibrated three-axis conclusion and chooses a responsible share decision.",
+        "xpGuidance": 8,
+        "skillTags": [
+          "responsible_sharing",
+          "uncertainty"
+        ]
+      }
+    ],
+    "confidenceCalibration": "Reward justified confidence updates when learners move from visual certainty to evidence-based uncertainty or correction.",
+    "minimumCompletionEvidence": 1
+  },
+  "safety": {
+    "minimumAge": 16,
+    "contentWarnings": [
+      "natural-disaster"
+    ],
+    "supervisedOnly": false,
+    "riskNotes": [
+      "Avoid using real victims or live emergency claims in the P0 demo.",
+      "Do not imply this fixture is a live Munich incident."
+    ],
+    "privacyNotes": [
+      "No private people, names, faces, or live user uploads are stored."
+    ],
+    "license": {
+      "identifier": "EGYM-DEMO-0.1",
+      "attribution": "Evidence Gym team-created P0 demo fixture",
+      "useBasis": "team_created"
+    }
+  },
+  "review": {
+    "status": "draft",
+    "authorIds": [
+      "role-3-ai-learning-content"
+    ],
+    "reviewerIds": [],
+    "reviewedAt": "2026-08-11T09:00:00Z",
+    "expiresAt": "2026-08-16T21:59:00Z",
+    "correctionPolicy": "Replace demo source notes with reviewed licensed source packet before public publication."
+  }
+}

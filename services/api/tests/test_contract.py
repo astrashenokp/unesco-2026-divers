@@ -17,6 +17,13 @@ def load_contract() -> dict:
         return yaml.safe_load(contract_file)
 
 
+def operations(contract: dict):
+    for path, path_item in contract["paths"].items():
+        for method, operation in path_item.items():
+            if method.lower() in {"get", "post", "put", "patch", "delete"}:
+                yield path, method.lower(), operation
+
+
 def test_normative_contract_is_openapi_31_and_exposes_v1_server() -> None:
     contract = load_contract()
 
@@ -46,7 +53,59 @@ def test_unknown_route_uses_problem_contract_and_trace_header() -> None:
     assert response.json()["traceId"] == response.headers["X-Trace-ID"]
 
 
+def test_operation_ids_are_unique() -> None:
+    operation_ids = [item[2]["operationId"] for item in operations(load_contract())]
+    assert len(operation_ids) == len(set(operation_ids))
+
+
+def test_every_mutation_requires_idempotency_key() -> None:
+    contract = load_contract()
+    expected_reference = "#/components/parameters/IdempotencyKey"
+    for path, method, operation in operations(contract):
+        if method in {"post", "put", "patch", "delete"}:
+            references = {item.get("$ref") for item in operation.get("parameters", [])}
+            assert expected_reference in references, f"{method.upper()} {path}"
+
+
+def test_only_public_catalog_operations_disable_authentication() -> None:
+    contract = load_contract()
+    public_operations = {("/catalog/path", "get"), ("/missions/{missionId}", "get")}
+    for path, method, operation in operations(contract):
+        if (path, method) in public_operations:
+            assert operation.get("security") == []
+        else:
+            assert operation.get("security", contract["security"])
+
+
+def test_all_local_references_resolve() -> None:
+    contract = load_contract()
+
+    def visit(value):
+        if isinstance(value, dict):
+            reference = value.get("$ref")
+            if reference is not None:
+                assert reference.startswith("#/")
+                target = contract
+                for component in reference[2:].split("/"):
+                    target = target[component]
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(contract)
+
+
+def test_documented_error_responses_use_problem_component() -> None:
+    for path, method, operation in operations(load_contract()):
+        for status, response in operation.get("responses", {}).items():
+            if str(status).startswith(("4", "5")):
+                assert response == {"$ref": "#/components/responses/Problem"}, (
+                    f"{method.upper()} {path} {status}"
+                )
+
+
 class UnavailableProbe:
     async def is_ready(self) -> bool:
         return False
-

@@ -3,18 +3,33 @@ import pytest
 from evidence_gym_api.learning import (
     INSUFFICIENT_EVIDENCE,
     Attempt,
+    AttemptId,
     AttemptState,
     AxisAssessment,
     Conclusion,
     Confidence,
     ConfidenceStatus,
     DomainError,
+    IdempotencyKey,
     IllegalAttemptTransition,
     InvalidConfidence,
+    LearnerId,
+    MissionId,
+    MissionVersion,
     Prediction,
     Reaction,
     ShareDecision,
 )
+
+
+def new_attempt(*, allows_no_evidence_conclusion: bool = False) -> Attempt:
+    return Attempt(
+        AttemptId("attempt-1"),
+        LearnerId("learner-1"),
+        MissionId("mission-1"),
+        MissionVersion("1.2.3"),
+        allows_no_evidence_conclusion=allows_no_evidence_conclusion,
+    )
 
 
 def prediction() -> Prediction:
@@ -32,7 +47,7 @@ def conclusion() -> Conclusion:
 
 
 def investigating_attempt() -> Attempt:
-    attempt = Attempt("attempt-1", "mission-1", "1.2.3")
+    attempt = new_attempt()
     attempt.submit_prediction(prediction())
     attempt.record_evidence_action("evidence-action-1")
     return attempt
@@ -67,7 +82,7 @@ def test_required_attempt_confidences_must_be_known(absent: Confidence) -> None:
 
 
 def test_happy_path_preserves_pinned_mission_and_independent_axes() -> None:
-    attempt = Attempt("attempt-1", "mission-1", "1.2.3")
+    attempt = new_attempt()
     pinned = (attempt.mission_id, attempt.mission_version)
 
     attempt.submit_prediction(prediction())
@@ -90,12 +105,24 @@ def test_happy_path_preserves_pinned_mission_and_independent_axes() -> None:
     assert (attempt.mission_id, attempt.mission_version) == pinned
 
 
-@pytest.mark.parametrize("field", ["mission_id", "mission_version"])
-def test_mission_reference_is_pinned_at_creation(field: str) -> None:
-    attempt = Attempt("attempt-1", "mission-1", "1.2.3")
+@pytest.mark.parametrize(
+    "field",
+    [
+        "id",
+        "learner_id",
+        "mission_id",
+        "mission_version",
+        "allows_no_evidence_conclusion",
+    ],
+)
+def test_attempt_identity_and_mission_policy_are_pinned_at_creation(field: str) -> None:
+    attempt = new_attempt()
     with pytest.raises(AttributeError, match="pinned"):
         setattr(attempt, field, "replacement")
-    assert (attempt.mission_id, attempt.mission_version) == ("mission-1", "1.2.3")
+    assert (attempt.mission_id, attempt.mission_version) == (
+        MissionId("mission-1"),
+        MissionVersion("1.2.3"),
+    )
 
 
 def test_repeated_evidence_action_is_recorded_as_a_distinct_use() -> None:
@@ -121,12 +148,7 @@ def test_repeated_domain_completion_is_rejected() -> None:
 
 
 def test_explicit_mission_rule_can_allow_conclusion_without_evidence() -> None:
-    attempt = Attempt(
-        "attempt-1",
-        "mission-1",
-        "1.2.3",
-        allows_no_evidence_conclusion=True,
-    )
+    attempt = new_attempt(allows_no_evidence_conclusion=True)
     attempt.submit_prediction(prediction())
     attempt.submit_conclusion(conclusion())
     assert attempt.state is AttemptState.CONCLUDED
@@ -157,7 +179,7 @@ def test_explicit_mission_rule_can_allow_conclusion_without_evidence() -> None:
 def test_illegal_transitions_are_rejected_without_mutation(
     operation: str, starting_state: AttemptState
 ) -> None:
-    attempt = Attempt("attempt-1", "mission-1", "1.2.3")
+    attempt = new_attempt()
     attempt.state = starting_state
     version = attempt.version
 
@@ -176,7 +198,7 @@ def test_illegal_transitions_are_rejected_without_mutation(
 
 
 def test_conclusion_requires_evidence_by_default() -> None:
-    attempt = Attempt("attempt-1", "mission-1", "1.2.3")
+    attempt = new_attempt()
     attempt.submit_prediction(prediction())
     version = attempt.version
     with pytest.raises(IllegalAttemptTransition, match="at least one evidence action"):
@@ -186,12 +208,18 @@ def test_conclusion_requires_evidence_by_default() -> None:
     assert attempt.version == version
 
 
-@pytest.mark.parametrize("field", ["id", "mission_id", "mission_version"])
-def test_attempt_identity_and_pin_cannot_be_blank(field: str) -> None:
-    values = {"id": "attempt-1", "mission_id": "mission-1", "mission_version": "1.2.3"}
-    values[field] = " "
+@pytest.mark.parametrize(
+    "value_type", [AttemptId, LearnerId, MissionId, MissionVersion]
+)
+def test_typed_identifiers_cannot_be_blank(value_type: type) -> None:
     with pytest.raises(DomainError):
-        Attempt(**values)
+        value_type(" ")
+
+
+@pytest.mark.parametrize("value", ["short", "x" * 129])
+def test_idempotency_key_enforces_contract_length(value: str) -> None:
+    with pytest.raises(DomainError):
+        IdempotencyKey(value)
 
 
 def test_axis_label_cannot_be_blank() -> None:

@@ -9,6 +9,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from evidence_gym_api.learning.value_objects import (
+        AttemptId,
+        LearnerId,
+        MissionId,
+        MissionVersion,
+    )
 
 
 class DomainError(ValueError):
@@ -128,9 +137,10 @@ class Conclusion:
 class Attempt:
     """Aggregate that owns mission-version pinning and learning transitions."""
 
-    id: str
-    mission_id: str
-    mission_version: str
+    id: AttemptId
+    learner_id: LearnerId
+    mission_id: MissionId
+    mission_version: MissionVersion
     allows_no_evidence_conclusion: bool = False
     state: AttemptState = field(default=AttemptState.READY, init=False)
     version: int = field(default=1, init=False)
@@ -139,18 +149,34 @@ class Attempt:
     conclusion: Conclusion | None = field(default=None, init=False)
 
     def __setattr__(self, name: str, value: object) -> None:
-        if name in {"mission_id", "mission_version"} and hasattr(self, name):
+        creation_fields = {
+            "id",
+            "learner_id",
+            "mission_id",
+            "mission_version",
+            "allows_no_evidence_conclusion",
+        }
+        if name in creation_fields and hasattr(self, name):
             raise AttributeError(f"{name} is pinned when an attempt is created")
         object.__setattr__(self, name, value)
 
     def __post_init__(self) -> None:
-        for name, value in (
-            ("attempt id", self.id),
-            ("mission id", self.mission_id),
-            ("mission version", self.mission_version),
-        ):
-            if not value or not value.strip():
-                raise DomainError(f"{name} must not be blank")
+        from evidence_gym_api.learning.value_objects import (
+            AttemptId,
+            LearnerId,
+            MissionId,
+            MissionVersion,
+        )
+
+        expected_types = (
+            ("id", self.id, AttemptId),
+            ("learner_id", self.learner_id, LearnerId),
+            ("mission_id", self.mission_id, MissionId),
+            ("mission_version", self.mission_version, MissionVersion),
+        )
+        for name, value, expected in expected_types:
+            if not isinstance(value, expected):
+                raise DomainError(f"{name} must be {expected.__name__}")
 
     def submit_prediction(self, prediction: Prediction) -> None:
         self._require_state(AttemptState.READY)

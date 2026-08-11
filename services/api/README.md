@@ -24,3 +24,7 @@ Every response includes `X-Trace-ID`. A valid incoming `X-Trace-ID` is
 propagated; otherwise the API generates a UUID. Errors use
 `application/problem+json` and match the contract's Problem fields.
 
+The learning package currently provides pure attempt-domain behavior,
+application ports, deterministic in-memory test adapters, and the `StartAttempt`
+and `SubmitPrediction` use cases. Persistence implementers should follow
+[`ROLE4_PERSISTENCE_HANDOFF.md`](ROLE4_PERSISTENCE_HANDOFF.md).

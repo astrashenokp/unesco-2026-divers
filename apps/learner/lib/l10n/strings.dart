@@ -151,6 +151,28 @@ class Strings {
   String receiptXp(int xp) => _s('+$xp process XP', '+$xp XP за процес');
   String receiptId(String id) => _s('Receipt: $id', 'Квитанція: $id');
   String get backToPath => _s('Back to the path', 'Повернутися до шляху');
+  String get viewReceipt => _s('Open your evidence receipt', 'Відкрити квитанцію доказів');
+  String get receiptScreenTitle => _s('Evidence receipt', 'Квитанція доказів');
+  String get receiptConclusions => _s('What you concluded', 'Твій висновок');
+  String get receiptEvidence => _s('Evidence you looked at', 'Докази, які ти переглянула');
+  String get receiptNoEvidence => _s(
+        'No evidence was recorded for this attempt.',
+        'Для цієї спроби докази не зафіксовані.',
+      );
+  String receiptCreated(String when) => _s('Created $when', 'Створено $when');
+  String receiptMissionVersion(String version) =>
+      _s('Mission version $version', 'Версія місії $version');
+  String get receiptUnsigned => _s(
+        'Demo receipt — not signed.',
+        'Демо-квитанція — без підпису.',
+      );
+  String receiptHash(String hash) => _s('Integrity: $hash', 'Цілісність: $hash');
+
+  /// Server receipts carry their own disclaimer text; the demo pack sends
+  /// a key instead, since a fixture cannot know the locale.
+  String receiptDisclaimerText(String raw) =>
+      raw == 'demo_receipt_disclaimer' ? receiptDisclaimer : raw;
+
   String get receiptDisclaimer => _s(
         'This receipt records how you investigated. It is not a certificate '
             'that something is true or false.',

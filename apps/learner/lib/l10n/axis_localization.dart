@@ -15,6 +15,19 @@ String axisNameOf(AxisKind axis, Strings s) => switch (axis) {
       AxisKind.contextIntegrity => s.axisContext,
     };
 
+/// Rebuilds a display option from the stable code stored on a receipt.
+/// An unrecognised code (an older or newer content pack) is shown
+/// verbatim with neutral styling rather than dropped — a receipt must
+/// stay readable even when the client does not know the vocabulary.
+AxisOption axisOptionFromCode(AxisKind axis, String code, Strings s) {
+  for (final option in axisOptionCodes(axis)) {
+    if (option.code == code) {
+      return AxisOption(code: code, label: s.axisOptionLabel(code), tone: option.tone);
+    }
+  }
+  return AxisOption(code: code, label: s.axisOptionLabel(code), tone: AxisTone.unknown);
+}
+
 String axisHelpOf(AxisKind axis, Strings s) => switch (axis) {
       AxisKind.authenticity => s.axisHelpAuthenticity,
       AxisKind.claimVeracity => s.axisHelpClaim,

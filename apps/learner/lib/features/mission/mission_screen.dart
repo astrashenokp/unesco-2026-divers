@@ -6,6 +6,7 @@ import '../../data/mission_repository.dart';
 import '../../data/models.dart';
 import '../../l10n/axis_localization.dart';
 import '../../l10n/strings.dart';
+import '../receipt/receipt_screen.dart';
 import '../report/report_dialog.dart';
 
 enum _Step { prediction, investigating, conclusion, receipt }
@@ -308,6 +309,16 @@ class _MissionScreenState extends State<MissionScreen> {
             key: const ValueKey('receipt'),
             receiptId: _receiptId ?? '',
             xpAwarded: _xpAwarded,
+            onOpenReceipt: _receiptId == null
+                ? null
+                : () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ReceiptScreen(
+                          repository: widget.repository,
+                          receiptId: _receiptId!,
+                        ),
+                      ),
+                    ),
             onDone: () => Navigator.of(context).pop(),
           ),
       },
@@ -776,11 +787,13 @@ class _ReceiptStep extends StatelessWidget {
     super.key,
     required this.receiptId,
     required this.xpAwarded,
+    required this.onOpenReceipt,
     required this.onDone,
   });
 
   final String receiptId;
   final int xpAwarded;
+  final VoidCallback? onOpenReceipt;
   final VoidCallback onDone;
 
   @override
@@ -815,7 +828,9 @@ class _ReceiptStep extends StatelessWidget {
             ),
           ),
           SizedBox(height: tokens.space(3)),
-          ElevatedButton(onPressed: onDone, child: Text(s.backToPath)),
+          ElevatedButton(onPressed: onOpenReceipt, child: Text(s.viewReceipt)),
+          SizedBox(height: tokens.space(1)),
+          OutlinedButton(onPressed: onDone, child: Text(s.backToPath)),
           SizedBox(height: tokens.space(2)),
         ],
       ),

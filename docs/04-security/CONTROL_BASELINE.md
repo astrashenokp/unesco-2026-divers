@@ -4,7 +4,7 @@
 
 - Firebase ID token verified server-side: issuer, audience, signature, expiry, revocation policy.
 - Authorization is deny-by-default and resource-scoped; never trust client role/user ID.
-- Guest has isolated pseudonymous state and no administrative/content mutation.
+- Guest uses Firebase Anonymous Auth (`signInAnonymously()`); the resulting token is verified through the same path as any other principal — no separate demo-only auth code path (ADR-008). Guest has isolated pseudonymous state and no administrative/content mutation.
 - Admin/editor roles use MFA, least privilege, short sessions and step-up authorization.
 - Service-to-service uses per-service IAM/workload identity, not shared keys.
 

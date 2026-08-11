@@ -5,7 +5,7 @@ Resolve these deliberately; do not allow implementation convenience to answer th
 | ID | Question | Why it matters | Needed evidence/input | Decision deadline | Status |
 |---|---|---|---|---|---|
 | OQ-001 | What exact age range and launch jurisdictions are in scope? | Consent, safeguarding, language, and legal duties differ | target-user research and legal review | before participant recruitment | open |
-| OQ-002 | Is anonymous use supported, and what state persists? | Changes privacy, continuity, and abuse controls | user journey and threat review | before public beta | open |
+| OQ-002 | What persists for anonymous use beyond the MVP demo (linking, retention, abuse controls at scale)? | Changes privacy, continuity, and abuse controls | user journey and threat review | before public beta | open — MVP demo mechanism answered by ADR-008 (Firebase Anonymous Auth, ephemeral pseudonymous state, no separate auth path) |
 | OQ-003 | Which languages are launch-critical? | Affects content review, accessibility, and moderation capacity | partner and audience evidence | before content freeze | open |
 | OQ-004 | What content categories are prohibited or supervised-only? | Prevents harmful amplification | safeguarding and editorial review | before scenario publication | open |
 | OQ-005 | What proves immediate learning and transfer? | Prevents impact overclaiming | pilot methodology review | before impact claims | open |

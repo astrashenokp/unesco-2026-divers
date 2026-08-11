@@ -34,7 +34,8 @@ pack/
 - gold evidence graph with source identity/retrieval/license metadata;
 - accepted three-axis assessments, including uncertainty ranges;
 - Socratic hint ladder and forbidden leakage terms;
-- rubric, correction/history metadata, reviewer sign-off.
+- rubric, correction/history metadata, reviewer sign-off;
+- optional `testsCriticalIgnoring` boolean (default `false`) — when `true`, the conclusion endpoint accepts zero evidence actions for this mission version because the mission is deliberately testing whether the learner concludes without investigating (ADR-008).
 
 ## Publication gates
 

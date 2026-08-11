@@ -12,6 +12,7 @@ Checked 2026-08-10. Re-check license/commit before copying or installing.
 | [claude-token-efficient](https://github.com/drona23/claude-token-efficient) | MIT | short targeted agent rules, tests before done | copy every profile or trust directional benchmark as guarantee |
 | [gstack](https://github.com/garrytan/gstack) | MIT | stage/role separation and handoff gates | autonomous merge/deploy; unpinned setup/home writes |
 | [Stitch SDK](https://github.com/google-labs-code/stitch-sdk) | Apache-2.0 | scoped design-time MCP/SDK and DESIGN.md workflow | production dependency or PII/secrets; unbounded writes |
+| [flutter/samples](https://github.com/flutter/samples) | Flutter org license (BSD-3-Clause-style; verify `LICENSE` before copying) | reference idioms for `PageView`/adaptive layout/implicit animations used in `apps/learner` | vendoring whole sample apps, or treating samples as production-hardened |
 
 ## Public APIs shortlist policy
 

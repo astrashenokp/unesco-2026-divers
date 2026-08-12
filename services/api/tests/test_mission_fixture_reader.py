@@ -87,6 +87,8 @@ def test_reader_loads_both_role3_missions_by_exact_version() -> None:
     assert citation is not None
     assert context.tests_critical_ignoring is False
     assert citation.tests_critical_ignoring is False
+    assert context.minimum_completion_evidence == 1
+    assert citation.minimum_completion_evidence == 3
 
 
 def test_reader_does_not_silently_upgrade_mission_version() -> None:
@@ -126,6 +128,34 @@ def test_start_attempt_pins_real_role3_fixture_version() -> None:
     assert attempt.mission_id == MissionId("authentic-media-wrong-context")
     assert attempt.mission_version == MissionVersion("0.1.0")
     assert attempt.allows_no_evidence_conclusion is False
+    assert attempt.minimum_required_evidence_actions == 1
+
+
+def test_start_attempt_pins_real_role3_minimum_completion_evidence() -> None:
+    reader = make_reader()
+    use_case = StartAttempt(
+        InMemoryAttemptRepository(),
+        reader,
+        InMemoryIdempotencyRepository(),
+        SequentialAttemptIdGenerator(),
+        InMemoryTransactionManager(),
+        FixedClock(),
+    )
+
+    attempt = run(
+        use_case.execute(
+            Principal(LearnerId("learner-test-1")),
+            StartAttemptCommand(
+                MissionId("ai-citation-integrity"),
+                MissionVersion("0.1.0"),
+                IdempotencyKey("fixture-start-02"),
+            ),
+        )
+    )
+
+    assert attempt.mission_id == MissionId("ai-citation-integrity")
+    assert attempt.mission_version == MissionVersion("0.1.0")
+    assert attempt.minimum_required_evidence_actions == 3
 
 
 def test_reader_maps_trusted_critical_ignoring_flag(tmp_path: Path) -> None:

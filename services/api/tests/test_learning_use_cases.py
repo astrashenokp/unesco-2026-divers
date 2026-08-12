@@ -132,6 +132,34 @@ def test_start_attempt_pins_exact_mission_and_server_identity() -> None:
     assert attempt.mission_id == MISSION_ID
     assert attempt.mission_version == MISSION_VERSION
     assert attempt.state is AttemptState.READY
+    assert attempt.minimum_required_evidence_actions == 1
+
+
+def test_start_attempt_pins_mission_minimum_completion_evidence() -> None:
+    attempts = InMemoryAttemptRepository()
+    idempotency = InMemoryIdempotencyRepository()
+    missions = InMemoryMissionPolicyReader(
+        (
+            MissionPolicy(
+                MISSION_ID,
+                MISSION_VERSION,
+                minimum_completion_evidence=3,
+            ),
+        )
+    )
+    start = StartAttempt(
+        attempts,
+        missions,
+        idempotency,
+        SequentialAttemptIdGenerator(),
+        InMemoryTransactionManager(),
+        FixedClock(),
+    )
+
+    attempt = run(start.execute(LEARNER, start_command()))
+
+    assert attempt.minimum_required_evidence_actions == 3
+    assert run(attempts.get(attempt.id)) == attempt
 
 
 def test_start_attempt_replays_same_key_and_rejects_changed_request() -> None:

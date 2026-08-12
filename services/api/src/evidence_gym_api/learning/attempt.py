@@ -142,6 +142,7 @@ class Attempt:
     mission_id: MissionId
     mission_version: MissionVersion
     allows_no_evidence_conclusion: bool = False
+    minimum_required_evidence_actions: int = 1
     state: AttemptState = field(default=AttemptState.READY, init=False)
     version: int = field(default=1, init=False)
     prediction: Prediction | None = field(default=None, init=False)
@@ -155,6 +156,7 @@ class Attempt:
             "mission_id",
             "mission_version",
             "allows_no_evidence_conclusion",
+            "minimum_required_evidence_actions",
         }
         if name in creation_fields and hasattr(self, name):
             raise AttributeError(f"{name} is pinned when an attempt is created")
@@ -177,6 +179,14 @@ class Attempt:
         for name, value, expected in expected_types:
             if not isinstance(value, expected):
                 raise DomainError(f"{name} must be {expected.__name__}")
+        if (
+            isinstance(self.minimum_required_evidence_actions, bool)
+            or not isinstance(self.minimum_required_evidence_actions, int)
+            or not 0 <= self.minimum_required_evidence_actions <= 6
+        ):
+            raise DomainError(
+                "minimum required evidence actions must be an integer from 0 to 6"
+            )
 
     def submit_prediction(self, prediction: Prediction) -> None:
         self._require_state(AttemptState.READY)
@@ -194,9 +204,16 @@ class Attempt:
 
     def submit_conclusion(self, conclusion: Conclusion) -> None:
         self._require_state(AttemptState.PREDICTED, AttemptState.INVESTIGATING)
-        if not self.evidence_action_refs and not self.allows_no_evidence_conclusion:
+        minimum_actions = (
+            0
+            if self.allows_no_evidence_conclusion
+            else self.minimum_required_evidence_actions
+        )
+        if len(self.evidence_action_refs) < minimum_actions:
+            minimum_display = "one" if minimum_actions == 1 else str(minimum_actions)
             raise IllegalAttemptTransition(
-                "conclusion requires at least one evidence action"
+                f"conclusion requires at least {minimum_display} evidence action"
+                f"{'' if minimum_actions == 1 else 's'}"
             )
         self.conclusion = conclusion
         self.state = AttemptState.CONCLUDED

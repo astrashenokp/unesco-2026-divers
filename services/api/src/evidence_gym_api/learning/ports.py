@@ -21,6 +21,7 @@ class MissionPolicy:
     id: MissionId
     version: MissionVersion
     tests_critical_ignoring: bool = False
+    minimum_completion_evidence: int = 1
 
 
 @dataclass(frozen=True, slots=True)

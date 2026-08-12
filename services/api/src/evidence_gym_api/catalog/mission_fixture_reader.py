@@ -170,6 +170,9 @@ class FileMissionPolicyReader:
                 id=MissionId(mission["id"]),
                 version=MissionVersion(mission["version"]),
                 tests_critical_ignoring=mission["testsCriticalIgnoring"],
+                minimum_completion_evidence=mission["rubric"][
+                    "minimumCompletionEvidence"
+                ],
             )
             key = (policy.id, policy.version)
             if key in policies:

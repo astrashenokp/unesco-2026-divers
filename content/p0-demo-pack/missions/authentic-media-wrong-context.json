@@ -416,7 +416,13 @@
   "forbiddenLeakageTerms": [
     "the answer is false",
     "final verdict",
-    "gold label"
+    "gold label",
+    "the image is authentic",
+    "the context is misleading",
+    "the claim is contradicted",
+    "not from Munich",
+    "from Brooklyn",
+    "wrong caption"
   ],
   "rubric": {
     "processLevels": [

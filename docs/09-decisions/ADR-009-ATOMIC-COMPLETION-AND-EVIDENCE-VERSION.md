@@ -1,6 +1,6 @@
 # ADR-009: Atomic completion, and `version` on evidence actions
 
-Status: Proposed — 2026-08-12
+Status: Accepted — 2026-08-12
 Supersedes: decision 5 of [ADR-008](ADR-008-ATTEMPT-CONTRACT-CLARIFICATIONS.md)
 
 ## Context

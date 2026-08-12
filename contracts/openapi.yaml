@@ -97,6 +97,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/EvidenceResult' }
         '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
         '429': { $ref: '#/components/responses/Problem' }
   /attempts/{attemptId}/hints:
     post:

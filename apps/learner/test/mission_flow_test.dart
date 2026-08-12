@@ -1,3 +1,4 @@
+import 'package:evidence_gym_learner/data/api_client.dart';
 import 'package:evidence_gym_learner/data/mission_repository.dart';
 import 'package:evidence_gym_learner/data/models.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -155,5 +156,67 @@ void main() {
         await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'no_such_action', 2);
     expect(result.status, 'not_found');
     expect(result.items, isEmpty);
+  });
+
+  test('the two 409s are told apart by code, not by status', () async {
+    // Conflating them offers to restart the mission of a learner who has
+    // simply not checked enough evidence yet, discarding work they had
+    // not finished doing.
+    final r = repo();
+    final attempt = await startFirst(r);
+    await r.submitPrediction(
+      attempt.id,
+      PredictionInput(reaction: 'trust', confidence: 80, version: attempt.version),
+    );
+
+    // Concluding with no evidence behind it.
+    Object? thrown;
+    try {
+      await r.submitConclusion(
+        attempt.id,
+        const ConclusionInput(
+          authenticity: AxisAssessment(label: 'authentic', confidence: 60),
+          claimVeracity: AxisAssessment(label: 'supported', confidence: 60),
+          contextIntegrity: AxisAssessment(label: 'accurate', confidence: 60),
+          postConfidence: 60,
+          shareDecision: 'do_not_share',
+          version: 2,
+        ),
+      );
+    } catch (e) {
+      thrown = e;
+    }
+
+    final error = thrown as EvidenceGymApiException;
+    expect(error.problem.status, 409);
+    expect(error.needsMoreEvidence, isTrue,
+        reason: 'a conclusion without evidence is a step not yet taken');
+    expect(error.isStaleVersion, isFalse,
+        reason: 'restarting here would throw away work the learner had not '
+            'finished doing');
+  });
+
+  test('a stale version reads as stale, whichever casing the code uses', () {
+    // The server writes kebab-case and the demo pack writes snake_case.
+    // Matching one spelling silently misses the other, and a missed
+    // stale version leaves the learner stuck on a screen where every
+    // button fails identically.
+    for (final code in [
+      'stale-attempt-version',
+      'stale_attempt_version',
+      'attempt-conflict',
+    ]) {
+      final error = EvidenceGymApiException(
+        Problem(
+          type: 'about:blank',
+          title: 'Conflict',
+          status: 409,
+          code: code,
+          traceId: 't',
+        ),
+      );
+      expect(error.isStaleVersion, isTrue, reason: '$code was not recognised');
+      expect(error.needsMoreEvidence, isFalse);
+    }
   });
 }

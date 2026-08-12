@@ -38,6 +38,16 @@ class _MissionScreenState extends State<MissionScreen> {
   String? _busyMessage;
   String? _error;
 
+  /// A 409 is not an ordinary error and must not be shown as one.
+  ///
+  /// It means the attempt moved on somewhere else — a second tab, a
+  /// retried request that actually landed — so the version this screen
+  /// holds is stale. Retrying sends the same stale version and fails
+  /// identically, which left the learner permanently stuck mid-mission
+  /// looking at a raw "version 3 does not match version 5". It needs its
+  /// own message and, more importantly, a way out.
+  bool _conflict = false;
+
   String? _reaction;
   int _preConfidence = 50;
 
@@ -76,14 +86,46 @@ class _MissionScreenState extends State<MissionScreen> {
     setState(() {
       _busyMessage = busyMessage;
       _error = null;
+      _conflict = false;
     });
     try {
       await action();
     } on EvidenceGymApiException catch (e) {
-      if (mounted) setState(() => _error = e.problem.detail ?? e.problem.title);
+      if (!mounted) return;
+      final s = Strings.of(context);
+      setState(() {
+        // Only a stale version offers a restart. A conclusion rejected
+        // for want of evidence is a step not yet taken, not a fault —
+        // offering to start over there would throw away work the
+        // learner had simply not finished.
+        _conflict = e.isStaleVersion;
+        _error = switch (e) {
+          _ when e.isStaleVersion => s.conflictBody,
+          _ when e.needsMoreEvidence => s.needMoreEvidenceBody,
+          _ => e.problem.detail ?? e.problem.title,
+        };
+      });
     } finally {
       if (mounted) setState(() => _busyMessage = null);
     }
+  }
+
+  /// Starts the mission over on a fresh attempt.
+  ///
+  /// The only recovery available: there is no `GET /attempts/{id}`, so a
+  /// client holding a stale version cannot resynchronise — it can only
+  /// begin again. Losing the work is bad, and being stuck on a screen
+  /// where every button fails is worse.
+  Future<void> _restartAfterConflict() async {
+    setState(() {
+      _conflict = false;
+      _error = null;
+      _collected.clear();
+      _hint = null;
+      _reaction = null;
+      _step = _Step.prediction;
+      _bootstrapFuture = _bootstrap();
+    });
   }
 
   Future<void> _submitPrediction() async {
@@ -267,7 +309,13 @@ class _MissionScreenState extends State<MissionScreen> {
             child: SafeArea(
             child: Column(
               children: [
-                if (_error != null) _ErrorBanner(message: _error!),
+                if (_error != null)
+                  _ErrorBanner(
+                    message: _error!,
+                    title: _conflict ? s.conflictTitle : null,
+                    actionLabel: _conflict ? s.conflictRestart : null,
+                    onAction: _conflict ? _restartAfterConflict : null,
+                  ),
                 if (_busyMessage != null) _BusyBanner(message: _busyMessage!),
                 Expanded(
                   child: wide
@@ -401,6 +449,10 @@ class _MissionScreenState extends State<MissionScreen> {
             key: const ValueKey('receipt'),
             receiptId: _receiptId ?? '',
             xpAwarded: _xpAwarded,
+            preConfidence: _preConfidence,
+            postConfidence: _postConfidence,
+            reaction: _reaction,
+            claim: _claim,
             onOpenReceipt: _receiptId == null
                 ? null
                 : () => Navigator.of(context).push(
@@ -500,8 +552,19 @@ class _MissionBrief extends StatelessWidget {
 }
 
 class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
+  const _ErrorBanner({
+    required this.message,
+    this.title,
+    this.actionLabel,
+    this.onAction,
+  });
+
   final String message;
+
+  /// Set when the failure needs naming rather than just reporting.
+  final String? title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -520,11 +583,38 @@ class _ErrorBanner extends StatelessWidget {
         border: Border.all(color: tokens.misleading),
         borderRadius: BorderRadius.circular(tokens.space(1)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.error_outline, color: tokens.misleading),
-          SizedBox(width: tokens.space(1)),
-          Expanded(child: Text(message)),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.error_outline, color: tokens.misleading),
+              SizedBox(width: tokens.space(1)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (title != null)
+                      Text(title!,
+                          style: Theme.of(context).textTheme.titleLarge),
+                    Text(message),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          // An error a learner can do nothing about is a dead end. When
+          // there is a way out, it sits inside the banner explaining why
+          // it is needed.
+          if (actionLabel != null && onAction != null) ...[
+            SizedBox(height: tokens.space(1)),
+            OutlinedButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: Text(actionLabel!),
+            ),
+          ],
         ],
       ),
       ),
@@ -940,12 +1030,26 @@ class _ReceiptStep extends StatelessWidget {
     super.key,
     required this.receiptId,
     required this.xpAwarded,
+    required this.preConfidence,
+    required this.postConfidence,
+    required this.reaction,
+    required this.claim,
     required this.onOpenReceipt,
     required this.onDone,
   });
 
   final String receiptId;
   final int xpAwarded;
+
+  /// What the learner believed before and after investigating. Held in
+  /// the mission's own state rather than read back from the receipt,
+  /// because the contract's `Receipt` carries only the post-conclusion
+  /// assessments — the prediction is not in it.
+  final int preConfidence;
+  final int postConfidence;
+  final String? reaction;
+  final AxisOption? claim;
+
   final VoidCallback? onOpenReceipt;
   final VoidCallback onDone;
 
@@ -969,7 +1073,39 @@ class _ReceiptStep extends StatelessWidget {
           Text(s.receiptXp(xpAwarded), style: Theme.of(context).textTheme.titleLarge),
           SizedBox(height: tokens.space(1)),
           const Slid(),
-          SizedBox(height: tokens.space(1)),
+          SizedBox(height: tokens.space(3)),
+
+          // What the mission actually did to the learner. XP is what the
+          // system got out of it; this is the part that teaches.
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: tokens.space(2)),
+            child: Builder(builder: (context) {
+              final delta = postConfidence - preConfidence;
+              final (title, body) = delta.abs() < 5
+                  ? (s.shiftUnchangedTitle, s.shiftUnchangedBody)
+                  : delta < 0
+                      ? (s.shiftLessSureTitle, s.shiftLessSureBody)
+                      : (s.shiftMoreSureTitle, s.shiftMoreSureBody);
+              return ConfidenceShift(
+                before: preConfidence,
+                after: postConfidence,
+                beforeLabel: s.confidenceBefore,
+                afterLabel: s.confidenceAfter,
+                headline: title,
+                explanation: body,
+                spokenSummary:
+                    '$title. ${s.shiftSpoken(preConfidence, postConfidence)} $body',
+                // Only shown when both ends are known: half a comparison
+                // would invite the learner to fill in the other half.
+                reactionBefore: reaction == null ? null : s.reactionLabel(reaction!),
+                reactionAfter: claim?.label,
+                reactionLabel: reaction == null || claim == null
+                    ? null
+                    : s.reactionToConclusion,
+              );
+            }),
+          ),
+          SizedBox(height: tokens.space(2)),
           Text(s.receiptId(receiptId), style: Theme.of(context).textTheme.bodySmall),
           SizedBox(height: tokens.space(2)),
           Padding(

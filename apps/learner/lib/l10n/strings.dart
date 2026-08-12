@@ -187,6 +187,17 @@ class Strings {
   String get reactionTrust => _s('Trust', 'Довіряю');
   String get reactionSuspicious => _s('Suspicious', 'Підозріло');
   String get reactionInvestigate => _s('Investigate', 'Перевірити');
+
+  /// The wire codes are English and fixed by the contract; the label is
+  /// not. An unrecognised code returns itself rather than throwing — a
+  /// new reaction added server-side should render oddly, never crash the
+  /// screen a learner just finished a mission on.
+  String reactionLabel(String code) => switch (code) {
+        'trust' => reactionTrust,
+        'suspicious' => reactionSuspicious,
+        'investigate' => reactionInvestigate,
+        _ => code,
+      };
   String get howConfident => _s('How confident are you?', 'Наскільки ти впевнена?');
   String get howConfidentInThat => _s('How confident in that?', 'Наскільки впевнена в цьому?');
 
@@ -284,6 +295,88 @@ class Strings {
         'Overall, how has your confidence changed?',
         'Загалом, як змінилася твоя впевненість?',
       );
+  // ------------------------------------------------------------ conflict
+  String get conflictTitle =>
+      _s('This mission moved on elsewhere', 'Місія просунулася деінде');
+  String get conflictBody => _p(
+        'It looks like this mission was continued in another tab or on '
+            'another device, so what is on this screen is out of date. '
+            'Nothing you already finished is lost — it is recorded against '
+            'the other one.',
+        "Схоже, цю місію продовжили в іншій вкладці або на іншому пристрої, "
+            "тож те, що на цьому екрані, застаріло. Нічого із завершеного не "
+            "втрачено — воно записане в тій іншій.",
+        'This mission was continued somewhere else, so this screen is out '
+            'of date.',
+        "Цю місію продовжили деінде, тож цей екран застарів.",
+      );
+  String get conflictRestart => _s('Start this mission again', 'Почати місію знову');
+  String get needMoreEvidenceBody => _p(
+        'Check at least one more piece of evidence before concluding. The '
+            'point is not the count — a conclusion drawn from nothing is the '
+            'habit this trains against.',
+        "Перевір ще хоча б один доказ, перш ніж робити висновок. Річ не в "
+            "кількості — висновок, зроблений ні з чого, і є тією звичкою, "
+            "проти якої це тренування.",
+        'Check one more piece of evidence before you conclude.',
+        "Перевір ще один доказ, перш ніж робити висновок.",
+      );
+
+  // --------------------------------------------------- confidence shift
+  //
+  // The wording here is the design. A learner who becomes less sure after
+  // checking has not failed — they found out the question was harder than
+  // it looked, which is the most useful thing this product can teach. So
+  // no direction is praised over another and none of it is called a
+  // score.
+  String get confidenceBefore => _s('Before you looked', 'До перевірки');
+  String get confidenceAfter => _s('After you looked', 'Після перевірки');
+
+  String get shiftLessSureTitle =>
+      _s('You became less sure', 'Ти стала менш впевненою');
+  String get shiftLessSureBody => _p(
+        'That is what checking is for. Finding out a question is harder '
+            'than it looked is a result, not a mistake — and it is exactly '
+            'the moment most people share something anyway.',
+        "Саме для цього й перевіряють. Виявити, що питання складніше, ніж "
+            "здавалося, — це результат, а не помилка. І саме в цей момент "
+            "більшість усе одно поширює.",
+        'Good. Checking showed the question was harder than it looked.',
+        "Добре. Перевірка показала, що питання складніше, ніж здавалося.",
+      );
+
+  String get shiftMoreSureTitle =>
+      _s('You became more sure', 'Ти стала впевненішою');
+  String get shiftMoreSureBody => _p(
+        'Your confidence now rests on something you checked rather than on '
+            'a first impression. Worth noticing which evidence moved you, '
+            'and whether it would have moved you the other way.',
+        "Тепер твоя впевненість спирається на перевірене, а не на перше "
+            "враження. Варто помітити, який саме доказ тебе зрушив — і чи "
+            "зрушив би він тебе в інший бік.",
+        'Now your confidence is based on something you checked.',
+        "Тепер твоя впевненість спирається на перевірене.",
+      );
+
+  String get shiftUnchangedTitle =>
+      _s('Your confidence held', 'Впевненість не змінилася');
+  String get shiftUnchangedBody => _p(
+        'Your first instinct survived the evidence. That is a different '
+            'thing from never checking — you now know why you think so.',
+        "Твоє перше відчуття витримало перевірку. Це не те саме, що не "
+            "перевіряти взагалі, — тепер ти знаєш, чому саме так думаєш.",
+        'Your first guess held up after checking.',
+        "Твоя перша здогадка витримала перевірку.",
+      );
+
+  String get reactionToConclusion =>
+      _s('First instinct, then conclusion', 'Перше відчуття, потім висновок');
+
+  String shiftSpoken(int before, int after) => _s(
+        'Confidence before you looked, $before percent. After, $after percent.',
+        'Впевненість до перевірки — $before відсотків. Після — $after відсотків.',
+      );
+
   // --------------------------------------------------------- uncertainty
   String get uncertaintyTitle => _s(
         '"Not enough evidence" is a conclusion.',

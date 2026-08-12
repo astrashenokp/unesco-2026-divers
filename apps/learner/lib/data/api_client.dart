@@ -15,6 +15,32 @@ class EvidenceGymApiException implements Exception {
   bool get isConflict => problem.status == 409;
   bool get isRateLimited => problem.status == 429;
 
+  /// This client's copy of the attempt is behind the server's.
+  ///
+  /// Keyed on the code, never on the 409 alone. Several unrelated
+  /// situations share that status — a replayed idempotency key, and a
+  /// conclusion submitted before enough evidence was checked — and they
+  /// call for opposite responses. Treating them alike would offer to
+  /// restart the mission of a learner who had simply not checked enough
+  /// yet, throwing away work they had not finished doing.
+  ///
+  /// Both spellings are accepted because the server and the demo pack
+  /// disagree about casing (`stale-attempt-version` against
+  /// `minimum_evidence_not_met`); matching only one would silently miss.
+  bool get isStaleVersion => const {
+        'stale-attempt-version',
+        'stale_attempt_version',
+        'attempt-conflict',
+        'attempt_conflict',
+      }.contains(problem.code);
+
+  /// The conclusion needs more evidence behind it before it can be
+  /// submitted. Not a fault to recover from — a step not yet done.
+  bool get needsMoreEvidence => const {
+        'minimum_evidence_not_met',
+        'minimum-evidence-not-met',
+      }.contains(problem.code);
+
   /// The request never reached a server. Status 0 is not a real HTTP
   /// status — it is this client's marker for "no answer at all", which
   /// the UI must present as a connection problem rather than as

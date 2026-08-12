@@ -47,7 +47,9 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(s.receiptScreenTitle)),
-      body: FutureBuilder<Receipt>(
+      body: LivingBackground(
+        variant: GroundVariant.grid,
+        child: FutureBuilder<Receipt>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -155,6 +157,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             ),
           );
         },
+        ),
       ),
     );
   }

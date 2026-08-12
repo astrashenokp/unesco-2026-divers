@@ -28,3 +28,19 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/fonts/OFL-Unbounded.txt
+    - assets/fonts/OFL-Onest.txt
+
+  fonts:
+    # Display: geometric, wide, confident. Carries the big-heading-plus-
+    # rule motif without the heading looking like body text scaled up.
+    - family: Unbounded
+      fonts:
+        - asset: assets/fonts/Unbounded.ttf
+    # Body: drawn Cyrillic-first with open apertures and unambiguous
+    # і/ї/й, which matters more here than in a Latin-only product.
+    - family: Onest
+      fonts:
+        - asset: assets/fonts/Onest.ttf

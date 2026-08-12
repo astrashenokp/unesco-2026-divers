@@ -62,6 +62,10 @@ class _HomeShellState extends State<HomeShell> {
 
     // Keyed so switching tabs rebuilds the body but Flutter still reuses
     // each page's state where it can.
+    // Path is a board you assemble a case on; progress and settings are
+    // reading surfaces and stay quiet.
+    final ground = _index == 0 ? GroundVariant.board : GroundVariant.plain;
+
     final body = AnimatedSwitcher(
       duration: Motion.of(context, Motion.fast),
       child: KeyedSubtree(key: ValueKey(_index), child: pages[_index]),
@@ -70,6 +74,7 @@ class _HomeShellState extends State<HomeShell> {
     if (formFactor.isPhone) {
       return Scaffold(
         body: LivingBackground(
+          variant: ground,
           child: SafeArea(
             child: Column(
               children: [
@@ -122,6 +127,7 @@ class _HomeShellState extends State<HomeShell> {
             // keeps a solid surface so its labels stay crisp.
             Expanded(
               child: LivingBackground(
+                variant: ground,
                 child: Column(
                   children: [
                     if (widget.repository.isDemo) const DemoBanner(),

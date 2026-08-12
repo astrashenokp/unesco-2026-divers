@@ -6,9 +6,16 @@ import 'package:flutter/material.dart';
 
 import 'tokens.dart';
 
-/// Builds the single Evidence Gym theme. System-fallback fonts only —
-/// no bundled webfont, so Ukrainian text always renders and there is
-/// no missing-font-asset risk. See MASCOT_AND_VISUAL_LANGUAGE.md.
+/// Builds the single Evidence Gym theme.
+///
+/// Two bundled typefaces, both SIL OFL: **Unbounded** for display and
+/// **Onest** for everything else. Bundled rather than fetched, so text
+/// renders identically offline — which a demo pack that promises to work
+/// with no network cannot compromise on.
+///
+/// Both were chosen for their Cyrillic, not adapted to it. A system font
+/// stack treats Ukrainian as a fallback, and it showed: headings read as
+/// body text scaled up. See MASCOT_AND_VISUAL_LANGUAGE.md.
 ThemeData buildEvidenceGymTheme() {
   const tokens = EvidenceGymTokens.standard;
 
@@ -24,10 +31,12 @@ ThemeData buildEvidenceGymTheme() {
     colorScheme: colorScheme,
     scaffoldBackgroundColor: tokens.surface,
     useMaterial3: true,
-    // No fontFamily on purpose: the platform default already covers
-    // Ukrainian on every target, and bundling a webfont would add a
-    // network dependency and a missing-glyph risk for exactly the
-    // characters this product cannot afford to lose.
+    // Onest for body: drawn Cyrillic-first, with open apertures and an
+    // unambiguous і / ї / й — which matters more here than in a
+    // Latin-only product, and more than it does in a system font that
+    // treats Cyrillic as an afterthought. Bundled rather than fetched,
+    // so it renders identically offline and in a demo with no network.
+    fontFamily: 'Onest',
     // Fade-forwards is Material 3's shared-axis transition: content
     // slides a short distance along the travel direction while it
     // crossfades. It reads as "forward into a detail" far better than
@@ -53,20 +62,40 @@ ThemeData buildEvidenceGymTheme() {
   return base.copyWith(
     extensions: const [tokens],
     textTheme: base.textTheme.copyWith(
-      // Bold, tracked-out display type: the "big type + a confident
-      // line" read borrowed from vau.agency, without a custom font.
+      // Unbounded for display: wide, geometric, and confident enough to
+      // carry a heading on its own. The point of a display face here is
+      // that a heading should not read as body text scaled up — which
+      // is exactly how the system-font version looked.
       displayLarge: base.textTheme.displayLarge?.copyWith(
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.4,
+        fontFamily: 'Unbounded',
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        height: 1.05,
+        color: tokens.textPrimary,
+      ),
+      displayMedium: base.textTheme.displayMedium?.copyWith(
+        fontFamily: 'Unbounded',
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.4,
+        height: 1.08,
         color: tokens.textPrimary,
       ),
       headlineMedium: base.textTheme.headlineMedium?.copyWith(
-        fontWeight: FontWeight.w800,
-        letterSpacing: 0.3,
+        fontFamily: 'Unbounded',
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.3,
+        height: 1.1,
+        color: tokens.textPrimary,
+      ),
+      headlineSmall: base.textTheme.headlineSmall?.copyWith(
+        fontFamily: 'Unbounded',
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.2,
         color: tokens.textPrimary,
       ),
       titleLarge: base.textTheme.titleLarge?.copyWith(
         fontWeight: FontWeight.w700,
+        letterSpacing: -0.1,
         color: tokens.textPrimary,
       ),
       bodyLarge: base.textTheme.bodyLarge?.copyWith(color: tokens.textPrimary),

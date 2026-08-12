@@ -239,7 +239,9 @@ class _MissionScreenState extends State<MissionScreen> {
           final brief = _MissionBrief(mission: mission);
           final steps = _buildStep(mission, s);
 
-          return SafeArea(
+          return LivingBackground(
+            variant: GroundVariant.grid,
+            child: SafeArea(
             child: Column(
               children: [
                 if (_error != null) _ErrorBanner(message: _error!),
@@ -275,6 +277,7 @@ class _MissionScreenState extends State<MissionScreen> {
                 ),
               ],
             ),
+          ),
           );
         },
       ),

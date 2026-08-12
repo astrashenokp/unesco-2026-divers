@@ -39,8 +39,8 @@ class PathTrail extends StatelessWidget {
           painter: _TrailPainter(
             fromLeft: fromLeft,
             color: reached
-                ? tokens.evidencePrimary.withValues(alpha: 0.55)
-                : tokens.textMuted.withValues(alpha: 0.28),
+                ? tokens.evidencePrimary.withValues(alpha: 0.85)
+                : tokens.textMuted.withValues(alpha: 0.45),
             dashOn: reached ? 10 : 6,
           ),
         ),
@@ -72,7 +72,7 @@ class _TrailPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4
+      ..strokeWidth = 5
       ..strokeCap = StrokeCap.round;
 
     // Walk the curve and stroke alternating dashes. Using PathMetrics

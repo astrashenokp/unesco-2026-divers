@@ -96,7 +96,7 @@ class _BackgroundPainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [base, Color.lerp(base, bloomA, 0.05)!],
+          colors: [Color.lerp(base, Colors.white, 0.5)!, Color.lerp(base, bloomA, 0.10)!],
         ).createShader(rect),
     );
 
@@ -116,15 +116,15 @@ class _BackgroundPainter extends CustomPainter {
     // Blooms are deliberately weak and off-centre. A centred purple glow
     // is the "generic AI gradient" the brief rules out.
     bloom(Offset(size.width * 0.14, size.height * 0.08), size.shortestSide * 0.55,
-        bloomA, 0.045);
+        bloomA, 0.085);
     bloom(Offset(size.width * 0.92, size.height * 0.88), size.shortestSide * 0.5,
-        bloomB, 0.035);
+        bloomB, 0.070);
 
     // The structure that makes it a surface rather than a gradient.
     switch (variant) {
       case GroundVariant.grid:
         final pen = Paint()
-          ..color = line.withValues(alpha: 0.055)
+          ..color = line.withValues(alpha: 0.10)
           ..strokeWidth = 1;
         const step = 28.0;
         for (var x = 0.0; x < size.width; x += step) {
@@ -142,12 +142,12 @@ class _BackgroundPainter extends CustomPainter {
             Offset(random.nextDouble() * size.width, random.nextDouble() * size.height),
         ];
         final thread = Paint()
-          ..color = line.withValues(alpha: 0.05)
-          ..strokeWidth = 1.2;
+          ..color = line.withValues(alpha: 0.11)
+          ..strokeWidth = 1.3;
         for (var i = 0; i < pins.length - 1; i++) {
           canvas.drawLine(pins[i], pins[i + 1], thread);
         }
-        final pin = Paint()..color = line.withValues(alpha: 0.09);
+        final pin = Paint()..color = line.withValues(alpha: 0.17);
         for (final p in pins) {
           canvas.drawCircle(p, 2.4, pin);
         }
@@ -161,7 +161,7 @@ class _BackgroundPainter extends CustomPainter {
     final dot = Paint();
     final count = (size.width * size.height / 5200).clamp(0, 2400).toInt();
     for (var i = 0; i < count; i++) {
-      dot.color = grain.withValues(alpha: 0.012 + random.nextDouble() * 0.016);
+      dot.color = grain.withValues(alpha: 0.02 + random.nextDouble() * 0.022);
       canvas.drawCircle(
         Offset(random.nextDouble() * size.width, random.nextDouble() * size.height),
         random.nextDouble() * 1.1 + 0.35,

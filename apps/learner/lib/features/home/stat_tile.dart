@@ -48,14 +48,28 @@ class StatTile extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: tokens.surfaceRaised,
-            borderRadius: BorderRadius.circular(tokens.space(1.5)),
-            border: Border.all(color: tint.withValues(alpha: 0.35)),
+            borderRadius: BorderRadius.circular(tokens.space(2)),
+            border: Border.all(color: tint.withValues(alpha: 0.55), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: tint.withValues(alpha: 0.10),
+                blurRadius: 12,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: tint),
-              SizedBox(width: tokens.space(1)),
+              Container(
+                padding: EdgeInsets.all(tokens.space(0.75)),
+                decoration: BoxDecoration(
+                  color: tint.withValues(alpha: 0.14),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 18, color: tint),
+              ),
+              SizedBox(width: tokens.space(1.25)),
               Flexible(
                 child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

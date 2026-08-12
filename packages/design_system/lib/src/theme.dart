@@ -127,9 +127,14 @@ ThemeData buildEvidenceGymTheme() {
     focusColor: tokens.focus,
     cardTheme: CardThemeData(
       color: tokens.surfaceRaised,
-      elevation: 1,
+      // Enough lift to separate a card from the textured ground without
+      // the heavy drop-shadow look Material defaults to.
+      elevation: 0,
+      shadowColor: tokens.textPrimary.withValues(alpha: 0.18),
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.space(2)),
+        borderRadius: BorderRadius.circular(tokens.space(2.25)),
+        side: BorderSide(color: tokens.textMuted.withValues(alpha: 0.16)),
       ),
     ),
   );

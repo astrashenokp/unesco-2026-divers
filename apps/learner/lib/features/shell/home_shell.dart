@@ -32,6 +32,7 @@ class _HomeShellState extends State<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final s = Strings.of(context);
+    final tokens = context.tokens;
     final formFactor = formFactorOf(context);
 
     final destinations = <({IconData icon, IconData selectedIcon, String label})>[
@@ -103,24 +104,63 @@ class _HomeShellState extends State<HomeShell> {
       body: SafeArea(
         child: Row(
           children: [
-            NavigationRail(
-              selectedIndex: _index,
-              onDestinationSelected: (i) => setState(() => _index = i),
-              // Labels always visible on wide screens: icon-only rails are
-              // a guessing game for first-time and low-vision users.
-              labelType: NavigationRailLabelType.all,
-              leading: Padding(
-                padding: EdgeInsets.symmetric(vertical: context.tokens.space(2)),
-                child: const Lupa(mood: LupaMood.idle, size: 48),
-              ),
-              destinations: [
-                for (final d in destinations)
-                  NavigationRailDestination(
-                    icon: Icon(d.icon),
-                    selectedIcon: Icon(d.selectedIcon),
-                    label: Text(d.label),
+            // The rail carries its own ground and its own type, rather
+            // than falling through to Material defaults — it was the one
+            // surface in the app still rendering as an unstyled panel.
+            Container(
+              decoration: BoxDecoration(
+                color: tokens.surfaceRaised,
+                border: Border(
+                  right: BorderSide(
+                    color: tokens.textMuted.withValues(alpha: 0.14),
                   ),
-              ],
+                ),
+              ),
+              child: NavigationRail(
+                backgroundColor: Colors.transparent,
+                selectedIndex: _index,
+                onDestinationSelected: (i) => setState(() => _index = i),
+                // Labels always visible on wide screens: an icon-only
+                // rail is a guessing game for first-time and low-vision
+                // users.
+                labelType: NavigationRailLabelType.all,
+                minWidth: 92,
+                groupAlignment: -0.85,
+                indicatorColor: tokens.action.withValues(alpha: 0.14),
+                indicatorShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(tokens.space(1.75)),
+                ),
+                selectedIconTheme: IconThemeData(color: tokens.action, size: 26),
+                unselectedIconTheme:
+                    IconThemeData(color: tokens.textMuted, size: 24),
+                selectedLabelTextStyle:
+                    Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: tokens.action,
+                        ),
+                unselectedLabelTextStyle:
+                    Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: tokens.textMuted,
+                        ),
+                leading: Padding(
+                  padding: EdgeInsets.symmetric(vertical: tokens.space(2.5)),
+                  child: Lupa(
+                    mood: LupaMood.idle,
+                    size: 52,
+                    semanticLabel: s.lupaLabel('idle'),
+                  ),
+                ),
+                destinations: [
+                  for (final d in destinations)
+                    NavigationRailDestination(
+                      padding: EdgeInsets.symmetric(vertical: tokens.space(0.5)),
+                      icon: Icon(d.icon),
+                      selectedIcon: Icon(d.selectedIcon),
+                      label: Text(d.label),
+                    ),
+                ],
+              ),
             ),
             const VerticalDivider(width: 1),
             // The background sits behind the content pane only — the rail

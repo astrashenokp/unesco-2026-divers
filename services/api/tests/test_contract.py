@@ -1,7 +1,10 @@
 """Checks that scaffold behavior remains compatible with the normative contract."""
 
+from copy import deepcopy
+import json
 from pathlib import Path
 
+import jsonschema
 import yaml
 from fastapi.testclient import TestClient
 
@@ -10,11 +13,24 @@ from evidence_gym_api.app import create_app
 from conftest import REPOSITORY_ROOT
 
 CONTRACT_PATH = REPOSITORY_ROOT / "contracts" / "openapi.yaml"
+COACH_OUTPUT_SCHEMA_PATH = REPOSITORY_ROOT / "contracts" / "coach-output.schema.json"
+MISSION_FIXTURE_SCHEMA_PATH = (
+    REPOSITORY_ROOT / "contracts" / "mission-fixture.schema.json"
+)
+SCENARIO_PACK_SCHEMA_PATH = REPOSITORY_ROOT / "contracts" / "scenario-pack.schema.json"
+COACH_EVALS_PATH = REPOSITORY_ROOT / "evals" / "coach" / "p0-eval-cases.json"
+P0_MANIFEST_PATH = REPOSITORY_ROOT / "content" / "p0-demo-pack" / "manifest.json"
+P0_MISSIONS_PATH = REPOSITORY_ROOT / "content" / "p0-demo-pack" / "missions"
 
 
 def load_contract() -> dict:
     with CONTRACT_PATH.open(encoding="utf-8") as contract_file:
         return yaml.safe_load(contract_file)
+
+
+def load_json(path: Path) -> dict:
+    with path.open(encoding="utf-8") as json_file:
+        return json.load(json_file)
 
 
 def operations(contract: dict):
@@ -95,6 +111,142 @@ def test_all_local_references_resolve() -> None:
                 visit(child)
 
     visit(contract)
+
+
+def test_json_contracts_parse_as_objects() -> None:
+    for path in (
+        COACH_OUTPUT_SCHEMA_PATH,
+        MISSION_FIXTURE_SCHEMA_PATH,
+        SCENARIO_PACK_SCHEMA_PATH,
+    ):
+        schema = load_json(path)
+
+        assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+        assert schema["type"] == "object"
+        assert schema["additionalProperties"] is False
+
+
+def test_json_schema_contracts_are_valid_draft_2020_12() -> None:
+    validator = jsonschema.validators.Draft202012Validator
+
+    for path in (
+        COACH_OUTPUT_SCHEMA_PATH,
+        MISSION_FIXTURE_SCHEMA_PATH,
+        SCENARIO_PACK_SCHEMA_PATH,
+    ):
+        validator.check_schema(load_json(path))
+
+
+def test_p0_pack_and_missions_validate_against_schemas() -> None:
+    manifest_schema = load_json(SCENARIO_PACK_SCHEMA_PATH)
+    mission_schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
+    format_checker = jsonschema.FormatChecker()
+
+    jsonschema.Draft202012Validator(
+        manifest_schema,
+        format_checker=format_checker,
+    ).validate(load_json(P0_MANIFEST_PATH))
+    for path in sorted(P0_MISSIONS_PATH.glob("*.json")):
+        jsonschema.Draft202012Validator(
+            mission_schema,
+            format_checker=format_checker,
+        ).validate(load_json(path))
+
+
+def test_draft_review_metadata_is_schema_rejected_when_claiming_review() -> None:
+    manifest_schema = load_json(SCENARIO_PACK_SCHEMA_PATH)
+    mission_schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
+    format_checker = jsonschema.FormatChecker()
+
+    manifest_validator = jsonschema.Draft202012Validator(
+        manifest_schema,
+        format_checker=format_checker,
+    )
+    mission_validator = jsonschema.Draft202012Validator(
+        mission_schema,
+        format_checker=format_checker,
+    )
+
+    manifest = deepcopy(load_json(P0_MANIFEST_PATH))
+    manifest["review"]["reviewedAt"] = "2026-08-11T09:00:00Z"
+    assert list(manifest_validator.iter_errors(manifest))
+
+    mission = deepcopy(load_json(sorted(P0_MISSIONS_PATH.glob("*.json"))[0]))
+    mission["review"]["reviewedAt"] = "2026-08-11T09:00:00Z"
+    assert list(mission_validator.iter_errors(mission))
+
+
+def test_coach_eval_fixture_has_expected_release_gate_shape() -> None:
+    evals = load_json(COACH_EVALS_PATH)
+
+    assert evals["schemaVersion"] == 1
+    assert isinstance(evals["thresholds"], dict)
+    assert isinstance(evals["releaseBlockingCategories"], list)
+    assert isinstance(evals["cases"], list)
+
+
+def test_mission_fixture_schema_is_strict_demo_contract() -> None:
+    schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
+
+    assert "testsCriticalIgnoring" in schema["required"]
+    assert schema["properties"]["testsCriticalIgnoring"]["type"] == "boolean"
+
+    evidence_action = schema["$defs"]["evidenceAction"]
+    assert evidence_action["additionalProperties"] is False
+    assert "deterministicResponse" in evidence_action["required"]
+
+    deterministic_response = schema["$defs"]["deterministicEvidenceResponse"]
+    assert deterministic_response["additionalProperties"] is False
+    assert deterministic_response["required"] == [
+        "actionId",
+        "status",
+        "items",
+        "limitations",
+    ]
+
+
+def test_coach_output_schema_is_bounded_and_policy_visible() -> None:
+    schema = load_json(COACH_OUTPUT_SCHEMA_PATH)
+
+    assert schema["additionalProperties"] is False
+    assert schema["required"] == [
+        "text",
+        "level",
+        "suggestedActionId",
+        "evidenceRefs",
+        "uncertainty",
+        "safetyFlags",
+        "fallback",
+    ]
+    assert schema["properties"]["level"] == {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 5,
+    }
+    assert "prompt_injection_detected" in schema["properties"]["safetyFlags"]["items"][
+        "enum"
+    ]
+    assert "none" not in schema["properties"]["safetyFlags"]["items"]["enum"]
+
+
+def test_mission_fixture_schema_local_references_resolve() -> None:
+    schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
+
+    def visit(value):
+        if isinstance(value, dict):
+            reference = value.get("$ref")
+            if reference is not None:
+                assert reference.startswith("#/")
+                target = schema
+                for component in reference[2:].split("/"):
+                    target = target[component]
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(schema)
 
 
 def test_documented_error_responses_use_problem_component() -> None:

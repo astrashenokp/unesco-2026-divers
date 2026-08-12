@@ -38,7 +38,7 @@ System/developer policy contains role, allowed actions, output schema, non-discl
 
 ## Structured output
 
-Coach returns `hint_text`, `hint_level`, `suggested_action?`, `evidence_refs[]`, `uncertainty`, `safety_flags[]`. Reject unknown fields, unknown evidence IDs, conclusion leakage and URLs not already normalized.
+Coach output is validated against `contracts/coach-output.schema.json` before it is mapped to the public Hint API response. It returns `text`, `level`, `suggestedActionId`, `evidenceRefs[]`, `uncertainty`, `safetyFlags[]`, and `fallback`. Reject unknown fields, unknown evidence IDs, conclusion leakage and URLs not already normalized.
 
 ## Provider gateway
 

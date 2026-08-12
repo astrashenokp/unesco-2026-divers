@@ -17,21 +17,21 @@ from evidence_gym_api.learning.errors import (
 from evidence_gym_api.learning.ports import (
     AttemptIdGenerator,
     AttemptRepository,
+    Clock,
     IdempotencyRepository,
     IdempotencyScope,
     MissionPolicyReader,
     StoredAttemptResult,
     TransactionManager,
-    Clock,
 )
-
-IDEMPOTENCY_RETENTION = timedelta(hours=24)
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
     IdempotencyKey,
     MissionId,
     MissionVersion,
 )
+
+IDEMPOTENCY_RETENTION = timedelta(hours=24)
 
 
 def _fingerprint(payload: dict[str, object]) -> str:

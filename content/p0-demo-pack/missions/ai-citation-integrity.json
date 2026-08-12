@@ -1,0 +1,450 @@
+{
+  "schemaVersion": 1,
+  "id": "ai-citation-integrity",
+  "version": "0.1.0",
+  "locale": "en",
+  "title": "The Citation That Sounds Real",
+  "testsCriticalIgnoring": false,
+  "learning": {
+    "objective": "Practice checking whether an AI-suggested academic citation exists and whether its metadata supports the student's claim.",
+    "skillTags": [
+      "citation_integrity",
+      "claim_decomposition",
+      "source_identity",
+      "primary_source",
+      "uncertainty",
+      "responsible_sharing"
+    ],
+    "priorKnowledge": "Learners know that fluent AI answers can include citations that need independent checking.",
+    "likelyMisconception": "If a citation has authors, a journal name, and a DOI-shaped string, it is safe to cite.",
+    "responsibleSharingGoal": "Do not use or share an academic citation until existence, metadata, and support are checked separately."
+  },
+  "presentation": {
+    "claim": "A chatbot says this paper proves that one 10-minute media literacy game reduces deepfake susceptibility in Ukrainian students by 68%: Koval, Hrytsenko, and Meyer (2025), Cognitive Inoculation Against Deepfake Propaganda in Ukrainian Students, Journal of Applied Media Resilience, doi:10.4242/jamr.2025.0199.",
+    "context": "A student wants to use the chatbot's citation in a class presentation due tonight.",
+    "media": {
+      "type": "text",
+      "altText": "A chatbot-style answer containing a polished academic citation with a DOI-shaped identifier."
+    },
+    "allowedReactions": [
+      "trust",
+      "suspicious",
+      "investigate"
+    ],
+    "initialConfidencePrompt": "Before investigating, how confident are you that the cited paper exists and supports the claim?",
+    "conclusionPrompt": "Assess the citation, the evidence for the numerical claim, and the context for using it in a class presentation."
+  },
+  "evidenceActions": [
+    {
+      "id": "action-decompose-claim",
+      "type": "claim_decomposition",
+      "label": "Split citation and claim",
+      "description": "Separate paper existence, metadata match, and support for the 68% effectiveness claim.",
+      "skillTags": [
+        "claim_decomposition",
+        "uncertainty"
+      ],
+      "cost": 1,
+      "deterministicResponse": {
+        "actionId": "action-decompose-claim",
+        "status": "ok",
+        "items": [
+          {
+            "evidenceId": "E-CITATION-PARTS",
+            "type": "source_note",
+            "title": "Citation has three claims to verify separately",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "curated"
+          }
+        ],
+        "limitations": [
+          "Decomposition is a reasoning step, not proof that the citation exists."
+        ]
+      }
+    },
+    {
+      "id": "action-doi-normalization",
+      "type": "citation_integrity",
+      "label": "Normalize DOI",
+      "description": "Check whether the DOI-shaped string is syntactically plausible before registry lookup.",
+      "skillTags": [
+        "citation_integrity"
+      ],
+      "cost": 1,
+      "deterministicResponse": {
+        "actionId": "action-doi-normalization",
+        "status": "ok",
+        "items": [
+          {
+            "evidenceId": "E-DOI-SHAPE",
+            "type": "metadata",
+            "title": "DOI-shaped string normalized as 10.4242/jamr.2025.0199",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "curated"
+          }
+        ],
+        "limitations": [
+          "A DOI-shaped string can be syntactically plausible without being registered."
+        ]
+      }
+    },
+    {
+      "id": "action-registry-lookup",
+      "type": "citation_integrity",
+      "label": "Query demo registries",
+      "description": "Check deterministic Crossref/OpenAlex-like fixture records for the normalized DOI and title.",
+      "skillTags": [
+        "citation_integrity",
+        "source_identity"
+      ],
+      "cost": 2,
+      "deterministicResponse": {
+        "actionId": "action-registry-lookup",
+        "status": "not_found",
+        "items": [],
+        "limitations": [
+          "Not found in queried demo registries does not prove fabrication.",
+          "The safe conclusion is that registry support is missing in this checked set."
+        ]
+      }
+    },
+    {
+      "id": "action-journal-author-check",
+      "type": "source_identity",
+      "label": "Check journal and authors",
+      "description": "Compare the journal title and authors against deterministic fixture metadata.",
+      "skillTags": [
+        "source_identity",
+        "citation_integrity"
+      ],
+      "cost": 2,
+      "deterministicResponse": {
+        "actionId": "action-journal-author-check",
+        "status": "ok",
+        "items": [
+          {
+            "evidenceId": "E-JOURNAL-MISMATCH",
+            "type": "registry_record",
+            "title": "Demo registry has no matching journal title or author cluster",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "curated"
+          }
+        ],
+        "limitations": [
+          "Metadata mismatch weakens the citation but still does not by itself prove intent or fabrication."
+        ]
+      }
+    },
+    {
+      "id": "action-support-check",
+      "type": "primary_source",
+      "label": "Check support for 68%",
+      "description": "Look for demo evidence in the fixture packet that supports the exact numerical claim.",
+      "skillTags": [
+        "primary_source",
+        "uncertainty"
+      ],
+      "cost": 2,
+      "deterministicResponse": {
+        "actionId": "action-support-check",
+        "status": "ok",
+        "items": [
+          {
+            "evidenceId": "E-SUPPORT-UNDETERMINED",
+            "type": "source_note",
+            "title": "No demo source in the fixture supports the exact 68% claim",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "curated"
+          }
+        ],
+        "limitations": [
+          "This supports an unsupported or insufficient-evidence conclusion, not a universal statement that no such study can exist."
+        ]
+      }
+    }
+  ],
+  "goldEvidenceGraph": {
+    "evidence": [
+      {
+        "evidenceId": "E-CITATION-PARTS",
+        "type": "source_note",
+        "title": "Citation has three claims to verify separately",
+        "source": {
+          "sourceType": "team_fixture",
+          "publisher": "Evidence Gym P0 demo source packet",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "team_created"
+          },
+          "limitations": [
+            "Training fixture, not a live registry result."
+          ]
+        },
+        "claimRelationship": "contextualizes",
+        "limitations": [
+          "Existence, metadata match, and claim support are separate checks."
+        ]
+      },
+      {
+        "evidenceId": "E-DOI-SHAPE",
+        "type": "metadata",
+        "title": "DOI-shaped string normalized as 10.4242/jamr.2025.0199",
+        "source": {
+          "sourceType": "team_fixture",
+          "publisher": "Evidence Gym deterministic citation checker",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "metadata_only"
+          },
+          "limitations": [
+            "Syntax alone is not evidence of registration."
+          ]
+        },
+        "claimRelationship": "does_not_establish",
+        "limitations": [
+          "A DOI-shaped string should lead to registry checking, not trust."
+        ]
+      },
+      {
+        "evidenceId": "E-JOURNAL-MISMATCH",
+        "type": "registry_record",
+        "title": "Demo registry has no matching journal title or author cluster",
+        "source": {
+          "sourceType": "academic_registry",
+          "publisher": "Evidence Gym deterministic Crossref/OpenAlex-like fixture",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "metadata_only"
+          },
+          "limitations": [
+            "Not found in the queried fixture set does not prove fabrication."
+          ]
+        },
+        "claimRelationship": "not_found_in_queried_sources",
+        "limitations": [
+          "Supports caution about citation integrity."
+        ]
+      },
+      {
+        "evidenceId": "E-SUPPORT-UNDETERMINED",
+        "type": "source_note",
+        "title": "No demo source in the fixture supports the exact 68% claim",
+        "source": {
+          "sourceType": "team_fixture",
+          "publisher": "Evidence Gym P0 demo source packet",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "team_created"
+          },
+          "limitations": [
+            "This fixture does not search the live web or every scholarly database."
+          ]
+        },
+        "claimRelationship": "does_not_establish",
+        "limitations": [
+          "The exact numerical claim should not be used without stronger evidence."
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "fromEvidenceId": "E-DOI-SHAPE",
+        "toEvidenceId": "E-JOURNAL-MISMATCH",
+        "relationship": "limits"
+      },
+      {
+        "fromEvidenceId": "E-JOURNAL-MISMATCH",
+        "toEvidenceId": "E-SUPPORT-UNDETERMINED",
+        "relationship": "supports_context"
+      }
+    ],
+    "limitations": [
+      "This is a deterministic P0 fixture. Public release requires live-provider adapter review or a lawfully snapshotted metadata packet."
+    ]
+  },
+  "acceptedAssessments": {
+    "authenticity": {
+      "acceptedLabels": [
+        "not_applicable",
+        "unknown"
+      ],
+      "confidenceRange": {
+        "minimum": 50,
+        "maximum": 100
+      },
+      "rationaleEvidenceRefs": [
+        "E-CITATION-PARTS"
+      ]
+    },
+    "claimVeracity": {
+      "acceptedLabels": [
+        "unsupported",
+        "insufficient_evidence"
+      ],
+      "confidenceRange": {
+        "minimum": 55,
+        "maximum": 100
+      },
+      "rationaleEvidenceRefs": [
+        "E-JOURNAL-MISMATCH",
+        "E-SUPPORT-UNDETERMINED"
+      ]
+    },
+    "contextIntegrity": {
+      "acceptedLabels": [
+        "misleading_context",
+        "insufficient_evidence"
+      ],
+      "confidenceRange": {
+        "minimum": 55,
+        "maximum": 100
+      },
+      "rationaleEvidenceRefs": [
+        "E-DOI-SHAPE",
+        "E-JOURNAL-MISMATCH",
+        "E-SUPPORT-UNDETERMINED"
+      ]
+    }
+  },
+  "hintLadder": [
+    {
+      "level": 1,
+      "text": "What parts of this chatbot answer can be checked separately?",
+      "allowedBeforeConclusion": true,
+      "suggestedActionId": "action-decompose-claim",
+      "evidenceRefs": [],
+      "uncertainty": "high"
+    },
+    {
+      "level": 2,
+      "text": "A DOI-shaped string is not the same as a registered DOI. Normalize it before trusting it.",
+      "allowedBeforeConclusion": true,
+      "suggestedActionId": "action-doi-normalization",
+      "evidenceRefs": [
+        "E-CITATION-PARTS"
+      ],
+      "uncertainty": "high"
+    },
+    {
+      "level": 3,
+      "text": "Check whether the title, journal, and authors appear in the queried registry fixture.",
+      "allowedBeforeConclusion": true,
+      "suggestedActionId": "action-registry-lookup",
+      "evidenceRefs": [
+        "E-DOI-SHAPE"
+      ],
+      "uncertainty": "medium"
+    },
+    {
+      "level": 4,
+      "text": "If a registry lookup is not found, say that precisely. Do not jump from not found to fabricated.",
+      "allowedBeforeConclusion": true,
+      "suggestedActionId": "action-support-check",
+      "evidenceRefs": [
+        "E-JOURNAL-MISMATCH"
+      ],
+      "uncertainty": "medium"
+    },
+    {
+      "level": 5,
+      "text": "After conclusion, compare your wording: support is missing in the checked sources, so the citation should not be used as evidence for the 68% claim.",
+      "allowedBeforeConclusion": false,
+      "suggestedActionId": null,
+      "evidenceRefs": [
+        "E-JOURNAL-MISMATCH",
+        "E-SUPPORT-UNDETERMINED"
+      ],
+      "uncertainty": "low"
+    }
+  ],
+  "forbiddenLeakageTerms": [
+    "this is fabricated",
+    "the source is fake",
+    "final verdict",
+    "gold label"
+  ],
+  "rubric": {
+    "processLevels": [
+      {
+        "level": 0,
+        "criteria": "Accepts or rejects the citation from fluency alone.",
+        "xpGuidance": 1,
+        "skillTags": []
+      },
+      {
+        "level": 1,
+        "criteria": "Separates citation existence from claim support.",
+        "xpGuidance": 2,
+        "skillTags": [
+          "claim_decomposition"
+        ]
+      },
+      {
+        "level": 2,
+        "criteria": "Normalizes DOI and checks registry-like metadata.",
+        "xpGuidance": 4,
+        "skillTags": [
+          "citation_integrity",
+          "source_identity"
+        ]
+      },
+      {
+        "level": 3,
+        "criteria": "Handles not-found and mismatch results without overstating them.",
+        "xpGuidance": 6,
+        "skillTags": [
+          "uncertainty",
+          "citation_integrity"
+        ]
+      },
+      {
+        "level": 4,
+        "criteria": "Makes a cautious three-axis conclusion and avoids using unsupported citations.",
+        "xpGuidance": 8,
+        "skillTags": [
+          "responsible_sharing",
+          "uncertainty"
+        ]
+      }
+    ],
+    "confidenceCalibration": "Reward learners who reduce confidence in the citation while preserving careful wording about registry limits.",
+    "minimumCompletionEvidence": 1
+  },
+  "safety": {
+    "minimumAge": 16,
+    "contentWarnings": [
+      "academic-integrity"
+    ],
+    "supervisedOnly": false,
+    "riskNotes": [
+      "Do not present the invented citation as a real publication.",
+      "Do not claim that real tools or models necessarily fail in the same way."
+    ],
+    "privacyNotes": [
+      "No student text, private assignments, or live chatbot transcripts are stored."
+    ],
+    "license": {
+      "identifier": "EGYM-DEMO-0.1",
+      "attribution": "Evidence Gym team-created P0 demo fixture",
+      "useBasis": "team_created"
+    }
+  },
+  "review": {
+    "status": "draft",
+    "authorIds": [
+      "role-3-ai-learning-content"
+    ],
+    "reviewerIds": [],
+    "draftedAt": "2026-08-11T09:00:00Z",
+    "expiresAt": "2026-08-16T21:59:00Z",
+    "correctionPolicy": "Replace deterministic registry notes with reviewed adapter fixtures or lawful metadata snapshots before public publication."
+  }
+}

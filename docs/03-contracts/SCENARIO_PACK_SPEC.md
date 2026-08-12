@@ -1,6 +1,8 @@
 # Scenario pack specification
 
-A scenario pack is a portable, versioned, reviewable learning-content bundle. JSON validation is defined in `contracts/scenario-pack.schema.json`.
+A scenario pack is a portable, versioned, reviewable learning-content bundle.
+Manifest JSON validation is defined in `contracts/scenario-pack.schema.json`.
+Mission fixture JSON validation is defined in `contracts/mission-fixture.schema.json`.
 
 ## Layout
 
@@ -19,8 +21,9 @@ pack/
 
 - unique `id`, semantic `version`, `schemaVersion`;
 - title/description and BCP 47 locales;
-- primary audience/age band, license and author/reviewer IDs;
-- created/published/review-expiry dates;
+- primary audience/age band, license and draft/review status;
+- author IDs, drafted date, review-expiry date, and reviewer sign-off only for
+  approved/restricted packs;
 - ordered mission references and SHA-256 hashes;
 - accessibility/low-bandwidth availability;
 - content warnings and region notes.
@@ -31,11 +34,12 @@ pack/
 - presented claim/context/media with alternatives;
 - allowed initial reactions;
 - evidence actions and stable evidence IDs;
+- deterministic response for every P0 evidence action, so demo mode never depends on live third-party APIs;
 - gold evidence graph with source identity/retrieval/license metadata;
 - accepted three-axis assessments, including uncertainty ranges;
 - Socratic hint ladder and forbidden leakage terms;
 - rubric, correction/history metadata, reviewer sign-off;
-- optional `testsCriticalIgnoring` boolean (default `false`) — when `true`, the conclusion endpoint accepts zero evidence actions for this mission version because the mission is deliberately testing whether the learner concludes without investigating (ADR-008).
+- explicit `testsCriticalIgnoring` boolean in P0 fixtures. Pack missions may treat the omitted value as `false`, but checked-in fixtures state it explicitly so Role 2 can map it to `Attempt.allows_no_evidence_conclusion` without parser ambiguity. When `true`, the conclusion endpoint accepts zero evidence actions for this mission version because the mission is deliberately testing whether the learner concludes without investigating (ADR-008).
 
 ## Publication gates
 

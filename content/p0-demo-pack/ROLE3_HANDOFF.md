@@ -59,8 +59,8 @@ an eval gate for the two demo missions.
 - `python3 -m json.tool content/p0-demo-pack/missions/authentic-media-wrong-context.json`
 - `python3 -m json.tool content/p0-demo-pack/missions/ai-citation-integrity.json`
 - `python3 -m json.tool evals/coach/p0-eval-cases.json`
-- `python3 -m pytest services/api -q -p no:cacheprovider` - 100 passed.
-- `python3 -m pytest services/api --collect-only -q` - 100 tests collected.
+- `python3 -m pytest services/api -q -p no:cacheprovider` - 111 passed.
+- `python3 -m pytest services/api --collect-only -q` - 111 tests collected.
 
 ## Risks / assumptions
 

@@ -87,6 +87,45 @@ def test_coach_gate_runner_rejects_critical_failure(tmp_path: Path) -> None:
     assert result.returncode == 1
     assert "Critical eval failed" in result.stderr
     assert "Release-blocking eval failed" in result.stderr
+    assert "gold_leakage failures 1 exceed 0" in result.stderr
+
+
+def test_coach_gate_runner_enforces_invented_evidence_threshold(
+    tmp_path: Path,
+) -> None:
+    suite = load_suite()
+    results = passing_results()
+    target_index = next(
+        index
+        for index, case in enumerate(suite["cases"])
+        if case["category"] == "invented_evidence_or_citation"
+    )
+    results[target_index]["passed"] = False
+    results_path = tmp_path / "results.json"
+    write_results(results_path, results)
+
+    result = run_gate(results_path)
+
+    assert result.returncode == 1
+    assert "invented_evidence_or_citation failures 1 exceed 0" in result.stderr
+
+
+def test_coach_gate_runner_enforces_not_found_threshold(tmp_path: Path) -> None:
+    suite = load_suite()
+    results = passing_results()
+    target_index = next(
+        index
+        for index, case in enumerate(suite["cases"])
+        if case["category"] == "not_found_as_fabricated"
+    )
+    results[target_index]["passed"] = False
+    results_path = tmp_path / "results.json"
+    write_results(results_path, results)
+
+    result = run_gate(results_path)
+
+    assert result.returncode == 1
+    assert "not_found_as_fabricated failures 1 exceed 0" in result.stderr
 
 
 def test_coach_gate_runner_rejects_missing_case(tmp_path: Path) -> None:

@@ -1,5 +1,6 @@
 """Checks that scaffold behavior remains compatible with the normative contract."""
 
+from copy import deepcopy
 import json
 from pathlib import Path
 
@@ -150,6 +151,29 @@ def test_p0_pack_and_missions_validate_against_schemas() -> None:
             mission_schema,
             format_checker=format_checker,
         ).validate(load_json(path))
+
+
+def test_draft_review_metadata_is_schema_rejected_when_claiming_review() -> None:
+    manifest_schema = load_json(SCENARIO_PACK_SCHEMA_PATH)
+    mission_schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
+    format_checker = jsonschema.FormatChecker()
+
+    manifest_validator = jsonschema.Draft202012Validator(
+        manifest_schema,
+        format_checker=format_checker,
+    )
+    mission_validator = jsonschema.Draft202012Validator(
+        mission_schema,
+        format_checker=format_checker,
+    )
+
+    manifest = deepcopy(load_json(P0_MANIFEST_PATH))
+    manifest["review"]["reviewedAt"] = "2026-08-11T09:00:00Z"
+    assert list(manifest_validator.iter_errors(manifest))
+
+    mission = deepcopy(load_json(sorted(P0_MISSIONS_PATH.glob("*.json"))[0]))
+    mission["review"]["reviewedAt"] = "2026-08-11T09:00:00Z"
+    assert list(mission_validator.iter_errors(mission))
 
 
 def test_coach_eval_fixture_has_expected_release_gate_shape() -> None:

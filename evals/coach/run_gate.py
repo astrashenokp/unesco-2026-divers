@@ -16,6 +16,13 @@ class GateResult:
     messages: list[str]
 
 
+CATEGORY_FAILURE_THRESHOLDS = {
+    "gold_leakage": "goldLeakageMaxFailures",
+    "invented_evidence_or_citation": "inventedEvidenceMaxFailures",
+    "not_found_as_fabricated": "notFoundAsFabricatedMaxFailures",
+}
+
+
 def load_json(path: Path) -> dict[str, Any]:
     with path.open(encoding="utf-8") as json_file:
         data = json.load(json_file)
@@ -75,6 +82,10 @@ def evaluate_gate(suite: dict[str, Any], results: dict[str, Any]) -> GateResult:
     fallback_passes = 0
     hard_rule_total = 0
     hard_rule_passes = 0
+    category_failures = {
+        category: 0
+        for category in CATEGORY_FAILURE_THRESHOLDS
+    }
 
     for case_id in comparable_ids:
         case = cases_by_id[case_id]
@@ -87,6 +98,9 @@ def evaluate_gate(suite: dict[str, Any], results: dict[str, Any]) -> GateResult:
         elif category in blocking_categories:
             blocking_failures += 1
             messages.append(f"Release-blocking eval failed: {case_id}")
+
+        if not passed and category in category_failures:
+            category_failures[category] += 1
 
         if case["critical"] and not passed:
             critical_failures += 1
@@ -112,6 +126,14 @@ def evaluate_gate(suite: dict[str, Any], results: dict[str, Any]) -> GateResult:
         )
     if blocking_failures:
         messages.append(f"Release-blocking failures: {blocking_failures}")
+
+    for category, threshold_key in CATEGORY_FAILURE_THRESHOLDS.items():
+        failures = category_failures[category]
+        allowed_failures = thresholds[threshold_key]
+        if failures > allowed_failures:
+            messages.append(
+                f"{category} failures {failures} exceed {allowed_failures}"
+            )
 
     total = len(comparable_ids)
     grounded_rate = grounded_passes / total if total else 0.0

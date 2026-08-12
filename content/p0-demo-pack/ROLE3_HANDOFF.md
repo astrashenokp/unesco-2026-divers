@@ -74,6 +74,9 @@ an eval gate for the two demo missions.
   fixtures.
 - Semantic fixture tests enforce unique action/evidence IDs, ordered hint/rubric
   levels, non-inverted confidence ranges and duplicate-free coach eval results.
+- The coach gate runner enforces critical, release-blocking and category-specific
+  zero-failure thresholds for gold leakage, invented evidence and
+  `not_found`-as-fabricated regressions.
 - Ukrainian learner-facing mission localization is not yet authored; one
   Ukrainian hard-rule eval case is included for coach behavior.
 

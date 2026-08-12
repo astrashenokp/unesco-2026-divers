@@ -53,6 +53,20 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "const": "draft" }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "not": { "required": ["reviewedAt"] },
+            "properties": {
+              "reviewerIds": { "maxItems": 0 }
+            }
+          }
         }
       ],
       "properties": {

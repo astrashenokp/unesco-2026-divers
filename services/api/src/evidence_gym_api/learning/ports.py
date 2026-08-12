@@ -1,12 +1,13 @@
 """Application ports for learning use cases."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from contextlib import AbstractAsyncContextManager
 from datetime import datetime
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from evidence_gym_api.learning.attempt import Attempt
-from evidence_gym_api.evidence.model import EvidenceResult
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
     IdempotencyKey,
@@ -14,6 +15,9 @@ from evidence_gym_api.learning.value_objects import (
     MissionId,
     MissionVersion,
 )
+
+if TYPE_CHECKING:
+    from evidence_gym_api.evidence.model import EvidenceResult
 
 
 @dataclass(frozen=True, slots=True)

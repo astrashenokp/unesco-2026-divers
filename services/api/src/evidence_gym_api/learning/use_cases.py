@@ -108,6 +108,7 @@ class StartAttempt:
                 mission_id=policy.id,
                 mission_version=policy.version,
                 allows_no_evidence_conclusion=policy.tests_critical_ignoring,
+                minimum_required_evidence_actions=policy.minimum_completion_evidence,
             )
             await self._attempts.add(attempt)
             await self._idempotency.put(

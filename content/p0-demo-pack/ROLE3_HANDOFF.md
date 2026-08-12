@@ -48,6 +48,11 @@ through ADR-009 and the deterministic fixture reader/provider work.
 
 - `testsCriticalIgnoring` is an explicit boolean in checked-in P0 mission
   fixtures. Role 2 maps it to `Attempt.allows_no_evidence_conclusion`.
+- `rubric.minimumCompletionEvidence` is mapped to
+  `Attempt.minimum_required_evidence_actions` when the attempt is started, so
+  mission-version policy is pinned and enforced before conclusion. The public
+  mission projection exposes `minimumCompletionEvidence` so clients can disable
+  conclusion affordances before the server returns a policy conflict.
 - Mission fixture `schemaVersion: 2` is a deliberate contract bump for required
   accessibility alternatives and `rubric.evalHooks`.
 - Pack-local media URLs use `asset://<manifest-id>/...` and resolve to
@@ -76,7 +81,9 @@ through ADR-009 and the deterministic fixture reader/provider work.
   registry claim.
 - No raw user uploads, personal data, secrets or live learner prompts are stored.
 - Mission 2 preserves the hard rule: `not_found` means not found in queried
-  sources, not fabricated.
+  sources, not fabricated. Its registry lookup exposes citable
+  `E-DOI-NOT-FOUND` evidence with academic-registry provenance, timestamp and
+  limitations.
 - AI cannot score, award XP, publish content, mutate attempt state or reveal gold
   conclusions before completion.
 
@@ -88,8 +95,8 @@ through ADR-009 and the deterministic fixture reader/provider work.
 - `python3 -m json.tool content/p0-demo-pack/missions/authentic-media-wrong-context.json`
 - `python3 -m json.tool content/p0-demo-pack/missions/ai-citation-integrity.json`
 - `python3 -m json.tool evals/coach/p0-eval-cases.json`
-- `python3 -m pytest services/api -q -p no:cacheprovider` - 135 passed.
-- `python3 -m pytest services/api --collect-only -q` - 135 tests collected.
+- `python3 -m pytest services/api -q -p no:cacheprovider` - 153 passed.
+- `python3 -m pytest services/api --collect-only -q` - 153 tests collected.
 
 ## Risks / assumptions
 

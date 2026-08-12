@@ -133,6 +133,9 @@ class FileMissionPolicyReader:
             ],
             "skillTags": list(mission["learning"]["skillTags"]),
             "testsCriticalIgnoring": mission["testsCriticalIgnoring"],
+            "minimumCompletionEvidence": mission["rubric"][
+                "minimumCompletionEvidence"
+            ],
         }
 
     def _load_missions(
@@ -170,6 +173,9 @@ class FileMissionPolicyReader:
                 id=MissionId(mission["id"]),
                 version=MissionVersion(mission["version"]),
                 tests_critical_ignoring=mission["testsCriticalIgnoring"],
+                minimum_completion_evidence=mission["rubric"][
+                    "minimumCompletionEvidence"
+                ],
             )
             key = (policy.id, policy.version)
             if key in policies:

@@ -91,6 +91,7 @@ class Mission {
     required this.evidenceActions,
     required this.skillTags,
     this.testsCriticalIgnoring = false,
+    this.minimumCompletionEvidence = 1,
   });
 
   final String id;
@@ -102,6 +103,7 @@ class Mission {
   final List<EvidenceActionSpec> evidenceActions;
   final List<String> skillTags;
   final bool testsCriticalIgnoring; // ADR-008
+  final int minimumCompletionEvidence;
 
   factory Mission.fromJson(Map<String, dynamic> json) => Mission(
         id: json['id'] as String,
@@ -115,6 +117,8 @@ class Mission {
             .toList(),
         skillTags: (json['skillTags'] as List).cast<String>(),
         testsCriticalIgnoring: json['testsCriticalIgnoring'] as bool? ?? false,
+        minimumCompletionEvidence:
+            (json['minimumCompletionEvidence'] as num?)?.toInt() ?? 1,
       );
 }
 

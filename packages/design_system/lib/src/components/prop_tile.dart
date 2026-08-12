@@ -132,8 +132,8 @@ class _PropTileState extends State<PropTile> with SingleTickerProviderStateMixin
     // InkWell rather than GestureDetector: it is focusable, so the tile
     // is reachable by Tab and activated by Enter or Space. Built on a
     // GestureDetector the tile was unreachable by keyboard entirely —
-    // and since a conclusion requires at least one evidence check, that
-    // made the whole mission impossible without a pointer.
+    // and since a conclusion requires mission-defined evidence checks,
+    // that made the whole mission impossible without a pointer.
     final tile = ExcludeSemantics(
         child: InkWell(
           onTap: enabled ? widget.onTap : null,

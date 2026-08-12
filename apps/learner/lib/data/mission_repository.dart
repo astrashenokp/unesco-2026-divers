@@ -202,15 +202,28 @@ class DemoMissionRepository implements MissionRepository {
     ConclusionInput input,
   ) async {
     await _pause();
-    _receiptCounter += 1;
     final usedCount = _usedActions[attemptId]?.length ?? 0;
+    final missionId = _attemptState[attemptId]?.missionId;
+    final mission = demoMissionsFor(localeCode())[missionId];
+    if (!(mission?.testsCriticalIgnoring ?? false) &&
+        usedCount < (mission?.minimumCompletionEvidence ?? 1)) {
+      throw EvidenceGymApiException(
+        const Problem(
+          type: 'about:blank',
+          title: 'More evidence needed',
+          status: 409,
+          code: 'minimum_evidence_not_met',
+          traceId: 'demo',
+        ),
+      );
+    }
+    _receiptCounter += 1;
     final xp = 1 + usedCount; // mirrors the process-XP rubric shape, demo-scale only
     _earnedXp += xp;
 
     // Credit the skills the mission actually exercises, so the demo
     // progress screen reflects what the learner just did.
-    final missionId = _attemptState[attemptId]?.missionId;
-    for (final tag in demoMissionsFor(localeCode())[missionId]?.skillTags ?? const <String>[]) {
+    for (final tag in mission?.skillTags ?? const <String>[]) {
       _skillHits[tag] = (_skillHits[tag] ?? 0) + usedCount;
     }
 

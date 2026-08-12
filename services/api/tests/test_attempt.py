@@ -22,13 +22,18 @@ from evidence_gym_api.learning import (
 )
 
 
-def new_attempt(*, allows_no_evidence_conclusion: bool = False) -> Attempt:
+def new_attempt(
+    *,
+    allows_no_evidence_conclusion: bool = False,
+    minimum_required_evidence_actions: int = 1,
+) -> Attempt:
     return Attempt(
         AttemptId("attempt-1"),
         LearnerId("learner-1"),
         MissionId("mission-1"),
         MissionVersion("1.2.3"),
         allows_no_evidence_conclusion=allows_no_evidence_conclusion,
+        minimum_required_evidence_actions=minimum_required_evidence_actions,
     )
 
 
@@ -113,6 +118,7 @@ def test_happy_path_preserves_pinned_mission_and_independent_axes() -> None:
         "mission_id",
         "mission_version",
         "allows_no_evidence_conclusion",
+        "minimum_required_evidence_actions",
     ],
 )
 def test_attempt_identity_and_mission_policy_are_pinned_at_creation(field: str) -> None:
@@ -148,10 +154,42 @@ def test_repeated_domain_completion_is_rejected() -> None:
 
 
 def test_explicit_mission_rule_can_allow_conclusion_without_evidence() -> None:
-    attempt = new_attempt(allows_no_evidence_conclusion=True)
+    attempt = new_attempt(
+        allows_no_evidence_conclusion=True,
+        minimum_required_evidence_actions=3,
+    )
     attempt.submit_prediction(prediction())
     attempt.submit_conclusion(conclusion())
     assert attempt.state is AttemptState.CONCLUDED
+
+
+def test_conclusion_requires_configured_minimum_evidence_actions() -> None:
+    attempt = new_attempt(minimum_required_evidence_actions=3)
+    attempt.submit_prediction(prediction())
+    attempt.record_evidence_action("action-1")
+    attempt.record_evidence_action("action-2")
+    version = attempt.version
+
+    with pytest.raises(
+        IllegalAttemptTransition, match="at least 3 evidence actions"
+    ):
+        attempt.submit_conclusion(conclusion())
+
+    assert attempt.state is AttemptState.INVESTIGATING
+    assert attempt.conclusion is None
+    assert attempt.version == version
+
+    attempt.record_evidence_action("action-3")
+    attempt.submit_conclusion(conclusion())
+    assert attempt.state is AttemptState.CONCLUDED
+
+
+@pytest.mark.parametrize("minimum", [-1, 7, 1.5, True, "3"])
+def test_minimum_required_evidence_actions_is_bounded_integer(
+    minimum: object,
+) -> None:
+    with pytest.raises(DomainError):
+        new_attempt(minimum_required_evidence_actions=minimum)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(

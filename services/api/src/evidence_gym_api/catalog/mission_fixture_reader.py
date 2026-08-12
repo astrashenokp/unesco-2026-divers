@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from hashlib import sha256
+from copy import deepcopy
 import json
 from pathlib import Path
 from typing import Any
@@ -60,18 +61,40 @@ class FileMissionPolicyReader:
         self._pack_root = pack_root.resolve()
         self._manifest_validator = _validator(manifest_schema_path)
         self._mission_validator = _validator(mission_schema_path)
-        self._policies = self._load_policies()
+        self._policies, self._missions = self._load_missions()
 
     async def get_policy(
         self, mission_id: MissionId, mission_version: MissionVersion
     ) -> MissionPolicy | None:
         return self._policies.get((mission_id, mission_version))
 
-    def _load_policies(self) -> dict[tuple[MissionId, MissionVersion], MissionPolicy]:
+    async def get_deterministic_evidence_document(
+        self,
+        mission_id: MissionId,
+        mission_version: MissionVersion,
+        action_id: str,
+    ) -> dict[str, Any] | None:
+        """Return a defensive copy of one validated deterministic response."""
+
+        mission = self._missions.get((mission_id, mission_version))
+        if mission is None:
+            return None
+        for action in mission["evidenceActions"]:
+            if action["id"] == action_id:
+                return deepcopy(action["deterministicResponse"])
+        return None
+
+    def _load_missions(
+        self,
+    ) -> tuple[
+        dict[tuple[MissionId, MissionVersion], MissionPolicy],
+        dict[tuple[MissionId, MissionVersion], dict[str, Any]],
+    ]:
         manifest = _load_json(self._pack_root / "manifest.json")
         self._validate(self._manifest_validator, manifest, "manifest.json")
 
         policies: dict[tuple[MissionId, MissionVersion], MissionPolicy] = {}
+        missions: dict[tuple[MissionId, MissionVersion], dict[str, Any]] = {}
         manifest_ids: set[str] = set()
         for entry in manifest["missions"]:
             manifest_id = entry["id"]
@@ -102,7 +125,8 @@ class FileMissionPolicyReader:
                     f"duplicate mission version: {policy.id}@{policy.version}"
                 )
             policies[key] = policy
-        return policies
+            missions[key] = mission
+        return policies, missions
 
     def _resolve_mission_path(self, relative_path: str) -> Path:
         candidate = (self._pack_root / relative_path).resolve()

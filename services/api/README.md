@@ -25,8 +25,9 @@ propagated; otherwise the API generates a UUID. Errors use
 `application/problem+json` and match the contract's Problem fields.
 
 The learning package currently provides pure attempt-domain behavior,
-application ports, deterministic in-memory test adapters, and the `StartAttempt`
-and `SubmitPrediction` use cases. Persistence implementers should follow
+application ports, deterministic local in-memory adapters, and use cases for
+starting attempts, submitting predictions, using deterministic evidence actions
+and requesting bounded Socratic hints. Persistence implementers should follow
 [`ROLE4_PERSISTENCE_HANDOFF.md`](ROLE4_PERSISTENCE_HANDOFF.md).
 
 Implemented public catalog endpoints:
@@ -44,10 +45,12 @@ Implemented learner mutations:
 
 - `POST /attempts`
 - `POST /attempts/{attemptId}/prediction`
+- `POST /attempts/{attemptId}/evidence-actions`
+- `POST /attempts/{attemptId}/hints`
 
-Both require a verified Firebase bearer principal and `Idempotency-Key`. The
-repository contains only a fake verifier for tests; runtime Firebase verification
-must be injected through the application factory.
+All require a verified Firebase bearer principal and `Idempotency-Key`. The
+repository contains only a fake verifier for tests/local composition checks;
+runtime Firebase verification must be injected through the application factory.
 
 `FileMissionPolicyReader` validates Role 3's checked-in pack manifest and mission
 schema, verifies each SHA-256, rejects unsafe paths or duplicate versions, and
@@ -60,3 +63,8 @@ assessment or rubric fields, and never calls a live provider. The
 `POST /attempts/{attemptId}/evidence-actions` endpoint validates ownership and
 optimistic versioning, records the action atomically, supports idempotent retries,
 and returns the updated `attemptVersion` required by the shared API contract.
+
+`POST /attempts/{attemptId}/hints` returns the reviewed deterministic fallback
+when no safe model provider is configured. It validates allowed actions,
+available evidence refs, forbidden leakage terms and safety flags before a hint
+reaches the learner, and never advances `Attempt.version`.

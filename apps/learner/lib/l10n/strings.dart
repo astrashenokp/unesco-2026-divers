@@ -105,6 +105,8 @@ class Strings {
   String get stateAvailable => _s('available', 'доступно');
   String get stateCompleted => _s('completed', 'пройдено');
   String get boosterDue => _s('practice due', 'час повторити');
+  String nodeUnlocked(String title) =>
+      _s('$title is now open', 'Відкрито: $title');
   String get lockedReason =>
       _s('Finish the one before it', 'Заверши попередню');
 

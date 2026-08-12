@@ -6,11 +6,26 @@ class LearningPathNode {
     required this.missionId,
     required this.title,
     required this.state,
+    this.boosterDue = false,
   });
 
   final String missionId;
   final String title;
   final String state; // locked | available | completed
+
+  /// This node practises a skill that is due for review.
+  ///
+  /// Not read from the wire, and deliberately not added to the contract
+  /// by me. `Progress.skills[].dueAt` already says *which skills* are
+  /// due, but `LearningPath.nodes` carries no skill tags, so there is no
+  /// way to join the two — the client would have to fetch every mission
+  /// to find out which node practises a due skill.
+  ///
+  /// The demo repository can compute it because it holds the fixtures.
+  /// Against a real server it stays false until the contract carries
+  /// either `skillTags` on a path node or a `boosterDue` flag; that is a
+  /// contract question, not something to paper over here.
+  final bool boosterDue;
 
   factory LearningPathNode.fromJson(Map<String, dynamic> json) =>
       LearningPathNode(

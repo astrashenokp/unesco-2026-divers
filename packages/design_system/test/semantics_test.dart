@@ -156,4 +156,70 @@ void main() {
     expect(value, 50);
     handle.dispose();
   });
+
+  testWidgets(
+      'unlocking a node is announced, and still announced under reduce motion',
+      (tester) async {
+    // The unlock animation is the whole of the news for a sighted
+    // learner. Without an announcement the path silently grows a step
+    // that a screen reader user never hears about, because nothing draws
+    // attention to a node they are not focused on.
+    //
+    // Both cases run here because the tempting implementation guards the
+    // announcement behind the same check as the animation, and then
+    // reduced motion — a request for less movement — silently becomes a
+    // request for less information.
+    for (final reduceMotion in [false, true]) {
+      final announcements = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockDecodedMessageHandler<dynamic>(
+        SystemChannels.accessibility,
+        (message) async {
+          final data = message as Map<dynamic, dynamic>;
+          if (data['type'] == 'announce') {
+            announcements.add((data['data'] as Map)['message'] as String);
+          }
+          return null;
+        },
+      );
+
+      Widget host(PathNodeState state) => MaterialApp(
+            theme: buildEvidenceGymTheme(),
+            home: MediaQuery(
+              data: MediaQueryData(disableAnimations: reduceMotion),
+              child: Scaffold(
+                body: Center(
+                  child: PathNode(
+                    title: 'Where and when',
+                    state: state,
+                    stateLabel: 'locked',
+                    unlockAnnouncement: 'Where and when is now open',
+                  ),
+                ),
+              ),
+            ),
+          );
+
+      await tester.pumpWidget(host(PathNodeState.locked));
+      expect(announcements, isEmpty,
+          reason: 'a node that starts locked has not just unlocked');
+
+      await tester.pumpWidget(host(PathNodeState.available));
+      await tester.pump();
+
+      expect(
+        announcements,
+        contains('Where and when is now open'),
+        reason: reduceMotion
+            ? 'reduce motion dropped the announcement along with the animation'
+            : 'unlocking was never announced',
+      );
+
+      // Not pumpAndSettle: an available node breathes on an endless
+      // ticker by design, so nothing ever settles. Unmounting disposes
+      // it, which is what the next loop iteration needs anyway.
+      await tester.pumpWidget(const SizedBox.shrink());
+      tester.binding.defaultBinaryMessenger
+          .setMockDecodedMessageHandler<dynamic>(SystemChannels.accessibility, null);
+    }
+  });
 }

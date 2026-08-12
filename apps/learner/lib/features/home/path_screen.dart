@@ -459,6 +459,12 @@ class _PathStop extends StatelessWidget {
             PathNodeState.available => s.stateAvailable,
             PathNodeState.completed => s.stateCompleted,
           },
+          // A completed node whose skill has gone stale gets a ring and
+          // is named as due in the spoken label, so it is not something
+          // only a sighted learner can notice.
+          boosterDue: node.boosterDue,
+          boosterLabel: s.boosterDue,
+          unlockAnnouncement: s.nodeUnlocked(node.title),
           heroTag: 'mission-${node.missionId}',
           onTap: locked ? null : () => onOpen(node),
         ),

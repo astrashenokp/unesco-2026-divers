@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/semantics.dart';
 
 import '../motion.dart';
 import '../tokens.dart';
@@ -26,6 +27,7 @@ class PathNode extends StatefulWidget {
     required this.stateLabel,
     this.boosterDue = false,
     this.boosterLabel,
+    this.unlockAnnouncement,
     this.heroTag,
     this.onTap,
   });
@@ -38,6 +40,16 @@ class PathNode extends StatefulWidget {
   final bool boosterDue;
   final String? boosterLabel;
 
+  /// Spoken once when this node stops being locked, e.g. "Where and when
+  /// is now open".
+  ///
+  /// The unlock is the moment the path visibly moves forward, and an
+  /// animation is the whole of that news for a sighted learner. A screen
+  /// reader user gets nothing from it: the node's label changes, but
+  /// nothing draws attention to a node they are not focused on, so the
+  /// path silently grows a step they never hear about. This announces it.
+  final String? unlockAnnouncement;
+
   /// When set, the node flies into the destination screen's header.
   final Object? heroTag;
   final VoidCallback? onTap;
@@ -46,9 +58,15 @@ class PathNode extends StatefulWidget {
   State<PathNode> createState() => _PathNodeState();
 }
 
-class _PathNodeState extends State<PathNode> with SingleTickerProviderStateMixin {
+class _PathNodeState extends State<PathNode> with TickerProviderStateMixin {
   Ticker? _ticker;
   double _t = 0;
+
+  /// One-shot, played when the node stops being locked.
+  late final AnimationController _unlock = AnimationController(
+    vsync: this,
+    duration: Motion.celebrate,
+  );
 
   @override
   void initState() {
@@ -59,6 +77,32 @@ class _PathNodeState extends State<PathNode> with SingleTickerProviderStateMixin
   @override
   void didUpdateWidget(covariant PathNode oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    // Only on the transition, never on first build: a path that plays
+    // six unlock animations every time the screen is opened teaches the
+    // learner to ignore the one that means something.
+    if (oldWidget.state == PathNodeState.locked &&
+        widget.state != PathNodeState.locked) {
+      // The announcement happens whether or not the animation does.
+      // Reduced motion is a request for less movement, not less
+      // information — dropping the news along with the movement is a
+      // mistake that only shows up for the people it hurts.
+      final announcement = widget.unlockAnnouncement;
+      if (announcement != null) {
+        // The view-scoped call rather than the deprecated global one,
+        // which asserts against a single implicit view — the app runs on
+        // the web, where that assumption does not hold.
+        SemanticsService.sendAnnouncement(
+          View.of(context),
+          announcement,
+          Directionality.of(context),
+        );
+      }
+      if (!(MediaQuery.maybeOf(context)?.disableAnimations ?? false)) {
+        _unlock.forward(from: 0);
+      }
+    }
+
     if (widget.state == PathNodeState.available && _ticker == null) {
       _startPulse();
     } else if (widget.state != PathNodeState.available) {
@@ -77,6 +121,7 @@ class _PathNodeState extends State<PathNode> with SingleTickerProviderStateMixin
   @override
   void dispose() {
     _ticker?.dispose();
+    _unlock.dispose();
     super.dispose();
   }
 
@@ -124,6 +169,44 @@ class _PathNodeState extends State<PathNode> with SingleTickerProviderStateMixin
               ],
       ),
       child: Icon(icon, color: fg, size: 30),
+    );
+
+    // The unlock: a ring expands past the node and fades, while the node
+    // itself overshoots once. Drawn behind, so it never sits over the
+    // icon, and it does not change the 72dp hit target at any point in
+    // the flight — a control that moves out from under a finger mid-tap
+    // is worse than no animation at all.
+    circle = AnimatedBuilder(
+      animation: _unlock,
+      builder: (context, child) {
+        if (_unlock.isDismissed) return child!;
+        final t = Curves.easeOutCubic.transform(_unlock.value);
+        return Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            IgnorePointer(
+              child: Container(
+                width: 72 + 40 * t,
+                height: 72 + 40 * t,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: tokens.evidenceSecondary.withValues(alpha: 1 - t),
+                    width: 3 * (1 - t),
+                  ),
+                ),
+              ),
+            ),
+            Transform.scale(
+              // A single overshoot, settling back to exactly 1.
+              scale: 1 + math.sin(t * math.pi) * 0.12,
+              child: child,
+            ),
+          ],
+        );
+      },
+      child: circle,
     );
 
     if (widget.heroTag != null) {

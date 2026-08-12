@@ -296,6 +296,26 @@ class LiveMissionRepository implements MissionRepository {
   LiveMissionRepository(this._client);
   final EvidenceGymApiClient _client;
 
+  /// One idempotency key per *logical action*, not per call.
+  ///
+  /// Generating a fresh key on every request defeats the mechanism
+  /// entirely: a timed-out `POST /attempts` retried would create a
+  /// second attempt instead of returning the first, and a timed-out
+  /// conclusion retried could not resume from the server's persisted
+  /// `reflected` checkpoint — which is the whole point of ADR-008
+  /// decision 5. The learner would lose the receipt and XP they earned.
+  ///
+  /// A key is minted once per action and reused until that action
+  /// succeeds, so every retry carries the same key.
+  final _keys = <String, String>{};
+
+  String _key(String action) =>
+      _keys.putIfAbsent(action, _client.newIdempotencyKey);
+
+  /// Called after a success so the next deliberate invocation of the same
+  /// action is a new operation rather than a replay of the old one.
+  void _clearKey(String action) => _keys.remove(action);
+
   @override
   bool get isDemo => false;
 
@@ -307,48 +327,76 @@ class LiveMissionRepository implements MissionRepository {
 
   @override
   Future<Attempt> startAttempt(String missionId, String missionVersion) =>
+      // Deliberately never cleared: the contract calls this "start/resume",
+      // so reopening the same mission version must return the attempt
+      // already in progress rather than abandoning it for a fresh one.
       _client.startAttempt(
         missionId: missionId,
         missionVersion: missionVersion,
-        idempotencyKey: _client.newIdempotencyKey(),
+        idempotencyKey: _key('start:$missionId:$missionVersion'),
       );
 
   @override
-  Future<Attempt> submitPrediction(String attemptId, PredictionInput input) =>
-      _client.submitPrediction(
-        attemptId: attemptId,
-        input: input,
-        idempotencyKey: _client.newIdempotencyKey(),
-      );
+  Future<Attempt> submitPrediction(String attemptId, PredictionInput input) async {
+    const scope = 'prediction';
+    final action = '$scope:$attemptId';
+    final result = await _client.submitPrediction(
+      attemptId: attemptId,
+      input: input,
+      idempotencyKey: _key(action),
+    );
+    _clearKey(action);
+    return result;
+  }
 
   @override
   Future<EvidenceResult> useEvidenceAction(
     String attemptId,
     String missionId,
     String actionId,
-  ) =>
-      _client.useEvidenceAction(
-        attemptId: attemptId,
-        actionId: actionId,
-        idempotencyKey: _client.newIdempotencyKey(),
-      );
+  ) async {
+    // Keyed by the action itself: running the same check twice is the
+    // same operation and should not be billed or logged twice.
+    final action = 'evidence:$attemptId:$actionId';
+    final result = await _client.useEvidenceAction(
+      attemptId: attemptId,
+      actionId: actionId,
+      idempotencyKey: _key(action),
+    );
+    _clearKey(action);
+    return result;
+  }
 
   @override
   Future<({String receiptId, int xpAwarded, Progress progress})> submitConclusion(
     String attemptId,
     ConclusionInput input,
   ) =>
+      // Never cleared. An attempt concludes exactly once, so every retry
+      // of this call — including one after a timeout that the server
+      // actually processed — must replay the original and return the
+      // same receipt.
       _client.submitConclusion(
         attemptId: attemptId,
         input: input,
-        idempotencyKey: _client.newIdempotencyKey(),
+        idempotencyKey: _key('conclusion:$attemptId'),
       );
 
   @override
-  Future<Hint> requestHint(String attemptId, String missionId) => _client.requestHint(
-        attemptId: attemptId,
-        idempotencyKey: _client.newIdempotencyKey(),
-      );
+  Future<Hint> requestHint(String attemptId, String missionId) async {
+    // Cleared on success, so a retry of one press replays that hint while
+    // a deliberate second press asks for the next rung.
+    final action = 'hint:$attemptId:${_hintAsks[attemptId] ?? 0}';
+    final hint = await _client.requestHint(
+      attemptId: attemptId,
+      idempotencyKey: _key(action),
+    );
+    _hintAsks[attemptId] = (_hintAsks[attemptId] ?? 0) + 1;
+    _clearKey(action);
+    return hint;
+  }
+
+  final _hintAsks = <String, int>{};
 
   @override
   Future<Progress> getMyProgress() => _client.getMyProgress();
@@ -367,10 +415,12 @@ class LiveMissionRepository implements MissionRepository {
     required String reason,
     String? detail,
   }) =>
+      // Keyed by content, so a retry after a timeout does not file the
+      // same report twice into a human moderation queue.
       _client.reportContent(
         missionId: missionId,
         reason: reason,
         detail: detail,
-        idempotencyKey: _client.newIdempotencyKey(),
+        idempotencyKey: _key('report:$missionId:$reason:${detail ?? ""}'),
       );
 }

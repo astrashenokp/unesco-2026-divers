@@ -1,4 +1,3 @@
-import 'package:evidence_gym_learner/data/demo_fixtures.dart';
 import 'package:evidence_gym_learner/data/mission_repository.dart';
 import 'package:evidence_gym_learner/data/models.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,10 +52,10 @@ void main() {
 
     final result = await r.submitConclusion(
       attempt.id,
-      ConclusionInput(
-        authenticity: const AxisAssessment(label: 'authentic', confidence: 80),
-        claimVeracity: const AxisAssessment(label: 'contradicted', confidence: 70),
-        contextIntegrity: const AxisAssessment(label: 'misleading', confidence: 75),
+      const ConclusionInput(
+        authenticity: AxisAssessment(label: 'authentic', confidence: 80),
+        claimVeracity: AxisAssessment(label: 'contradicted', confidence: 70),
+        contextIntegrity: AxisAssessment(label: 'misleading', confidence: 75),
         postConfidence: 80,
         shareDecision: 'do_not_share',
         version: 2,
@@ -79,10 +78,10 @@ void main() {
 
     final result = await r.submitConclusion(
       attempt.id,
-      ConclusionInput(
-        authenticity: const AxisAssessment(label: 'unknown', confidence: 20),
-        claimVeracity: const AxisAssessment(label: 'insufficient_evidence', confidence: 20),
-        contextIntegrity: const AxisAssessment(label: 'unknown', confidence: 20),
+      const ConclusionInput(
+        authenticity: AxisAssessment(label: 'unknown', confidence: 20),
+        claimVeracity: AxisAssessment(label: 'insufficient_evidence', confidence: 20),
+        contextIntegrity: AxisAssessment(label: 'unknown', confidence: 20),
         postConfidence: 25,
         shareDecision: 'continue_investigating',
         version: 2,

@@ -68,6 +68,11 @@ class EvidenceGymApiClient {
   /// deliberately avoids `dart:io`'s `SocketException`, which does not
   /// exist on web; `http` surfaces its own `ClientException` there, and
   /// catching broadly covers both without a platform split.
+  ///
+  /// Headers must be built *before* calling this. An earlier version
+  /// awaited the auth token inside the guarded closure, so an expired
+  /// sign-in was swallowed and shown to the learner as "no connection" —
+  /// telling someone their internet is down when their session expired.
   Future<http.Response> _send(Future<http.Response> Function() call) async {
     try {
       return await call();
@@ -114,9 +119,10 @@ class EvidenceGymApiClient {
     required String missionVersion,
     required String idempotencyKey,
   }) async {
+    final headers = await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey);
     final res = await _send(() async => _client.post(
       _uri('/attempts'),
-      headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
+      headers: headers,
       body: jsonEncode({'missionId': missionId, 'missionVersion': missionVersion}),
     ));
     if (res.statusCode != 201) _throwProblem(res);
@@ -128,9 +134,10 @@ class EvidenceGymApiClient {
     required PredictionInput input,
     required String idempotencyKey,
   }) async {
+    final headers = await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey);
     final res = await _send(() async => _client.post(
       _uri('/attempts/$attemptId/prediction'),
-      headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
+      headers: headers,
       body: jsonEncode(input.toJson()),
     ));
     if (res.statusCode != 200) _throwProblem(res);
@@ -143,9 +150,10 @@ class EvidenceGymApiClient {
     Map<String, dynamic>? input,
     required String idempotencyKey,
   }) async {
+    final headers = await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey);
     final res = await _send(() async => _client.post(
       _uri('/attempts/$attemptId/evidence-actions'),
-      headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
+      headers: headers,
       body: jsonEncode({'actionId': actionId, if (input != null) 'input': input}),
     ));
     if (res.statusCode != 200) _throwProblem(res);
@@ -156,9 +164,10 @@ class EvidenceGymApiClient {
     required String attemptId,
     required String idempotencyKey,
   }) async {
+    final headers = await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey);
     final res = await _send(() async => _client.post(
       _uri('/attempts/$attemptId/hints'),
-      headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
+      headers: headers,
     ));
     if (res.statusCode != 200) _throwProblem(res);
     return Hint.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
@@ -172,9 +181,10 @@ class EvidenceGymApiClient {
     required ConclusionInput input,
     required String idempotencyKey,
   }) async {
+    final headers = await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey);
     final res = await _send(() async => _client.post(
       _uri('/attempts/$attemptId/conclusion'),
-      headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
+      headers: headers,
       body: jsonEncode(input.toJson()),
     ));
     if (res.statusCode != 200) _throwProblem(res);
@@ -187,9 +197,10 @@ class EvidenceGymApiClient {
   }
 
   Future<Receipt> getReceipt(String receiptId) async {
+    final headers = await _headers(withIdempotencyKey: false);
     final res = await _send(() async => _client.get(
       _uri('/receipts/$receiptId'),
-      headers: await _headers(withIdempotencyKey: false),
+      headers: headers,
     ));
     if (res.statusCode != 200) _throwProblem(res);
     return Receipt.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
@@ -204,9 +215,10 @@ class EvidenceGymApiClient {
     String? detail,
     required String idempotencyKey,
   }) async {
+    final headers = await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey);
     final res = await _send(() async => _client.post(
       _uri('/reports'),
-      headers: await _headers(withIdempotencyKey: true, idempotencyKey: idempotencyKey),
+      headers: headers,
       body: jsonEncode({
         'missionId': missionId,
         'reason': reason,
@@ -217,9 +229,10 @@ class EvidenceGymApiClient {
   }
 
   Future<Progress> getMyProgress() async {
+    final headers = await _headers(withIdempotencyKey: false);
     final res = await _send(() async => _client.get(
       _uri('/me/progress'),
-      headers: await _headers(withIdempotencyKey: false),
+      headers: headers,
     ));
     if (res.statusCode != 200) _throwProblem(res);
     return Progress.fromJson(jsonDecode(res.body) as Map<String, dynamic>);

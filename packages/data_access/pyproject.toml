@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "evidence-gym-data-access"
+version = "0.1.0"
+description = "Evidence Gym PostgreSQL persistence adapters"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "alembic>=1.15,<2",
+  "asyncpg>=0.30,<1",
+  "greenlet>=3.0,<4",
+  "sqlalchemy>=2.0,<3",
+]
+
+[project.optional-dependencies]
+test = [
+  "aiosqlite>=0.20,<1",
+  "pytest>=8.4,<9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/data_access"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["src", "../../services/api/src"]

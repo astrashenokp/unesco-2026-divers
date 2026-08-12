@@ -56,6 +56,7 @@ class DemoMissionRepository implements MissionRepository {
   final _completed = <String>{};
   var _earnedXp = 0;
   final _skillHits = <String, int>{};
+  final _hintLevel = <String, int>{};
 
   Future<void> _pause() => Future<void>.delayed(const Duration(milliseconds: 300));
 
@@ -217,7 +218,13 @@ class DemoMissionRepository implements MissionRepository {
         break;
       }
     }
-    return demoHintFor(usedCount: used.length, nextActionId: nextAction?.id);
+    final level = (_hintLevel[attemptId] ?? 0) + 1;
+    _hintLevel[attemptId] = level;
+    return demoHintFor(
+      usedCount: used.length,
+      level: level,
+      nextActionId: nextAction?.id,
+    );
   }
 
   Progress _buildProgress() => Progress(

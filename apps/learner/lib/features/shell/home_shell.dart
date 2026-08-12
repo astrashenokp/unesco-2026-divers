@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/mission_repository.dart';
 import '../../l10n/strings.dart';
+import '../common/demo_banner.dart';
 import '../home/path_screen.dart';
 import '../profile/progress_screen.dart';
 import '../settings/settings_screen.dart';
@@ -61,7 +62,16 @@ class _HomeShellState extends State<HomeShell> {
 
     if (formFactor.isPhone) {
       return Scaffold(
-        body: LivingBackground(child: SafeArea(child: body)),
+        body: LivingBackground(
+          child: SafeArea(
+            child: Column(
+              children: [
+                if (widget.repository.isDemo) const DemoBanner(),
+                Expanded(child: body),
+              ],
+            ),
+          ),
+        ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _index,
           onDestinationSelected: (i) => setState(() => _index = i),
@@ -103,7 +113,16 @@ class _HomeShellState extends State<HomeShell> {
             const VerticalDivider(width: 1),
             // The background sits behind the content pane only — the rail
             // keeps a solid surface so its labels stay crisp.
-            Expanded(child: LivingBackground(child: body)),
+            Expanded(
+              child: LivingBackground(
+                child: Column(
+                  children: [
+                    if (widget.repository.isDemo) const DemoBanner(),
+                    Expanded(child: body),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

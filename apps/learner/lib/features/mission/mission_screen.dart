@@ -633,29 +633,7 @@ class _InvestigatingStep extends StatelessWidget {
             for (final (index, result) in collected.values.indexed)
               RevealOnScroll(
                 delayIndex: index,
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(tokens.space(1.5)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (result.items.isEmpty)
-                          Text(s.notFoundInSources)
-                        else
-                          for (final item in result.items)
-                            Padding(
-                              padding: EdgeInsets.only(bottom: tokens.space(0.5)),
-                              child: Text('• ${item.title}'),
-                            ),
-                        if (result.limitations.isNotEmpty)
-                          Text(
-                            result.limitations.join(' '),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
+                child: _EvidenceCard(result: result),
               ),
           ],
           SizedBox(height: tokens.space(2)),
@@ -670,6 +648,9 @@ class _InvestigatingStep extends StatelessWidget {
               uncertaintyLabel: s.uncertaintySentence(hint!.uncertainty),
               isFallback: hint!.fallback,
               fallbackLabel: s.coachFallback,
+              rungLabel: s.hintLevel(hint!.level),
+              exhaustedLabel: s.hintExhausted,
+              level: hint!.level,
             ),
             SizedBox(height: tokens.space(2)),
           ],
@@ -876,6 +857,92 @@ class _ReceiptStep extends StatelessWidget {
           OutlinedButton(onPressed: onDone, child: Text(s.backToPath)),
           SizedBox(height: tokens.space(2)),
         ],
+      ),
+    );
+  }
+}
+
+
+/// One evidence result, with its limitations behind a disclosure.
+///
+/// The limitations are always reachable and never removed — what a piece
+/// of evidence *cannot* tell you is part of the evidence. They start
+/// collapsed only so the finding itself is readable at a glance; the
+/// control says plainly what is inside rather than a bare "more".
+class _EvidenceCard extends StatefulWidget {
+  const _EvidenceCard({required this.result});
+
+  final EvidenceResult result;
+
+  @override
+  State<_EvidenceCard> createState() => _EvidenceCardState();
+}
+
+class _EvidenceCardState extends State<_EvidenceCard> {
+  bool _showLimitations = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final tokens = context.tokens;
+    final result = widget.result;
+
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(tokens.space(1.5)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (result.items.isEmpty)
+              Text(s.notFoundInSources)
+            else
+              for (final item in result.items)
+                Padding(
+                  padding: EdgeInsets.only(bottom: tokens.space(0.5)),
+                  child: Text('• ${item.title}'),
+                ),
+            if (result.limitations.isNotEmpty) ...[
+              SizedBox(height: tokens.space(0.5)),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: () =>
+                      setState(() => _showLimitations = !_showLimitations),
+                  icon: Icon(
+                    _showLimitations ? Icons.expand_less : Icons.info_outline,
+                    size: 18,
+                  ),
+                  label: Text(
+                    _showLimitations ? s.hideLimitations : s.showLimitations,
+                  ),
+                ),
+              ),
+              AnimatedCrossFade(
+                duration: Motion.of(context, Motion.standard),
+                crossFadeState: _showLimitations
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                firstChild: const SizedBox(width: double.infinity),
+                secondChild: Padding(
+                  padding: EdgeInsets.only(bottom: tokens.space(0.5)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final limitation in result.limitations)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: tokens.space(0.25)),
+                          child: Text(
+                            limitation,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

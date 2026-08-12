@@ -277,30 +277,40 @@ class Strings {
 
   /// Resolves demo-pack hint keys. Live server hints arrive already
   /// localized, so anything unrecognised passes straight through.
+  ///
+  /// Five rungs, each less oblique than the last. The fifth stops rather
+  /// than answering: a coach that eventually caves teaches learners to
+  /// wait it out instead of looking.
   String hintText(String raw) => switch (raw) {
-        'demo_hint_start' => _p(
-            'Before deciding anything: who actually posted this, and when? '
-                'Start with the thing that is easiest to check.',
-            'Перш ніж щось вирішувати: хто це насправді опублікував і коли? '
-                'Почни з того, що найлегше перевірити.',
-            'Who posted this, and when? Start there.',
-            'Хто це опублікував і коли? Почни з цього.',
+        'demo_hint_1' => _p(
+            'Before deciding anything: who actually put this in front of you, and when?',
+            'Перш ніж щось вирішувати: хто саме показав тобі це — і коли?',
+            'Who posted this, and when?',
+            'Хто це опублікував і коли?',
           ),
-        'demo_hint_next' => _p(
-            'You have one piece. What would have to be true for it to still '
-                'be misleading? There is a check you have not used yet.',
-            'У тебе є один фрагмент. Що мало б бути правдою, щоб це все одно '
-                'вводило в оману? Є перевірка, яку ти ще не використала.',
-            'What else could make this wrong? Try another check.',
-            'Що ще може бути не так? Спробуй іншу перевірку.',
+        'demo_hint_2' => _p(
+            'There is a check here you have not used yet. What would it tell you that you do not already know?',
+            'Тут є перевірка, якої ти ще не робила. Що вона скаже такого, чого ти ще не знаєш?',
+            'Try a check you have not used yet.',
+            'Спробуй перевірку, якої ще не робила.',
           ),
-        'demo_hint_conclude' => _p(
-            'You have checked what this pack can offer. Do the three axes '
-                'actually agree with each other? They are allowed not to.',
-            'Ти перевірила все, що може дати цей пак. Чи справді три осі '
-                'узгоджуються між собою? Вони мають право не узгоджуватися.',
-            'You have checked everything here. The three answers can differ.',
-            'Ти все перевірила. Три відповіді можуть бути різними.',
+        'demo_hint_3' => _p(
+            'Suppose the thing you are most confident about is wrong. What would have had to happen?',
+            'Припусти, що саме те, у чому ти найвпевненіша, — хибне. Що мало б статися?',
+            'What if the part you are sure about is wrong?',
+            'А якщо те, у чому ти впевнена, — хибне?',
+          ),
+        'demo_hint_4' => _p(
+            'The three axes do not have to agree. Which of them are you actually answering right now?',
+            'Три осі не мусять збігатися. На яку з них ти відповідаєш просто зараз?',
+            'The three answers can differ. Which one are you on?',
+            'Три відповіді можуть різнитися. Яка з них зараз?',
+          ),
+        'demo_hint_5' => _p(
+            'That is as far as I go. If the evidence does not settle it, saying so is the honest answer.',
+            'Далі я не піду. Якщо докази не дають відповіді — сказати про це і є чесною відповіддю.',
+            'I stop here. Not knowing is a real answer.',
+            'Далі не підказую. Не знати — теж відповідь.',
           ),
         _ => raw,
       };
@@ -431,6 +441,22 @@ class Strings {
 
   // -------------------------------------------------------------- a11y/etc
   String get demoBadge => _s('DEMO DATA', 'ДЕМО-ДАНІ');
+  String get demoBannerText => _s(
+        'Demo pack — offline, reviewed fixtures. Not live evidence.',
+        'Демо-пак — офлайн, перевірені фікстури. Це не живі дані.',
+      );
+
+  // Evidence limitations
+  String get showLimitations => _s('What this does not tell you', 'Чого це не каже');
+  String get hideLimitations => _s('Hide', 'Сховати');
+
+  // Hint ladder
+  String hintLevel(int level) => _s('Nudge $level of 5', 'Підказка $level з 5');
+  String get hintDeeper => _s('Still stuck? Ask again', 'Досі не ясно? Запитай ще');
+  String get hintExhausted => _s(
+        'That is as far as the coach will go. The conclusion is yours.',
+        'Далі коуч не піде. Висновок — за тобою.',
+      );
 
   /// Shown when a request never reached a server. Deliberately does not
   /// blame the learner's connection outright — the server may equally be

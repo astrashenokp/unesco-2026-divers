@@ -215,33 +215,35 @@ Map<String, Mission> demoMissionsFor(String code) {
   };
 }
 
-/// Deterministic offline coach. [Hint.text] is a translation key resolved
-/// by `Strings.hintText`; `fallback: true` is honest — no model here.
-Hint demoHintFor({required int usedCount, String? nextActionId}) {
-  if (usedCount == 0) {
-    return const Hint(
-      text: 'demo_hint_start',
-      level: 1,
-      evidenceRefs: [],
-      uncertainty: 'low',
-      fallback: true,
-    );
-  }
-  if (nextActionId != null) {
-    return Hint(
-      text: 'demo_hint_next',
-      level: 2,
-      suggestedActionId: nextActionId,
-      evidenceRefs: const [],
-      uncertainty: 'medium',
-      fallback: true,
-    );
-  }
-  return const Hint(
-    text: 'demo_hint_conclude',
-    level: 3,
-    evidenceRefs: [],
-    uncertainty: 'high',
+/// Deterministic offline coach, as a Socratic ladder.
+///
+/// `GAME_AND_LEARNING_DESIGN.md` specifies a hint ladder, not a single
+/// hint: each rung is a little less oblique than the last. The ladder
+/// stops at five and never reaches an answer — the top rung says so out
+/// loud, because a coach that eventually caves teaches learners to wait
+/// it out rather than to look.
+///
+/// [Hint.text] is a translation key resolved by `Strings.hintText`.
+/// `fallback: true` is honest: there is no model behind this.
+Hint demoHintFor({
+  required int usedCount,
+  required int level,
+  String? nextActionId,
+}) {
+  final rung = level.clamp(1, 5);
+  final uncertainty = switch (rung) {
+    1 => 'low',
+    2 || 3 => 'medium',
+    _ => 'high',
+  };
+  return Hint(
+    text: 'demo_hint_$rung',
+    level: rung,
+    // Only the middle rungs point at a specific check; the first is
+    // deliberately open, and the last two are about reasoning, not doing.
+    suggestedActionId: (rung == 2 || rung == 3) ? nextActionId : null,
+    evidenceRefs: const [],
+    uncertainty: uncertainty,
     fallback: true,
   );
 }

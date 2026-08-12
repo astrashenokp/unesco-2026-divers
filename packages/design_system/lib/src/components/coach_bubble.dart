@@ -19,6 +19,9 @@ class CoachBubble extends StatelessWidget {
     required this.uncertaintyLabel,
     this.isFallback = false,
     this.fallbackLabel,
+    this.rungLabel,
+    this.exhaustedLabel,
+    this.level = 1,
   });
 
   final String text;
@@ -37,6 +40,14 @@ class CoachBubble extends StatelessWidget {
   /// never mistaken for a confident one.
   final bool isFallback;
   final String? fallbackLabel;
+
+  /// Localized "Nudge 3 of 5". Shows how far down the ladder the learner
+  /// is, so asking again is an informed choice rather than a gamble.
+  final String? rungLabel;
+
+  /// Shown at the last rung: the coach says out loud that it stops here.
+  final String? exhaustedLabel;
+  final int level;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +85,10 @@ class CoachBubble extends StatelessWidget {
                           letterSpacing: 0.8,
                         ),
                       ),
+                      if (rungLabel != null) ...[
+                        const Spacer(),
+                        Text(rungLabel!, style: theme.textTheme.bodySmall),
+                      ],
                     ],
                   ),
                   SizedBox(height: tokens.space(1)),
@@ -99,6 +114,14 @@ class CoachBubble extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (level >= 5 && exhaustedLabel != null) ...[
+                    SizedBox(height: tokens.space(0.5)),
+                    Text(
+                      exhaustedLabel!,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ],
                   if (isFallback && fallbackLabel != null) ...[
                     SizedBox(height: tokens.space(0.5)),
                     Text(

@@ -393,12 +393,11 @@
     },
     {
       "level": 4,
-      "text": "If a registry lookup is not found, say that precisely. Do not jump from not found to fabricated.",
+      "text": "Check whether the journal title and authors also appear in the registry fixture before drawing a conclusion.",
       "allowedBeforeConclusion": true,
-      "suggestedActionId": "action-support-check",
+      "suggestedActionId": "action-journal-author-check",
       "evidenceRefs": [
-        "E-DOI-NOT-FOUND",
-        "E-JOURNAL-MISMATCH"
+        "E-DOI-NOT-FOUND"
       ],
       "uncertainty": "medium"
     },

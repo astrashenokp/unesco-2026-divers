@@ -7,6 +7,7 @@ import '../../app_settings.dart';
 import '../../data/demo_fixtures.dart';
 import '../../data/mission_repository.dart';
 import '../../l10n/strings.dart';
+import '../common/data_notice.dart';
 import '../shell/home_shell.dart';
 
 const _apiBaseUrl = String.fromEnvironment(
@@ -102,6 +103,19 @@ class _AuthScreenState extends State<AuthScreen> {
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SectionRule(),
+                    SizedBox(height: tokens.space(2)),
+                    // Above the buttons, not below them. PRIVACY.md asks
+                    // for clear notice, and notice placed after the
+                    // action it describes is not notice.
+                    //
+                    // One notice, not one per route. A second copy for
+                    // the demo pushed the demo button below the fold on
+                    // a phone-sized screen — a notice that hides the
+                    // thing it is explaining is worse than none. The
+                    // demo already carries its own line further down,
+                    // and it collapses by default so the screen stays
+                    // short for someone who does not want to read it.
+                    const DataNotice(isDemo: false),
                     SizedBox(height: tokens.space(2)),
                     SizedBox(
                       width: double.infinity,

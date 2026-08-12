@@ -96,6 +96,77 @@ class Strings {
             'без звернень до зовнішніх сервісів, саме те, що показують журі.',
       );
 
+  // ------------------------------------------------- sign-in unavailable
+  String get signInUnavailableTitle =>
+      _s('Signing in is not available yet', 'Вхід поки недоступний');
+  String get signInUnavailableBody => _p(
+        'The server cannot verify accounts at the moment, so guest access '
+            'is not working. This is on our side, not yours.',
+        "Сервер зараз не може перевіряти облікові записи, тож гостьовий "
+            "вхід не працює. Це на нашому боці, не на твоєму.",
+        'Guest sign-in is not working right now. It is our problem, not '
+            'yours.',
+        "Гостьовий вхід зараз не працює. Це наша проблема, не твоя.",
+      );
+  String get signInUnavailableHint => _s(
+        'The demo key on the first screen works without signing in, and '
+            'has the full set of missions.',
+        "Демо-ключ на першому екрані працює без входу — і в ньому повний "
+            "набір місій.",
+      );
+
+  // ---------------------------------------------------------- data notice
+  //
+  // Every line below is read off the purpose matrix in `PRIVACY.md`.
+  // Nothing here invents a data practice or promises anything the
+  // engineering baseline does not already commit to. If that document
+  // changes, this copy has to change with it.
+  String get noticeSummary => _s(
+        'What this records, before you start.',
+        'Що тут записується — до того, як почнеш.',
+      );
+  String get noticeDemoSummary => _s(
+        'Demo mode records nothing. It runs on a local pack, offline.',
+        "Демо-режим не записує нічого. Він працює на локальному паку, офлайн.",
+      );
+  String get noticeShow => _s('What is recorded', 'Що записується');
+  String get noticeHide => _s('Hide', 'Сховати');
+
+  List<String> get noticeDetail => _uk
+      ? const [
+          "Твої спроби й прогрес за навичками — щоб навчання продовжувалося з того місця, де ти зупинилася. Можна вивантажити або видалити.",
+          "Впевненість і те, які перевірки ти робила — щоб показати тобі ж, як змінилася твоя думка.",
+          "Мова та налаштування доступності — щоб інтерфейс лишався зручним.",
+          "Ідентифікатор входу — лише для сесії, видаляється разом з обліковим записом.",
+          "Не збирається: справжнє ім'я, точна дата народження, контакти, місцезнаходження, рекламний ID, історія переглядів. Політичних поглядів не виводимо й не позначаємо — ніколи.",
+        ]
+      : const [
+          'Your attempts and skill progress, so learning continues where you left off. You can export or delete it.',
+          'Your confidence and which checks you ran, so the app can show you how your own thinking moved.',
+          'Language and accessibility settings, so the interface stays usable.',
+          'A sign-in identifier, for the session only, deleted with the account.',
+          'Not collected: legal name, exact birth date, contacts, location, advertising ID, browsing history. Political views are never inferred or labelled.',
+        ];
+
+  List<String> get noticeDemoDetail => _uk
+      ? const [
+          "Місії та докази вже в застосунку — до сервера нічого не йде.",
+          "Прогрес живе лише в цій вкладці й зникає, коли ти її закриєш.",
+          "Жодних звернень до зовнішніх сервісів.",
+        ]
+      : const [
+          'The missions and evidence are already in the app — nothing goes to a server.',
+          'Progress lives in this tab only and is gone when you close it.',
+          'No calls to any outside service.',
+        ];
+
+  String get noticeAgeDefault => _s(
+        'Built for ages 16 and up. Younger or school use needs safeguarding '
+            'review first.',
+        "Розраховано на 16+. Молодший або шкільний вжиток потребує окремої "
+            "перевірки безпеки.",
+      );
+
   // ------------------------------------------------------------------ path
   String get yourPath => _s('Your path', 'Твій шлях');
   String get pathEmpty => _s('No missions available yet.', 'Поки що немає доступних місій.');
@@ -113,10 +184,15 @@ class Strings {
   // Path header
   String statXp(int xp) => _s('$xp XP', '$xp XP');
   String get statXpLabel => _s('earned', 'зароблено');
-  String statStreak(int days) => _s('$days days', '$days дн.');
-  String get statStreakLabel => _s('in a row', 'поспіль');
   String statGoal(int done, int total) => _s('$done of $total', '$done з $total');
-  String get statGoalLabel => _s('today', 'сьогодні');
+  String get statMissionsLabel => _s('missions done', 'місій пройдено');
+  String statSkills(int count) => _s('$count', '$count');
+  String get statSkillsLabel => _s('skills practised', 'навичок у роботі');
+
+  // `statStreak` and `statGoalLabel` were removed rather than left
+  // unused. They described a streak the app does not measure and a daily
+  // goal it does not track; leaving them in place is an invitation for
+  // someone to wire fabricated numbers back up to real-looking labels.
   String pathProgress(int done, int total) =>
       _s('$done of $total missions done', 'Пройдено $done з $total місій');
 
@@ -452,6 +528,28 @@ class Strings {
   String stepDecided(String choice) =>
       _s('Chose: $choice', 'Обрала: $choice');
   String get receiptEvidence => _s('Evidence you looked at', 'Докази, які ти переглянула');
+
+  /// The receipt cites record identifiers, not titles.
+  ///
+  /// `Receipt.evidenceRefs` in the contract is a list of bare id strings
+  /// and there is no endpoint that resolves one to a title, so these
+  /// cannot be made readable from the client. Rather than print raw keys
+  /// as though they were content, the list says what they are — which is
+  /// also the truthful description: a receipt cites records so that
+  /// someone else can look them up and check the work.
+  String receiptEvidenceCount(int n) => _s(
+        n == 1 ? '1 record cited' : '$n records cited',
+        n == 1 ? 'Цитовано 1 запис' : 'Цитовано записів: $n',
+      );
+  String get receiptEvidenceExplain => _p(
+        'These are the identifiers of what you opened. They are here so '
+            'the receipt can be checked against the same records by someone '
+            'who was not you.',
+        "Це ідентифікатори того, що ти відкривала. Вони тут, щоб квитанцію "
+            "міг звірити з тими самими записами хтось, хто не є тобою.",
+        'These identify what you opened, so someone else can check it.',
+        "Це ідентифікатори того, що ти відкривала, щоб інший міг звірити.",
+      );
   String get receiptNoEvidence => _s(
         'No evidence was recorded for this attempt.',
         'Для цієї спроби докази не зафіксовані.',

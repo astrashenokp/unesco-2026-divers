@@ -104,4 +104,36 @@ void main() {
       );
     }
   });
+
+  testWidgets('both ways in still work on a small phone', (tester) async {
+    // Guarding a regression I caused: adding a second privacy notice to
+    // this screen pushed the demo entry below the fold, and the only
+    // symptom was two unrelated-looking test failures. Anything added
+    // above the entry points has to keep them reachable, and the screen
+    // people meet first is the worst place to find that out late.
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(EvidenceGymApp(settings: _english()));
+    await _settle(tester);
+    await tester.tap(find.text('Skip'));
+    await _settle(tester);
+
+    for (final label in ['Continue as guest', 'Enter demo']) {
+      final finder = find.text(label);
+      expect(finder, findsOneWidget, reason: '$label is not on the screen');
+      // hitTestable() is the check that matters: a widget can be in the
+      // tree, and laid out, and still be somewhere a finger cannot land.
+      expect(finder.hitTestable(), findsOneWidget,
+          reason: '$label cannot be tapped at 360x640 — it is off-screen '
+              'or covered');
+    }
+
+    await tester.enterText(find.byType(TextField), demoAccessKey);
+    await tester.tap(find.text('Enter demo'));
+    await _settle(tester);
+    expect(find.text('Your path'), findsOneWidget,
+        reason: 'the demo entry did not actually work at phone size');
+  });
 }

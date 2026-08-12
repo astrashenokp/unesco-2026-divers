@@ -12,6 +12,17 @@ class EvidenceGymApiException implements Exception {
   final Problem problem;
 
   bool get isNotFound => problem.status == 404;
+
+  /// The server would not accept who we are, or cannot check.
+  ///
+  /// 401 and 503-with-a-verifier-code are one situation from the
+  /// learner's side: signing in is not available right now. Splitting
+  /// them into two messages would describe our internals rather than
+  /// their problem.
+  bool get isAuthUnavailable =>
+      problem.status == 401 ||
+      problem.code == 'identity-verifier-unavailable';
+
   bool get isConflict => problem.status == 409;
   bool get isRateLimited => problem.status == 429;
 

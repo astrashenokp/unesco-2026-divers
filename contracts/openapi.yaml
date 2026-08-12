@@ -322,7 +322,7 @@ components:
       required: [text, level, evidenceRefs, uncertainty, safetyFlags, fallback]
       properties:
         text: { type: string, minLength: 1, maxLength: 600 }
-        level: { type: integer, minimum: 1, maximum: 5 }
+        level: { type: integer, minimum: 1, maximum: 4 }
         suggestedActionId: { type: [string, 'null'], maxLength: 120 }
         evidenceRefs: { type: array, uniqueItems: true, items: { type: string, pattern: '^E-[A-Za-z0-9._-]+$' } }
         uncertainty: { enum: [low, medium, high] }

@@ -276,7 +276,7 @@ def test_coach_output_schema_is_bounded_and_policy_visible() -> None:
     assert schema["properties"]["level"] == {
         "type": "integer",
         "minimum": 1,
-        "maximum": 5,
+        "maximum": 4,
     }
     assert "prompt_injection_detected" in schema["properties"]["safetyFlags"]["items"][
         "enum"

@@ -5,9 +5,6 @@ from evidence_gym_api.evidence.errors import (
     EvidenceMissionNotFound,
     EvidenceProviderError,
 )
-from evidence_gym_api.evidence.fixture_provider import (
-    FixtureDeterministicEvidenceProvider,
-)
 from evidence_gym_api.evidence.model import (
     EvidenceItem,
     EvidenceResult,
@@ -27,3 +24,15 @@ __all__ = [
     "FixtureDeterministicEvidenceProvider",
     "VerificationStatus",
 ]
+
+
+def __getattr__(name: str):
+    """Load the catalog-backed adapter lazily to avoid a startup import cycle."""
+
+    if name == "FixtureDeterministicEvidenceProvider":
+        from evidence_gym_api.evidence.fixture_provider import (
+            FixtureDeterministicEvidenceProvider,
+        )
+
+        return FixtureDeterministicEvidenceProvider
+    raise AttributeError(name)

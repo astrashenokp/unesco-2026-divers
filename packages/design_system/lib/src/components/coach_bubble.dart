@@ -114,7 +114,7 @@ class CoachBubble extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (level >= 5 && exhaustedLabel != null) ...[
+                  if (level >= 4 && exhaustedLabel != null) ...[
                     SizedBox(height: tokens.space(0.5)),
                     Text(
                       exhaustedLabel!,

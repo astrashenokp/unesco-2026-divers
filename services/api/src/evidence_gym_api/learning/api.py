@@ -103,7 +103,7 @@ class EvidenceResultResponse(BaseModel):
 
 class HintResponse(BaseModel):
     text: str = Field(min_length=1, max_length=600)
-    level: int = Field(ge=1, le=5)
+    level: int = Field(ge=1, le=4)
     suggestedActionId: str | None = None
     evidenceRefs: list[str]
     uncertainty: str

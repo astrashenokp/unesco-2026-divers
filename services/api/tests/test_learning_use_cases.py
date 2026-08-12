@@ -91,6 +91,54 @@ class LadderFallbackProvider:
         )
 
 
+class StubCoachPolicy:
+    async def get_coach_request_data(self, mission_id, mission_version):
+        return (
+            ("inspect-source",),
+            {"inspect-source": ("E-SOURCE",)},
+            ("gold label",),
+        )
+
+
+class SafeFallbackCoach:
+    async def request_hint(self, request):
+        return CoachHint(
+            "Which source property should you inspect next?",
+            request.level,
+            "inspect-source",
+            (),
+            HintUncertainty.HIGH,
+            ("provider_degraded",),
+            True,
+        )
+
+
+class StaticCoach:
+    def __init__(
+        self,
+        text: str,
+        *,
+        suggested_action_id: str | None = "inspect-source",
+        evidence_refs: tuple[str, ...] = (),
+        safety_flags: tuple[str, ...] = (),
+    ) -> None:
+        self._text = text
+        self._suggested_action_id = suggested_action_id
+        self._evidence_refs = evidence_refs
+        self._safety_flags = safety_flags
+
+    async def request_hint(self, request):
+        return CoachHint(
+            self._text,
+            request.level,
+            self._suggested_action_id,
+            self._evidence_refs,
+            HintUncertainty.LOW,
+            self._safety_flags,
+            False,
+        )
+
+
 def run(coroutine):
     return asyncio.run(coroutine)
 
@@ -427,6 +475,102 @@ def test_hint_fallback_degrades_to_lower_safe_level_when_refs_are_unavailable() 
     assert hint.level == 2
     assert hint.evidence_refs == ()
     assert hint.fallback is True
+
+
+def test_request_hint_rejects_unsafe_provider_output_and_uses_fallback() -> None:
+    attempts, start, submit = make_dependencies()
+    idempotency = InMemoryIdempotencyRepository()
+    hints = RequestHint(
+        attempts,
+        StubCoachPolicy(),
+        SafeFallbackCoach(),
+        idempotency,
+        InMemoryTransactionManager(),
+        FixedClock(),
+        provider=StaticCoach("The gold label is false."),
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+    command = RequestHintCommand(predicted.id, IdempotencyKey("hint-key-0001"))
+
+    hint = run(hints.execute(LEARNER, command))
+    replay = run(hints.execute(LEARNER, command))
+    stored = run(attempts.get(predicted.id))
+
+    assert hint == replay
+    assert hint.fallback is True
+    assert hint.safety_flags == ("provider_degraded",)
+    assert stored == predicted
+
+
+@pytest.mark.parametrize(
+    "provider",
+    (
+        StaticCoach("Check https://example.invalid before deciding."),
+        StaticCoach(
+            "Which source property should you inspect next?",
+            safety_flags=("unsupported_citation",),
+        ),
+        StaticCoach(
+            "Which source property should you inspect next?",
+            safety_flags=("unknown_flag",),
+        ),
+    ),
+)
+def test_request_hint_rejects_fabricated_references_and_unknown_flags(
+    provider,
+) -> None:
+    attempts, start, submit = make_dependencies()
+    hints = RequestHint(
+        attempts,
+        StubCoachPolicy(),
+        SafeFallbackCoach(),
+        InMemoryIdempotencyRepository(),
+        InMemoryTransactionManager(),
+        FixedClock(),
+        provider=provider,
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+
+    hint = run(
+        hints.execute(
+            LEARNER,
+            RequestHintCommand(predicted.id, IdempotencyKey("hint-key-0001")),
+        )
+    )
+
+    assert hint.fallback is True
+    assert hint.text == "Which source property should you inspect next?"
+
+
+def test_request_hint_authorizes_owner_and_scopes_key_across_attempts() -> None:
+    attempts, start, submit = make_dependencies()
+    hints = RequestHint(
+        attempts,
+        StubCoachPolicy(),
+        SafeFallbackCoach(),
+        InMemoryIdempotencyRepository(),
+        InMemoryTransactionManager(),
+        FixedClock(),
+    )
+    first = run(start.execute(LEARNER, start_command("start-key-0001")))
+    second = run(start.execute(LEARNER, start_command("start-key-0002")))
+    first = run(submit.execute(LEARNER, prediction_command(first.id, key="pred-key-0001")))
+    second = run(submit.execute(LEARNER, prediction_command(second.id, key="pred-key-0002")))
+
+    with pytest.raises(AttemptAccessDenied):
+        run(
+            hints.execute(
+                OTHER_LEARNER,
+                RequestHintCommand(first.id, IdempotencyKey("foreign-hint-01")),
+            )
+        )
+
+    key = IdempotencyKey("shared-hint-key")
+    run(hints.execute(LEARNER, RequestHintCommand(first.id, key)))
+    with pytest.raises(IdempotencyConflict):
+        run(hints.execute(LEARNER, RequestHintCommand(second.id, key)))
 
 
 def test_in_memory_repository_enforces_optimistic_version() -> None:

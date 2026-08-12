@@ -67,4 +67,6 @@ and returns the updated `attemptVersion` required by the shared API contract.
 `POST /attempts/{attemptId}/hints` returns the reviewed deterministic fallback
 when no safe model provider is configured. It validates allowed actions,
 available evidence refs, forbidden leakage terms and safety flags before a hint
-reaches the learner, and never advances `Attempt.version`.
+reaches the learner. Unsafe, malformed or unavailable provider output degrades
+to the reviewed `hintLadder` entry through `FixtureCoachProvider`; level 5 is
+never exposed before conclusion, and hints never advance `Attempt.version`.

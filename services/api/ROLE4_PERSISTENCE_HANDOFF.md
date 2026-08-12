@@ -1,11 +1,11 @@
-# Role 4 persistence handoff: attempts, predictions, and evidence actions
+# Role 4 persistence handoff: attempts, predictions, evidence actions, and hints
 
 ## Goal / status
 
 Ready for persistence implementation — Role 2 has defined the domain invariants,
 repository behavior, authorization checks, idempotency semantics, optimistic
-versioning and transaction intent for `StartAttempt`, `SubmitPrediction`, and
-`UseEvidenceAction`.
+versioning and transaction intent for `StartAttempt`, `SubmitPrediction`,
+`UseEvidenceAction`, and `RequestHint`.
 
 ## Changed
 
@@ -18,13 +18,16 @@ versioning and transaction intent for `StartAttempt`, `SubmitPrediction`, and
 
 ## Contracts and decisions
 
-No contract changed. Implement these ports without leaking physical persistence
+The public Hint contract stays learner-facing and pre-completion only:
+`contracts/openapi.yaml` and `contracts/coach-output.schema.json` cap exposed
+hint levels at 4. Implement these ports without leaking physical persistence
 objects into the domain:
 
 - `AttemptRepository.get/add/save`
 - `MissionPolicyReader.get_policy`
 - `IdempotencyRepository.get/put`
 - `EvidenceIdempotencyRepository.get_evidence/put_evidence`
+- `HintIdempotencyRepository.get_hint/put_hint`
 - `TransactionManager.transaction`
 
 Required invariants:
@@ -46,6 +49,9 @@ Required invariants:
   validation, deterministic provider result, attempt update and the complete
   evidence-response snapshot insert share one transaction. A provider failure
   must not mutate the attempt or create an idempotency record.
+- `RequestHint`: hint idempotency lookup, ownership/state validation and the safe
+  provider-or-fallback response snapshot share one idempotency operation. It does
+  not save the attempt or advance `Attempt.version`.
 
 The physical schema, constraints, indexes, migration order, isolation/locking
 strategy and recovery procedure remain Role 4 decisions. The implementation must

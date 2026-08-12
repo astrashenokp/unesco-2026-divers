@@ -1,4 +1,4 @@
-"""Coach provider failure types hidden behind deterministic fallback."""
+"""Failures that must degrade to a reviewed deterministic hint."""
 
 
 class CoachProviderError(RuntimeError):

@@ -238,7 +238,7 @@ class Hint {
   });
 
   final String text;
-  final int level; // 1..5, the Socratic ladder
+  final int level; // 1..4 before completion; never the gold conclusion
   final String? suggestedActionId;
   final List<String> evidenceRefs;
   final String uncertainty; // low | medium | high

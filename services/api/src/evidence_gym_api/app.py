@@ -9,7 +9,6 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from evidence_gym_api.catalog.api import PublicCatalogReader, router as catalog_router
-from evidence_gym_api.coach.errors import CoachProviderError
 from evidence_gym_api.operational import ReadinessProbe, StaticReadinessProbe, router
 from evidence_gym_api.identity.ports import IdentityVerifier
 from evidence_gym_api.learning.api import LearningServices, router as learning_router
@@ -27,6 +26,7 @@ from evidence_gym_api.evidence.errors import (
     EvidenceActionNotFound,
     EvidenceMissionNotFound,
 )
+from evidence_gym_api.coach.errors import CoachProviderError
 from evidence_gym_api.trace import TRACE_ID_HEADER, get_trace_id, normalize_trace_id
 
 
@@ -135,18 +135,6 @@ def create_app(
         )
         return problem_response(problem, get_trace_id(request))
 
-    @app.exception_handler(CoachProviderError)
-    async def handle_coach_provider_error(
-        request: Request, exc: CoachProviderError
-    ) -> JSONResponse:
-        problem = ApiProblem(
-            status=503,
-            code="coach-service-unavailable",
-            title="Service not ready",
-            detail="A safe coach hint is unavailable.",
-        )
-        return problem_response(problem, get_trace_id(request))
-
     @app.exception_handler(IdempotencyConflict)
     async def handle_idempotency_conflict(
         request: Request, exc: IdempotencyConflict
@@ -193,6 +181,18 @@ def create_app(
             code="domain-validation-failed",
             title="Request validation failed",
             detail="The request contains an invalid domain value.",
+        )
+        return problem_response(problem, get_trace_id(request))
+
+    @app.exception_handler(CoachProviderError)
+    async def handle_coach_unavailable(
+        request: Request, exc: CoachProviderError
+    ) -> JSONResponse:
+        problem = ApiProblem(
+            status=503,
+            code="coach-unavailable",
+            title="Coach unavailable",
+            detail="A safe coaching response is temporarily unavailable.",
         )
         return problem_response(problem, get_trace_id(request))
 

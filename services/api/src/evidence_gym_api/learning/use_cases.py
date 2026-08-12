@@ -4,6 +4,7 @@ from dataclasses import dataclass, replace
 from datetime import timedelta
 from hashlib import sha256
 import json
+import re
 
 from evidence_gym_api.identity.model import Principal
 from evidence_gym_api.coach.errors import CoachProviderError
@@ -48,6 +49,20 @@ from evidence_gym_api.learning.value_objects import (
 )
 
 IDEMPOTENCY_RETENTION = timedelta(hours=24)
+ALLOWED_HINT_SAFETY_FLAGS = {
+    "needs_more_evidence",
+    "harm_sensitive",
+    "provider_degraded",
+}
+FORBIDDEN_HINT_SAFETY_FLAGS = {
+    "possible_leakage",
+    "prompt_injection_detected",
+    "unsupported_citation",
+}
+REFERENCE_LEAK_PATTERN = re.compile(
+    r"(https?://|www\.|doi:\s*10\.|10\.\d{4,9}/[-._;()/:A-Z0-9]+)",
+    re.IGNORECASE,
+)
 
 
 def _fingerprint(payload: dict[str, object]) -> str:
@@ -386,9 +401,11 @@ class RequestHint:
 
     @staticmethod
     def _is_safe(hint: CoachHint, request: CoachRequest) -> bool:
-        forbidden_flags = {"possible_leakage", "prompt_injection_detected"}
         normalized_text = hint.text.casefold()
-        forbidden_terms = tuple(term.casefold() for term in request.forbidden_terms)
+        forbidden_terms = tuple(
+            term.casefold() for term in request.forbidden_terms if term
+        )
+        safety_flags = set(hint.safety_flags)
         return (
             bool(hint.text.strip())
             and len(hint.text) <= 600
@@ -400,6 +417,8 @@ class RequestHint:
             )
             and set(hint.evidence_refs).issubset(request.available_evidence_refs)
             and len(hint.evidence_refs) == len(set(hint.evidence_refs))
-            and forbidden_flags.isdisjoint(hint.safety_flags)
+            and safety_flags.issubset(ALLOWED_HINT_SAFETY_FLAGS)
+            and FORBIDDEN_HINT_SAFETY_FLAGS.isdisjoint(safety_flags)
             and not any(term in normalized_text for term in forbidden_terms)
+            and REFERENCE_LEAK_PATTERN.search(hint.text) is None
         )

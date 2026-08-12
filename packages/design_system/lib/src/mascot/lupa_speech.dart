@@ -1,0 +1,137 @@
+import 'package:flutter/material.dart';
+
+import '../motion.dart';
+import '../tokens.dart';
+import 'lupa.dart';
+
+/// Lupa saying something, with a queue.
+///
+/// Lines advance when the learner taps, never on a timer.
+///
+/// An earlier version rotated every six seconds inside a `liveRegion`.
+/// That breaks WCAG 2.2.2 — auto-updating content lasting more than five
+/// seconds needs a pause control — and it re-interrupted the screen
+/// reader on a fixed cycle, talking over whatever was being read.
+///
+/// Two rules still hold:
+///
+///  * A line is never the only place information lives. Everything Lupa
+///    says is also visible elsewhere, so missing one costs nothing.
+///  * The bubble is a `liveRegion`, so a line the learner *chose* to
+///    advance to is announced rather than appearing silently.
+class LupaSpeech extends StatefulWidget {
+  const LupaSpeech({
+    super.key,
+    required this.lines,
+    required this.mascotLabel,
+    this.moreHint,
+    this.mood = LupaMood.idle,
+    this.mascotSize = 84,
+  });
+
+  /// Shown in order, advanced by tapping. A single line simply stays.
+  final List<String> lines;
+
+  /// Localized description of the mascot, for assistive technology.
+  final String mascotLabel;
+
+  /// Localized "tap for more". Shown only when there is more than one
+  /// line, so the affordance is visible rather than hidden.
+  final String? moreHint;
+
+  final LupaMood mood;
+  final double mascotSize;
+
+  @override
+  State<LupaSpeech> createState() => _LupaSpeechState();
+}
+
+class _LupaSpeechState extends State<LupaSpeech> {
+  int _index = 0;
+
+  @override
+  void didUpdateWidget(covariant LupaSpeech oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A new set of lines restarts the queue; otherwise switching language
+    // would leave the old text frozen on screen.
+    if (oldWidget.lines.join(' ') != widget.lines.join(' ')) {
+      _index = 0;
+    }
+  }
+
+  void _advance() {
+    if (widget.lines.length < 2) return;
+    setState(() => _index = (_index + 1) % widget.lines.length);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final line =
+        widget.lines.isEmpty ? '' : widget.lines[_index % widget.lines.length];
+    final hasMore = widget.lines.length > 1;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Lupa(
+          mood: widget.mood,
+          size: widget.mascotSize,
+          semanticLabel: widget.mascotLabel,
+        ),
+        SizedBox(width: tokens.space(1.5)),
+        Expanded(
+          child: Semantics(
+            liveRegion: true,
+            button: hasMore,
+            // The action lives on the node that declares the role, or a
+            // screen reader announces a button that does nothing.
+            onTap: hasMore ? _advance : null,
+            label: hasMore && widget.moreHint != null
+                ? '$line. ${widget.moreHint}'
+                : line,
+            child: ExcludeSemantics(
+              child: GestureDetector(
+                onTap: hasMore ? _advance : null,
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: EdgeInsets.all(tokens.space(1.5)),
+                  decoration: BoxDecoration(
+                    color: tokens.surfaceRaised,
+                    borderRadius: BorderRadius.circular(tokens.space(2)),
+                    border:
+                        Border.all(color: tokens.action.withValues(alpha: 0.25)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedSwitcher(
+                        duration: Motion.of(context, Motion.standard),
+                        child: Text(
+                          line,
+                          key: ValueKey(line),
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
+                      if (hasMore && widget.moreHint != null) ...[
+                        SizedBox(height: tokens.space(0.5)),
+                        Text(
+                          widget.moreHint!,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: tokens.action),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

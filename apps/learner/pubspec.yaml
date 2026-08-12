@@ -32,6 +32,7 @@ flutter:
   assets:
     - assets/fonts/OFL-Unbounded.txt
     - assets/fonts/OFL-Onest.txt
+    - assets/backgrounds/investigation_board.png
 
   fonts:
     # Display: geometric, wide, confident. Carries the big-heading-plus-

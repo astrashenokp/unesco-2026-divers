@@ -35,22 +35,55 @@ class LivingBackground extends StatelessWidget {
     super.key,
     required this.child,
     this.variant = GroundVariant.plain,
+    this.artwork,
   });
 
   final Widget child;
   final GroundVariant variant;
+
+  /// Optional illustrated ground, laid under the procedural texture.
+  ///
+  /// Drawn with `BoxFit.cover`, not tiled. The artwork is not a seamless
+  /// tile — its opposite edges do not meet — so repeating it would show
+  /// a visible seam. Cover scales one copy to fill instead.
+  ///
+  /// Held at low opacity on purpose: the illustration contains near-black
+  /// line work, and at full strength it competes with the text sitting on
+  /// top of it. Contrast is measured against the paper base, not against
+  /// the artwork, so this value must stay low enough that the artwork
+  /// never becomes the effective background behind a glyph.
+  final ImageProvider? artwork;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Stack(
       children: [
+        if (artwork != null)
+          Positioned.fill(
+            child: ExcludeSemantics(
+              child: Opacity(
+                opacity: 0.32,
+                child: Image(
+                  image: artwork!,
+                  fit: BoxFit.cover,
+                  // Decorative: never announce it, and never let a
+                  // missing asset take the screen down with it.
+                  errorBuilder: (context, _, __) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
+          ),
         Positioned.fill(
           child: ExcludeSemantics(
             child: RepaintBoundary(
               child: CustomPaint(
                 painter: _BackgroundPainter(
-                  variant: variant,
+                  // The artwork already supplies grid and threads, so the
+                  // procedural layer drops to grain only and stops
+                  // drawing a second grid on top of the first.
+                  variant: artwork == null ? variant : GroundVariant.plain,
+                  hasArtwork: artwork != null,
                   base: tokens.surface,
                   bloomA: tokens.action,
                   bloomB: tokens.evidencePrimary,
@@ -70,6 +103,7 @@ class LivingBackground extends StatelessWidget {
 class _BackgroundPainter extends CustomPainter {
   _BackgroundPainter({
     required this.variant,
+    required this.hasArtwork,
     required this.base,
     required this.bloomA,
     required this.bloomB,
@@ -78,6 +112,7 @@ class _BackgroundPainter extends CustomPainter {
   });
 
   final GroundVariant variant;
+  final bool hasArtwork;
   final Color base;
   final Color bloomA;
   final Color bloomB;
@@ -87,6 +122,23 @@ class _BackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
+
+    // With artwork underneath, only the grain is drawn: an opaque wash
+    // here would hide the very image it sits on.
+    if (hasArtwork) {
+      final random = math.Random(7);
+      final dot = Paint();
+      final count = (size.width * size.height / 6000).clamp(0, 2000).toInt();
+      for (var i = 0; i < count; i++) {
+        dot.color = grain.withValues(alpha: 0.015 + random.nextDouble() * 0.018);
+        canvas.drawCircle(
+          Offset(random.nextDouble() * size.width, random.nextDouble() * size.height),
+          random.nextDouble() * 1.1 + 0.35,
+          dot,
+        );
+      }
+      return;
+    }
 
     // Vertical wash: very slightly warmer at the bottom, so the page has
     // a direction instead of sitting perfectly flat.
@@ -175,5 +227,6 @@ class _BackgroundPainter extends CustomPainter {
       old.base != base ||
       old.bloomA != bloomA ||
       old.bloomB != bloomB ||
-      old.variant != variant;
+      old.variant != variant ||
+      old.hasArtwork != hasArtwork;
 }

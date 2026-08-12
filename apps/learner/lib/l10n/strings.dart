@@ -250,6 +250,17 @@ class Strings {
   String get viewReceipt => _s('Open your evidence receipt', 'Відкрити квитанцію доказів');
   String get receiptScreenTitle => _s('Evidence receipt', 'Квитанція доказів');
   String get receiptConclusions => _s('What you concluded', 'Твій висновок');
+  String get receiptHowYouGotThere =>
+      _s('How you got there', 'Як ти до цього дійшла');
+  String stepPredicted(String reaction) =>
+      _s('First instinct: $reaction', 'Перше відчуття: $reaction');
+  String stepChecked(int count) =>
+      _s('Ran $count checks', 'Зробила перевірок: $count');
+  String get stepAsked => _s('Asked the coach', 'Запитала коуча');
+  String get stepConcluded =>
+      _s('Concluded on three axes', 'Зробила висновок за трьома осями');
+  String stepDecided(String choice) =>
+      _s('Chose: $choice', 'Обрала: $choice');
   String get receiptEvidence => _s('Evidence you looked at', 'Докази, які ти переглянула');
   String get receiptNoEvidence => _s(
         'No evidence was recorded for this attempt.',

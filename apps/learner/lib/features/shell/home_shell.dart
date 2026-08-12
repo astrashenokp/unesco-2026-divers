@@ -63,9 +63,13 @@ class _HomeShellState extends State<HomeShell> {
 
     // Keyed so switching tabs rebuilds the body but Flutter still reuses
     // each page's state where it can.
-    // Path is a board you assemble a case on; progress and settings are
-    // reading surfaces and stay quiet.
-    final ground = _index == 0 ? GroundVariant.board : GroundVariant.plain;
+    // Path is a board you assemble a case on; progress, profile and
+    // settings are reading surfaces and stay quiet. The illustrated
+    // board appears only on the path — behind dense text it would be
+    // decoration competing with the thing being read.
+    final onPath = _index == 0;
+    final ground = onPath ? GroundVariant.board : GroundVariant.plain;
+    const board = AssetImage('assets/backgrounds/investigation_board.png');
 
     final body = AnimatedSwitcher(
       duration: Motion.of(context, Motion.fast),
@@ -76,6 +80,7 @@ class _HomeShellState extends State<HomeShell> {
       return Scaffold(
         body: LivingBackground(
           variant: ground,
+          artwork: onPath ? board : null,
           child: SafeArea(
             child: Column(
               children: [
@@ -168,6 +173,7 @@ class _HomeShellState extends State<HomeShell> {
             Expanded(
               child: LivingBackground(
                 variant: ground,
+                artwork: onPath ? board : null,
                 child: Column(
                   children: [
                     if (widget.repository.isDemo) const DemoBanner(),

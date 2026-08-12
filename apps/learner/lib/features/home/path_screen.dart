@@ -111,6 +111,7 @@ class _PathScreenState extends State<PathScreen> {
           completed: completed,
           total: path.nodes.length,
           totalXp: progress.totalXp,
+          skillsPractised: progress.skills.length,
           next: resume,
           onContinue: resume == null ? null : () => _openMission(resume),
         );
@@ -177,6 +178,7 @@ class _PathHeader extends StatelessWidget {
     required this.completed,
     required this.total,
     required this.totalXp,
+    required this.skillsPractised,
     required this.next,
     required this.onContinue,
   });
@@ -184,6 +186,10 @@ class _PathHeader extends StatelessWidget {
   final int completed;
   final int total;
   final int totalXp;
+
+  /// How many distinct skills this learner has actually practised. Real,
+  /// unlike the two numbers that used to sit beside it.
+  final int skillsPractised;
 
   /// The first mission still open, if any.
   final LearningPathNode? next;
@@ -214,17 +220,30 @@ class _PathHeader extends StatelessWidget {
               count: totalXp,
               format: s.statXp,
             ),
-            StatTile(
-              icon: Icons.local_fire_department_outlined,
-              value: s.statStreak(completed),
-              label: s.statStreakLabel,
-              tint: tokens.action,
-            ),
+            // These two used to be a "days in a row" streak and a
+            // "today" goal. Neither was real: the streak was the
+            // completed-mission count wearing a flame icon, so finishing
+            // three missions in one sitting claimed three consecutive
+            // days, and the goal counted all time while labelled today.
+            //
+            // A product that teaches people to check claims cannot
+            // invent its own statistics. There is no streak data
+            // anywhere in the contract — that is Role 4's to design —
+            // so rather than dress up a number that looks like one,
+            // these say what is actually known.
             StatTile(
               icon: Icons.flag_outlined,
               value: s.statGoal(completed, total),
-              label: s.statGoalLabel,
+              label: s.statMissionsLabel,
               tint: tokens.evidencePrimary,
+              count: completed,
+            ),
+            StatTile(
+              icon: Icons.psychology_outlined,
+              value: s.statSkills(skillsPractised),
+              label: s.statSkillsLabel,
+              tint: tokens.action,
+              count: skillsPractised,
             ),
           ],
         ),

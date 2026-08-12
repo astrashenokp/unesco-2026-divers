@@ -52,6 +52,10 @@ void main() {
     await _settle(tester);
 
     await tester.enterText(find.byType(TextField), 'NOPE');
+    // The demo route sits below the privacy notice and the audience
+    // choice, so reaching it takes a scroll — as it does for a person.
+    await tester.ensureVisible(find.text('Enter demo'));
+    await tester.pump();
     await tester.tap(find.text('Enter demo'));
     await _settle(tester);
 
@@ -66,6 +70,8 @@ void main() {
     await _settle(tester);
 
     await tester.enterText(find.byType(TextField), demoAccessKey);
+    await tester.ensureVisible(find.text('Enter demo'));
+    await tester.pump();
     await tester.tap(find.text('Enter demo'));
     await _settle(tester);
 
@@ -103,5 +109,40 @@ void main() {
         reason: '$axis must offer an unknown/insufficient option',
       );
     }
+  });
+
+  testWidgets('both ways in still work on a small phone', (tester) async {
+    // Guarding a regression I caused: adding a second privacy notice to
+    // this screen pushed the demo entry below the fold, and the only
+    // symptom was two unrelated-looking test failures. Anything added
+    // above the entry points has to keep them reachable, and the screen
+    // people meet first is the worst place to find that out late.
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(EvidenceGymApp(settings: _english()));
+    await _settle(tester);
+    await tester.tap(find.text('Skip'));
+    await _settle(tester);
+
+    // The primary action has to be there on arrival. hitTestable() is
+    // the check that matters: a widget can be in the tree, and laid out,
+    // and still be somewhere a finger cannot land.
+    expect(find.text('Continue as guest').hitTestable(), findsOneWidget,
+        reason: 'the main way in is not reachable at 360x640 without '
+            'scrolling');
+
+    // The demo route may sit below the fold — it is the secondary path,
+    // and the privacy notice and audience choice legitimately come
+    // first. What it may not do is stop working.
+    expect(find.text('Enter demo'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), demoAccessKey);
+    await tester.ensureVisible(find.text('Enter demo'));
+    await tester.pump();
+    await tester.tap(find.text('Enter demo'));
+    await _settle(tester);
+    expect(find.text('Your path'), findsOneWidget,
+        reason: 'the demo entry did not actually work at phone size');
   });
 }

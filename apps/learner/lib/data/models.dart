@@ -107,6 +107,7 @@ class Mission {
     required this.skillTags,
     this.testsCriticalIgnoring = false,
     this.minimumCompletionEvidence = 1,
+    this.contentWarnings = const [],
   });
 
   final String id;
@@ -119,6 +120,20 @@ class Mission {
   final List<String> skillTags;
   final bool testsCriticalIgnoring; // ADR-008
   final int minimumCompletionEvidence;
+
+  /// What this mission's case material contains, e.g. `natural-disaster`.
+  ///
+  /// Drives two things: whether the mission appears in the younger
+  /// audience mode at all, and whether a warning is shown before the
+  /// media. `content/p0-demo-pack` already carries these tags per
+  /// mission and a `minimumAge` on its manifest, so the vocabulary is
+  /// Role 3's and settled — but `Mission` in `contracts/openapi.yaml` is
+  /// `additionalProperties: false` and has no field for them, so nothing
+  /// reaches this client from a real server yet.
+  ///
+  /// Parsed defensively anyway, so it starts working the moment the
+  /// contract carries it, with no client change.
+  final List<String> contentWarnings;
 
   factory Mission.fromJson(Map<String, dynamic> json) => Mission(
         id: json['id'] as String,
@@ -134,6 +149,8 @@ class Mission {
         testsCriticalIgnoring: json['testsCriticalIgnoring'] as bool? ?? false,
         minimumCompletionEvidence:
             (json['minimumCompletionEvidence'] as num?)?.toInt() ?? 1,
+        contentWarnings:
+            (json['contentWarnings'] as List?)?.cast<String>() ?? const [],
       );
 }
 

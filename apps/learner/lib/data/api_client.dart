@@ -12,8 +12,45 @@ class EvidenceGymApiException implements Exception {
   final Problem problem;
 
   bool get isNotFound => problem.status == 404;
+
+  /// The server would not accept who we are, or cannot check.
+  ///
+  /// 401 and 503-with-a-verifier-code are one situation from the
+  /// learner's side: signing in is not available right now. Splitting
+  /// them into two messages would describe our internals rather than
+  /// their problem.
+  bool get isAuthUnavailable =>
+      problem.status == 401 ||
+      problem.code == 'identity-verifier-unavailable';
+
   bool get isConflict => problem.status == 409;
   bool get isRateLimited => problem.status == 429;
+
+  /// This client's copy of the attempt is behind the server's.
+  ///
+  /// Keyed on the code, never on the 409 alone. Several unrelated
+  /// situations share that status — a replayed idempotency key, and a
+  /// conclusion submitted before enough evidence was checked — and they
+  /// call for opposite responses. Treating them alike would offer to
+  /// restart the mission of a learner who had simply not checked enough
+  /// yet, throwing away work they had not finished doing.
+  ///
+  /// Both spellings are accepted because the server and the demo pack
+  /// disagree about casing (`stale-attempt-version` against
+  /// `minimum_evidence_not_met`); matching only one would silently miss.
+  bool get isStaleVersion => const {
+        'stale-attempt-version',
+        'stale_attempt_version',
+        'attempt-conflict',
+        'attempt_conflict',
+      }.contains(problem.code);
+
+  /// The conclusion needs more evidence behind it before it can be
+  /// submitted. Not a fault to recover from — a step not yet done.
+  bool get needsMoreEvidence => const {
+        'minimum_evidence_not_met',
+        'minimum-evidence-not-met',
+      }.contains(problem.code);
 
   /// The request never reached a server. Status 0 is not a real HTTP
   /// status — it is this client's marker for "no answer at all", which

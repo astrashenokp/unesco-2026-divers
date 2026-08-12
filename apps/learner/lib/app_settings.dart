@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'data/audience.dart';
+
 /// User-controlled presentation settings.
 ///
 /// Deliberately *presentation only* — nothing here changes what the
@@ -17,12 +19,14 @@ class AppSettings extends ChangeNotifier {
     bool forceReduceMotion = false,
     double textScale = 1.0,
     ThemeMode themeMode = ThemeMode.system,
+    AudienceMode audience = AudienceMode.adult,
     SharedPreferences? store,
   })  : _locale = locale,
         _simpleLanguage = simpleLanguage,
         _forceReduceMotion = forceReduceMotion,
         _textScale = textScale,
         _themeMode = themeMode,
+        _audience = audience,
         _store = store;
 
   static const _kLocale = 'settings.locale';
@@ -30,6 +34,7 @@ class AppSettings extends ChangeNotifier {
   static const _kReduceMotion = 'settings.forceReduceMotion';
   static const _kTextScale = 'settings.textScale';
   static const _kThemeMode = 'settings.themeMode';
+  static const _kAudience = 'settings.audience';
 
   final SharedPreferences? _store;
 
@@ -38,6 +43,7 @@ class AppSettings extends ChangeNotifier {
   bool _forceReduceMotion;
   double _textScale;
   ThemeMode _themeMode;
+  AudienceMode _audience;
 
   /// Loads saved choices. Falls back to defaults if storage is
   /// unavailable — a settings store that cannot be read must never stop
@@ -52,6 +58,8 @@ class AppSettings extends ChangeNotifier {
         textScale: store.getDouble(_kTextScale) ?? 1.0,
         themeMode: ThemeMode.values.asNameMap()[store.getString(_kThemeMode)] ??
             ThemeMode.system,
+        audience: AudienceMode.values.asNameMap()[store.getString(_kAudience)] ??
+            AudienceMode.adult,
         store: store,
       );
     } catch (_) {
@@ -79,9 +87,34 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Who this session's content is for.
+  ///
+  /// The one setting here that is *not* purely presentational: it
+  /// changes which missions exist for this learner, because the younger
+  /// mode leaves out the harsher case material. It changes nothing about
+  /// scoring — the same skills, the same three axes, the same rubric.
+  ///
+  /// It is a suitability choice, not an access control, and the UI says
+  /// so. Anyone can change it here; pretending a soft toggle is a
+  /// safeguarding gate would be worse than not having one, because a
+  /// school or parent would then rely on it.
+  AudienceMode get audience => _audience;
+  set audience(AudienceMode value) {
+    if (_audience == value) return;
+    _audience = value;
+    _persist((s) => s.setString(_kAudience, value.name));
+    notifyListeners();
+  }
+
   /// Shorter sentences and plainer words across explanatory copy — for
   /// younger learners, non-native readers, and anyone who finds dense
   /// text tiring. It never hides a safety or provenance caveat.
+  ///
+  /// On in the younger mode unless the learner turns it off. Reading age
+  /// and content suitability are not the same thing, so this stays a
+  /// separate switch rather than being forced — a twelve-year-old who
+  /// reads well should not be handed simplified text they did not ask
+  /// for.
   bool get simpleLanguage => _simpleLanguage;
   set simpleLanguage(bool value) {
     if (_simpleLanguage == value) return;

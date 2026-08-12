@@ -96,6 +96,154 @@ class Strings {
             'без звернень до зовнішніх сервісів, саме те, що показують журі.',
       );
 
+  // ------------------------------------------------- sign-in unavailable
+  String get signInUnavailableTitle =>
+      _s('Signing in is not available yet', 'Вхід поки недоступний');
+  String get signInUnavailableBody => _p(
+        'The server cannot verify accounts at the moment, so guest access '
+            'is not working. This is on our side, not yours.',
+        "Сервер зараз не може перевіряти облікові записи, тож гостьовий "
+            "вхід не працює. Це на нашому боці, не на твоєму.",
+        'Guest sign-in is not working right now. It is our problem, not '
+            'yours.',
+        "Гостьовий вхід зараз не працює. Це наша проблема, не твоя.",
+      );
+  String get signInUnavailableHint => _s(
+        'The demo key on the first screen works without signing in, and '
+            'has the full set of missions.',
+        "Демо-ключ на першому екрані працює без входу — і в ньому повний "
+            "набір місій.",
+      );
+
+  // --------------------------------------------------------- audience mode
+  //
+  // The wording avoids calling the younger mode easier, simpler or for
+  // beginners. It is none of those: the reasoning, the three axes and
+  // the scoring are identical, and only the case material differs. A
+  // learner told they are on the easy version will read every result
+  // through that.
+  String get audienceQuestion => _s('Who is playing?', 'Хто гратиме?');
+  String get audienceAdult => _s('Adult', 'Доросла людина');
+  String get audienceAdultBody => _s(
+        'Every mission, including cases built on disasters and unrest.',
+        "Усі місії, зокрема побудовані на катастрофах і заворушеннях.",
+      );
+  String get audienceChild => _s('Child or teen', 'Дитина або підліток');
+  String get audienceChildBody => _s(
+        'The same skills and the same scoring, with the distressing cases '
+            'left out.',
+        "Ті самі навички й те саме оцінювання, але без важких прикладів.",
+      );
+  String get audienceNotAGate => _s(
+        'You can change this later in settings. It chooses what is suitable '
+            'to show — it is not a lock.',
+        "Це можна змінити згодом у налаштуваннях. Вибір стосується того, що "
+            "доречно показувати, — це не замок.",
+      );
+  String get audienceLabel => _s('Content for', 'Контент для');
+  String audienceHiddenNote(int n) => _s(
+        n == 1
+            ? '1 mission is hidden in this mode.'
+            : '$n missions are hidden in this mode.',
+        n == 1
+            ? 'У цьому режимі приховано 1 місію.'
+            : 'У цьому режимі приховано місій: $n.',
+      );
+
+  /// Plain-language names for the content warning tags, so a warning
+  /// never appears to the learner as a raw slug.
+  String contentWarningLabel(String tag) => switch (tag) {
+        'natural-disaster' => _s('Natural disaster', 'Стихійне лихо'),
+        'civil-unrest' => _s('Crowds and unrest', 'Натовпи й заворушення'),
+        'academic-integrity' =>
+          _s('Academic dishonesty', 'Академічна недоброчесність'),
+        'ai-generated-media' =>
+          _s('AI-generated media', 'Згенеровані ШІ матеріали'),
+        'impersonation' => _s('Impersonation', 'Видавання себе за іншого'),
+        'statistics-misuse' =>
+          _s('Misused statistics', 'Маніпуляція статистикою'),
+        'advertising' => _s('Advertising', 'Реклама'),
+        'marketing-claim' => _s('Marketing claim', 'Рекламне твердження'),
+        'clickbait' => _s('Clickbait', 'Клікбейт'),
+        // An unknown tag is shown as itself rather than swallowed. A
+        // warning nobody sees is worse than an ugly one.
+        _ => tag,
+      };
+
+  String get contentWarningTitle =>
+      _s('Before you open this', 'Перш ніж відкрити');
+  String get contentWarningBody => _p(
+        'This mission is built on real case material that some people find '
+            'upsetting. You can open it when you are ready, or go back and '
+            'pick another.',
+        "Ця місія побудована на реальних матеріалах, які декого можуть "
+            "засмутити. Відкрий, коли будеш готова, або повернись і обери "
+            "іншу.",
+        'This mission shows something that can be upsetting. Open it when '
+            'you are ready.',
+        "У цій місії є те, що може засмутити. Відкрий, коли будеш готова.",
+      );
+  String get contentWarningReveal => _s('Show the mission', 'Показати місію');
+
+  // ---------------------------------------------------------- data notice
+  //
+  // Every line below is read off the purpose matrix in `PRIVACY.md`.
+  // Nothing here invents a data practice or promises anything the
+  // engineering baseline does not already commit to. If that document
+  // changes, this copy has to change with it.
+  String get noticeSummary => _s(
+        'What this records, before you start.',
+        'Що тут записується — до того, як почнеш.',
+      );
+  String get noticeDemoSummary => _s(
+        'Demo mode records nothing. It runs on a local pack, offline.',
+        "Демо-режим не записує нічого. Він працює на локальному паку, офлайн.",
+      );
+  String get noticeShow => _s('What is recorded', 'Що записується');
+  String get noticeHide => _s('Hide', 'Сховати');
+
+  List<String> get noticeDetail => _uk
+      ? const [
+          "Твої спроби й прогрес за навичками — щоб навчання продовжувалося з того місця, де ти зупинилася. Можна вивантажити або видалити.",
+          "Впевненість і те, які перевірки ти робила — щоб показати тобі ж, як змінилася твоя думка.",
+          "Мова та налаштування доступності — щоб інтерфейс лишався зручним.",
+          "Ідентифікатор входу — лише для сесії, видаляється разом з обліковим записом.",
+          "Не збирається: справжнє ім'я, точна дата народження, контакти, місцезнаходження, рекламний ID, історія переглядів. Політичних поглядів не виводимо й не позначаємо — ніколи.",
+        ]
+      : const [
+          'Your attempts and skill progress, so learning continues where you left off. You can export or delete it.',
+          'Your confidence and which checks you ran, so the app can show you how your own thinking moved.',
+          'Language and accessibility settings, so the interface stays usable.',
+          'A sign-in identifier, for the session only, deleted with the account.',
+          'Not collected: legal name, exact birth date, contacts, location, advertising ID, browsing history. Political views are never inferred or labelled.',
+        ];
+
+  List<String> get noticeDemoDetail => _uk
+      ? const [
+          "Місії та докази вже в застосунку — до сервера нічого не йде.",
+          "Прогрес живе лише в цій вкладці й зникає, коли ти її закриєш.",
+          "Жодних звернень до зовнішніх сервісів.",
+        ]
+      : const [
+          'The missions and evidence are already in the app — nothing goes to a server.',
+          'Progress lives in this tab only and is gone when you close it.',
+          'No calls to any outside service.',
+        ];
+
+  /// Replaces an earlier line that read "built for ages 16 and up".
+  ///
+  /// The product is for children too, and the younger mode is how that
+  /// is done. Saying 16+ while shipping a child mode would have been the
+  /// notice contradicting the app.
+  String get noticeAgeDefault => _s(
+        'Anyone can use this. Younger learners get the same skills with the '
+            'distressing cases left out — choose that on the first screen or '
+            'in settings.',
+        "Користуватися може будь-хто. Для молодших — ті самі навички, але без "
+            "важких прикладів; обрати це можна на першому екрані або в "
+            "налаштуваннях.",
+      );
+
   // ------------------------------------------------------------------ path
   String get yourPath => _s('Your path', 'Твій шлях');
   String get pathEmpty => _s('No missions available yet.', 'Поки що немає доступних місій.');
@@ -113,10 +261,15 @@ class Strings {
   // Path header
   String statXp(int xp) => _s('$xp XP', '$xp XP');
   String get statXpLabel => _s('earned', 'зароблено');
-  String statStreak(int days) => _s('$days days', '$days дн.');
-  String get statStreakLabel => _s('in a row', 'поспіль');
   String statGoal(int done, int total) => _s('$done of $total', '$done з $total');
-  String get statGoalLabel => _s('today', 'сьогодні');
+  String get statMissionsLabel => _s('missions done', 'місій пройдено');
+  String statSkills(int count) => _s('$count', '$count');
+  String get statSkillsLabel => _s('skills practised', 'навичок у роботі');
+
+  // `statStreak` and `statGoalLabel` were removed rather than left
+  // unused. They described a streak the app does not measure and a daily
+  // goal it does not track; leaving them in place is an invitation for
+  // someone to wire fabricated numbers back up to real-looking labels.
   String pathProgress(int done, int total) =>
       _s('$done of $total missions done', 'Пройдено $done з $total місій');
 
@@ -187,6 +340,17 @@ class Strings {
   String get reactionTrust => _s('Trust', 'Довіряю');
   String get reactionSuspicious => _s('Suspicious', 'Підозріло');
   String get reactionInvestigate => _s('Investigate', 'Перевірити');
+
+  /// The wire codes are English and fixed by the contract; the label is
+  /// not. An unrecognised code returns itself rather than throwing — a
+  /// new reaction added server-side should render oddly, never crash the
+  /// screen a learner just finished a mission on.
+  String reactionLabel(String code) => switch (code) {
+        'trust' => reactionTrust,
+        'suspicious' => reactionSuspicious,
+        'investigate' => reactionInvestigate,
+        _ => code,
+      };
   String get howConfident => _s('How confident are you?', 'Наскільки ти впевнена?');
   String get howConfidentInThat => _s('How confident in that?', 'Наскільки впевнена в цьому?');
 
@@ -284,6 +448,88 @@ class Strings {
         'Overall, how has your confidence changed?',
         'Загалом, як змінилася твоя впевненість?',
       );
+  // ------------------------------------------------------------ conflict
+  String get conflictTitle =>
+      _s('This mission moved on elsewhere', 'Місія просунулася деінде');
+  String get conflictBody => _p(
+        'It looks like this mission was continued in another tab or on '
+            'another device, so what is on this screen is out of date. '
+            'Nothing you already finished is lost — it is recorded against '
+            'the other one.',
+        "Схоже, цю місію продовжили в іншій вкладці або на іншому пристрої, "
+            "тож те, що на цьому екрані, застаріло. Нічого із завершеного не "
+            "втрачено — воно записане в тій іншій.",
+        'This mission was continued somewhere else, so this screen is out '
+            'of date.',
+        "Цю місію продовжили деінде, тож цей екран застарів.",
+      );
+  String get conflictRestart => _s('Start this mission again', 'Почати місію знову');
+  String get needMoreEvidenceBody => _p(
+        'Check at least one more piece of evidence before concluding. The '
+            'point is not the count — a conclusion drawn from nothing is the '
+            'habit this trains against.',
+        "Перевір ще хоча б один доказ, перш ніж робити висновок. Річ не в "
+            "кількості — висновок, зроблений ні з чого, і є тією звичкою, "
+            "проти якої це тренування.",
+        'Check one more piece of evidence before you conclude.',
+        "Перевір ще один доказ, перш ніж робити висновок.",
+      );
+
+  // --------------------------------------------------- confidence shift
+  //
+  // The wording here is the design. A learner who becomes less sure after
+  // checking has not failed — they found out the question was harder than
+  // it looked, which is the most useful thing this product can teach. So
+  // no direction is praised over another and none of it is called a
+  // score.
+  String get confidenceBefore => _s('Before you looked', 'До перевірки');
+  String get confidenceAfter => _s('After you looked', 'Після перевірки');
+
+  String get shiftLessSureTitle =>
+      _s('You became less sure', 'Ти стала менш впевненою');
+  String get shiftLessSureBody => _p(
+        'That is what checking is for. Finding out a question is harder '
+            'than it looked is a result, not a mistake — and it is exactly '
+            'the moment most people share something anyway.',
+        "Саме для цього й перевіряють. Виявити, що питання складніше, ніж "
+            "здавалося, — це результат, а не помилка. І саме в цей момент "
+            "більшість усе одно поширює.",
+        'Good. Checking showed the question was harder than it looked.',
+        "Добре. Перевірка показала, що питання складніше, ніж здавалося.",
+      );
+
+  String get shiftMoreSureTitle =>
+      _s('You became more sure', 'Ти стала впевненішою');
+  String get shiftMoreSureBody => _p(
+        'Your confidence now rests on something you checked rather than on '
+            'a first impression. Worth noticing which evidence moved you, '
+            'and whether it would have moved you the other way.',
+        "Тепер твоя впевненість спирається на перевірене, а не на перше "
+            "враження. Варто помітити, який саме доказ тебе зрушив — і чи "
+            "зрушив би він тебе в інший бік.",
+        'Now your confidence is based on something you checked.',
+        "Тепер твоя впевненість спирається на перевірене.",
+      );
+
+  String get shiftUnchangedTitle =>
+      _s('Your confidence held', 'Впевненість не змінилася');
+  String get shiftUnchangedBody => _p(
+        'Your first instinct survived the evidence. That is a different '
+            'thing from never checking — you now know why you think so.',
+        "Твоє перше відчуття витримало перевірку. Це не те саме, що не "
+            "перевіряти взагалі, — тепер ти знаєш, чому саме так думаєш.",
+        'Your first guess held up after checking.',
+        "Твоя перша здогадка витримала перевірку.",
+      );
+
+  String get reactionToConclusion =>
+      _s('First instinct, then conclusion', 'Перше відчуття, потім висновок');
+
+  String shiftSpoken(int before, int after) => _s(
+        'Confidence before you looked, $before percent. After, $after percent.',
+        'Впевненість до перевірки — $before відсотків. Після — $after відсотків.',
+      );
+
   // --------------------------------------------------------- uncertainty
   String get uncertaintyTitle => _s(
         '"Not enough evidence" is a conclusion.',
@@ -359,6 +605,28 @@ class Strings {
   String stepDecided(String choice) =>
       _s('Chose: $choice', 'Обрала: $choice');
   String get receiptEvidence => _s('Evidence you looked at', 'Докази, які ти переглянула');
+
+  /// The receipt cites record identifiers, not titles.
+  ///
+  /// `Receipt.evidenceRefs` in the contract is a list of bare id strings
+  /// and there is no endpoint that resolves one to a title, so these
+  /// cannot be made readable from the client. Rather than print raw keys
+  /// as though they were content, the list says what they are — which is
+  /// also the truthful description: a receipt cites records so that
+  /// someone else can look them up and check the work.
+  String receiptEvidenceCount(int n) => _s(
+        n == 1 ? '1 record cited' : '$n records cited',
+        n == 1 ? 'Цитовано 1 запис' : 'Цитовано записів: $n',
+      );
+  String get receiptEvidenceExplain => _p(
+        'These are the identifiers of what you opened. They are here so '
+            'the receipt can be checked against the same records by someone '
+            'who was not you.',
+        "Це ідентифікатори того, що ти відкривала. Вони тут, щоб квитанцію "
+            "міг звірити з тими самими записами хтось, хто не є тобою.",
+        'These identify what you opened, so someone else can check it.',
+        "Це ідентифікатори того, що ти відкривала, щоб інший міг звірити.",
+      );
   String get receiptNoEvidence => _s(
         'No evidence was recorded for this attempt.',
         'Для цієї спроби докази не зафіксовані.',

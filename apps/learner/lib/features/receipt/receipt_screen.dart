@@ -127,20 +127,42 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                 SizedBox(height: tokens.space(1)),
                 if (receipt.evidenceRefs.isEmpty)
                   Text(s.receiptNoEvidence, style: Theme.of(context).textTheme.bodyMedium)
-                else
+                else ...[
+                  Text(
+                    s.receiptEvidenceCount(receipt.evidenceRefs.length),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  SizedBox(height: tokens.space(0.5)),
+                  Text(s.receiptEvidenceExplain,
+                      style: Theme.of(context).textTheme.bodySmall),
+                  SizedBox(height: tokens.space(1)),
                   for (final ref in receipt.evidenceRefs)
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: tokens.space(0.5)),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.receipt_long_outlined,
-                              size: 18, color: tokens.evidencePrimary),
+                          Icon(Icons.tag, size: 16, color: tokens.textMuted),
                           SizedBox(width: tokens.space(1)),
-                          Expanded(child: Text(ref)),
+                          Expanded(
+                            child: Text(
+                              ref,
+                              // Monospace so it reads as a reference to
+                              // look up rather than as something written
+                              // for the learner to understand.
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(fontFamily: 'monospace'),
+                            ),
+                          ),
                         ],
                       ),
                     ),
+                ],
                 SizedBox(height: tokens.space(3)),
 
                 // Provenance of the receipt itself.

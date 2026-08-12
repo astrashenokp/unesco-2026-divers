@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
 import '../../app_settings.dart';
+import '../../data/audience.dart';
 import '../../l10n/strings.dart';
 
 /// Accessibility and language settings.
@@ -37,6 +38,42 @@ class SettingsScreen extends StatelessWidget {
             onSelectionChanged: (selection) =>
                 settings.locale = Locale(selection.first),
           ),
+          SizedBox(height: tokens.space(3)),
+
+          // -------------------------------------------------------- audience
+          Text(s.audienceLabel, style: Theme.of(context).textTheme.titleLarge),
+          SizedBox(height: tokens.space(1)),
+          SegmentedButton<AudienceMode>(
+            segments: [
+              ButtonSegment(
+                value: AudienceMode.adult,
+                icon: const Icon(Icons.person_outline),
+                label: Text(s.audienceAdult),
+              ),
+              ButtonSegment(
+                value: AudienceMode.child,
+                icon: const Icon(Icons.child_care_outlined),
+                label: Text(s.audienceChild),
+              ),
+            ],
+            selected: {settings.audience},
+            onSelectionChanged: (selection) =>
+                settings.audience = selection.first,
+          ),
+          SizedBox(height: tokens.space(0.5)),
+          Text(
+            settings.audience == AudienceMode.child
+                ? s.audienceChildBody
+                : s.audienceAdultBody,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          SizedBox(height: tokens.space(0.5)),
+          // Repeated here as well as on the first screen. Someone
+          // handing a device to a child is most likely to look in
+          // settings, and that is exactly the person who must not
+          // mistake this for a lock.
+          Text(s.audienceNotAGate,
+              style: Theme.of(context).textTheme.bodySmall),
           SizedBox(height: tokens.space(3)),
 
           // ------------------------------------------------------ appearance

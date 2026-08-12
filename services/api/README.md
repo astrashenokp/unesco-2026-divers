@@ -37,3 +37,14 @@ Implemented learner mutations:
 Both require a verified Firebase bearer principal and `Idempotency-Key`. The
 repository contains only a fake verifier for tests; runtime Firebase verification
 must be injected through the application factory.
+
+`FileMissionPolicyReader` validates Role 3's checked-in pack manifest and mission
+schema, verifies each SHA-256, rejects unsafe paths or duplicate versions, and
+returns only the exact version requested by `StartAttempt`.
+
+`FixtureDeterministicEvidenceProvider` reads only the selected action's validated
+`deterministicResponse` from that exact mission version. It returns immutable,
+normalized evidence data, preserves `not_found` as uncertainty, exposes no gold
+assessment or rubric fields, and never calls a live provider. The state-changing
+evidence HTTP endpoint remains intentionally unwired until its optimistic-version
+request semantics are agreed in the shared API contract.

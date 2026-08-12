@@ -46,4 +46,3 @@ async def current_principal(
             title="Authentication failed",
             detail="The Firebase ID token is invalid or expired.",
         ) from exc
-

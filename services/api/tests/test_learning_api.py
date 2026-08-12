@@ -195,3 +195,26 @@ def test_request_models_reject_unknown_fields() -> None:
 
     assert response.status_code == 422
     assert response.json()["code"] == "request_validation_failed"
+
+
+def test_start_attempt_missing_idempotency_key_returns_422() -> None:
+    with make_client() as client:
+        response = client.post(
+            "/attempts",
+            headers={"Authorization": "Bearer learner-token"},
+            json={"missionId": MISSION_ID.value, "missionVersion": MISSION_VERSION.value},
+        )
+
+    assert response.status_code == 422
+
+
+def test_start_attempt_with_unknown_mission_returns_409() -> None:
+    with make_client() as client:
+        response = client.post(
+            "/attempts",
+            headers=auth_headers(key="unknown-mission-key-001"),
+            json={"missionId": "does-not-exist", "missionVersion": "1.0.0"},
+        )
+
+    assert response.status_code == 409
+    assert response.json()["code"] == "mission-version-unavailable"

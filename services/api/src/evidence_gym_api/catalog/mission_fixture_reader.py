@@ -1,0 +1,151 @@
+"""Validated, read-only adapter for Role 3 mission fixtures."""
+
+from __future__ import annotations
+
+from hashlib import sha256
+from copy import deepcopy
+import json
+from pathlib import Path
+from typing import Any
+
+from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema.exceptions import SchemaError, ValidationError
+
+from evidence_gym_api.learning.ports import MissionPolicy
+from evidence_gym_api.learning.value_objects import MissionId, MissionVersion
+
+
+class MissionFixtureError(RuntimeError):
+    """A checked-in mission pack failed integrity or schema validation."""
+
+
+def _reject_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise MissionFixtureError(f"duplicate JSON property: {key}")
+        result[key] = value
+    return result
+
+
+def _load_json(path: Path) -> dict[str, Any]:
+    try:
+        with path.open(encoding="utf-8") as source:
+            value = json.load(source, object_pairs_hook=_reject_duplicate_keys)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise MissionFixtureError(f"cannot read valid JSON from {path.name}") from exc
+    if not isinstance(value, dict):
+        raise MissionFixtureError(f"{path.name} must contain a JSON object")
+    return value
+
+
+def _validator(schema_path: Path) -> Draft202012Validator:
+    schema = _load_json(schema_path)
+    try:
+        Draft202012Validator.check_schema(schema)
+    except SchemaError as exc:
+        raise MissionFixtureError(f"invalid schema: {schema_path.name}") from exc
+    return Draft202012Validator(schema, format_checker=FormatChecker())
+
+
+class FileMissionPolicyReader:
+    """Load immutable mission policy from a validated, hash-pinned pack."""
+
+    def __init__(
+        self,
+        *,
+        pack_root: Path,
+        manifest_schema_path: Path,
+        mission_schema_path: Path,
+    ) -> None:
+        self._pack_root = pack_root.resolve()
+        self._manifest_validator = _validator(manifest_schema_path)
+        self._mission_validator = _validator(mission_schema_path)
+        self._policies, self._missions = self._load_missions()
+
+    async def get_policy(
+        self, mission_id: MissionId, mission_version: MissionVersion
+    ) -> MissionPolicy | None:
+        return self._policies.get((mission_id, mission_version))
+
+    async def get_deterministic_evidence_document(
+        self,
+        mission_id: MissionId,
+        mission_version: MissionVersion,
+        action_id: str,
+    ) -> dict[str, Any] | None:
+        """Return a defensive copy of one validated deterministic response."""
+
+        mission = self._missions.get((mission_id, mission_version))
+        if mission is None:
+            return None
+        for action in mission["evidenceActions"]:
+            if action["id"] == action_id:
+                return deepcopy(action["deterministicResponse"])
+        return None
+
+    def _load_missions(
+        self,
+    ) -> tuple[
+        dict[tuple[MissionId, MissionVersion], MissionPolicy],
+        dict[tuple[MissionId, MissionVersion], dict[str, Any]],
+    ]:
+        manifest = _load_json(self._pack_root / "manifest.json")
+        self._validate(self._manifest_validator, manifest, "manifest.json")
+
+        policies: dict[tuple[MissionId, MissionVersion], MissionPolicy] = {}
+        missions: dict[tuple[MissionId, MissionVersion], dict[str, Any]] = {}
+        manifest_ids: set[str] = set()
+        for entry in manifest["missions"]:
+            manifest_id = entry["id"]
+            if manifest_id in manifest_ids:
+                raise MissionFixtureError(f"duplicate mission in manifest: {manifest_id}")
+            manifest_ids.add(manifest_id)
+
+            mission_path = self._resolve_mission_path(entry["file"])
+            actual_hash = sha256(mission_path.read_bytes()).hexdigest()
+            if actual_hash != entry["sha256"]:
+                raise MissionFixtureError(f"mission hash mismatch: {manifest_id}")
+
+            mission = _load_json(mission_path)
+            self._validate(self._mission_validator, mission, mission_path.name)
+            if mission["id"] != manifest_id:
+                raise MissionFixtureError(
+                    f"manifest and mission id differ: {manifest_id}"
+                )
+
+            policy = MissionPolicy(
+                id=MissionId(mission["id"]),
+                version=MissionVersion(mission["version"]),
+                tests_critical_ignoring=mission["testsCriticalIgnoring"],
+            )
+            key = (policy.id, policy.version)
+            if key in policies:
+                raise MissionFixtureError(
+                    f"duplicate mission version: {policy.id}@{policy.version}"
+                )
+            policies[key] = policy
+            missions[key] = mission
+        return policies, missions
+
+    def _resolve_mission_path(self, relative_path: str) -> Path:
+        candidate = (self._pack_root / relative_path).resolve()
+        if candidate.parent != self._pack_root / "missions":
+            raise MissionFixtureError("mission path escapes the reviewed missions folder")
+        if not candidate.is_file():
+            raise MissionFixtureError(f"mission file is missing: {candidate.name}")
+        return candidate
+
+    @staticmethod
+    def _validate(
+        validator: Draft202012Validator,
+        document: dict[str, Any],
+        document_name: str,
+    ) -> None:
+        try:
+            validator.validate(document)
+        except ValidationError as exc:
+            location = ".".join(str(part) for part in exc.absolute_path) or "root"
+            raise MissionFixtureError(
+                f"schema validation failed for {document_name} at {location}"
+            ) from exc

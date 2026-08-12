@@ -85,10 +85,11 @@ paths:
             schema:
               type: object
               additionalProperties: false
-              required: [actionId]
+              required: [actionId, version]
               properties:
                 actionId: { type: string }
                 input: { type: object, additionalProperties: true, maxProperties: 10 }
+                version: { type: integer, minimum: 1 }
       responses:
         '200':
           description: Normalized evidence or safe degraded result
@@ -272,9 +273,13 @@ components:
         version: { type: integer, minimum: 1 }
     EvidenceResult:
       type: object
-      required: [actionId, status, items, limitations]
+      required: [actionId, status, items, limitations, attemptVersion]
       properties:
         actionId: { type: string }
+        # The attempt's version after this action. Without it a client
+        # that must send `version` has no way to learn the current value,
+        # because there is no GET /attempts/{id}. See ADR-009.
+        attemptVersion: { type: integer, minimum: 1 }
         status: { enum: [ok, not_found, unavailable, blocked] }
         items:
           type: array

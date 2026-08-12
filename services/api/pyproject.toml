@@ -9,6 +9,7 @@ description = "Evidence Gym FastAPI modular monolith"
 requires-python = ">=3.12,<3.14"
 dependencies = [
   "fastapi>=0.115,<0.116",
+  "jsonschema>=4.23,<5",
   "pydantic>=2.11,<3",
   "uvicorn[standard]>=0.35,<1",
 ]

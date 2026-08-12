@@ -70,7 +70,9 @@ for rollback, duplicate keys and concurrent stale-version updates.
 ## Risks / assumptions
 
 - `MissionPolicy.tests_critical_ignoring` maps the reviewed, version-pinned
-  `testsCriticalIgnoring` contract field and must never come from the client.
+  `testsCriticalIgnoring` contract field, defined by
+  `contracts/mission-fixture.schema.json` and ADR-008, and must never come from
+  the client.
 - A new idempotency key submitted after a prediction has already succeeded is a
   state conflict, not a replay.
 - Conclusion uses one atomic transaction. `concluded`, `reflected` and

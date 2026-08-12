@@ -77,6 +77,10 @@ through ADR-009 and the deterministic fixture reader/provider work.
 - The two missions are draft deterministic training fixtures. Public release
   still needs independent fact/content/accessibility review and licensed media
   replacement or explicit approval of team-created demo assets.
+- Mission 1 currently references `asset://p0-demo/media/flood-context-card.jpg`,
+  but no checked-in media asset file is included in this pack yet. Keep the
+  text/alt-only path for integration, and add a reviewed licensed asset before
+  visual demo or publication.
 - The eval gate is executable against a result JSON file, but the model-run
   harness that produces those results still needs to plug into it.
 - JSON Schema validation is wired through the `services/api[test]` dependency

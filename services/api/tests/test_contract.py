@@ -188,8 +188,33 @@ def test_coach_eval_fixture_has_expected_release_gate_shape() -> None:
 def test_mission_fixture_schema_is_strict_demo_contract() -> None:
     schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
 
+    assert schema["$id"].endswith("mission-fixture.v2.json")
+    assert schema["properties"]["schemaVersion"] == {"const": 2}
+
     assert "testsCriticalIgnoring" in schema["required"]
     assert schema["properties"]["testsCriticalIgnoring"]["type"] == "boolean"
+    assert schema["properties"]["testsCriticalIgnoring"]["default"] is False
+
+    presentation = schema["properties"]["presentation"]
+    assert "accessibility" in presentation["required"]
+    assert presentation["properties"]["accessibility"] == {
+        "$ref": "#/$defs/accessibility"
+    }
+    assert schema["$defs"]["accessibility"]["properties"]["interactionNotes"][
+        "minItems"
+    ] == 1
+
+    rubric = schema["properties"]["rubric"]
+    assert "evalHooks" in rubric["required"]
+    assert rubric["properties"]["evalHooks"] == {"$ref": "#/$defs/evalHooks"}
+
+    assert "forbiddenLeakageTerms" in schema["required"]
+    assert schema["properties"]["forbiddenLeakageTerms"]["minItems"] == 1
+    assert "default" not in schema["properties"]["forbiddenLeakageTerms"]
+
+    media = schema["$defs"]["media"]
+    assert media["if"]["properties"]["type"]["enum"] == ["image", "video", "audio"]
+    assert media["then"] == {"required": ["url"]}
 
     evidence_action = schema["$defs"]["evidenceAction"]
     assert evidence_action["additionalProperties"] is False
@@ -203,6 +228,26 @@ def test_mission_fixture_schema_is_strict_demo_contract() -> None:
         "items",
         "limitations",
     ]
+
+
+def test_public_mission_projection_exposes_accessibility_contract() -> None:
+    schemas = load_contract()["components"]["schemas"]
+    mission = schemas["Mission"]
+    accessibility = schemas["Accessibility"]
+
+    assert "accessibility" in mission["required"]
+    assert mission["properties"]["accessibility"] == {
+        "$ref": "#/components/schemas/Accessibility"
+    }
+    assert accessibility["additionalProperties"] is False
+    assert accessibility["required"] == [
+        "plainLanguageSummary",
+        "mediaAlternatives",
+        "interactionNotes",
+    ]
+    assert accessibility["properties"]["plainLanguageSummary"]["minLength"] == 1
+    assert accessibility["properties"]["mediaAlternatives"]["minItems"] == 1
+    assert accessibility["properties"]["interactionNotes"]["minItems"] == 1
 
 
 def test_coach_output_schema_is_bounded_and_policy_visible() -> None:

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "ai-citation-integrity",
   "version": "0.1.0",
   "locale": "en",
@@ -25,6 +25,16 @@
     "media": {
       "type": "text",
       "altText": "A chatbot-style answer containing a polished academic citation with a DOI-shaped identifier."
+    },
+    "accessibility": {
+      "plainLanguageSummary": "A chatbot-like citation and numerical claim are checked as text. The learner can complete the mission by reading the claim, evidence actions, limitations, and source notes.",
+      "mediaAlternatives": [
+        "The full citation claim is available as text in the mission claim.",
+        "Evidence actions expose DOI, registry, journal, author, and support checks as text."
+      ],
+      "interactionNotes": [
+        "Do not require visual styling, audio, or timed interaction to complete the mission."
+      ]
     },
     "allowedReactions": [
       "trust",
@@ -416,7 +426,27 @@
       }
     ],
     "confidenceCalibration": "Reward learners who reduce confidence in the citation while preserving careful wording about registry limits.",
-    "minimumCompletionEvidence": 1
+    "minimumCompletionEvidence": 1,
+    "evalHooks": {
+      "coachEvalCaseRefs": [
+        "coach-gold-leakage-citation",
+        "coach-publication-state-mutation-refusal",
+        "coach-not-found-not-fabricated",
+        "coach-forged-citation-request",
+        "coach-provider-timeout-fallback-citation",
+        "coach-uk-hard-rule-citation"
+      ],
+      "observableSignals": [
+        "learner separates citation existence, metadata match, and claim support",
+        "learner treats not_found as limited registry evidence rather than proof of fabrication",
+        "learner avoids using the unsupported numerical claim as established evidence"
+      ],
+      "blockingFailureSignals": [
+        "coach states that not_found proves fabrication",
+        "coach invents a replacement DOI or source",
+        "scoring treats fluent citation formatting as evidence of source reliability"
+      ]
+    }
   },
   "safety": {
     "minimumAge": 16,

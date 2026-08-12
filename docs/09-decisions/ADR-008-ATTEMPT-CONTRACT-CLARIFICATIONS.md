@@ -12,7 +12,13 @@ Role 2 (Backend & Domain) completed the Attempt state machine and asked five que
 
 2. **Guest authentication = Firebase Anonymous Auth, not a local demo principal.** The client calls `signInAnonymously()` and sends the resulting Firebase ID token exactly like any other principal; the server has one token-verification path (issuer/audience/signature/expiry), per `CONTROL_BASELINE.md`. A separate unauthenticated "demo principal" would add a second authorization path and contradict architecture invariant 5 (server-side authorization for every protected action). Anonymous UID state is ephemeral/pseudonymous per `PERSONAS_AND_PERMISSIONS.md`. This answers `OPEN_QUESTIONS.md` OQ-002 for MVP/demo scope only; persistence/linking policy for public beta stays open.
 
-3. **`testsCriticalIgnoring` marks the critical-ignoring exception.** `API_CONTRACT.md` already required "at least one evidence action unless the mission explicitly tests critical ignoring" without a way to express it. Added an optional boolean `testsCriticalIgnoring` (default `false`) to the `Mission` schema in `contracts/openapi.yaml` and to the mission-minimum contract in `SCENARIO_PACK_SPEC.md` (`contracts/scenario-pack.schema.json` only validates the pack manifest, not per-mission JSON, so the mission-level field lives in the prose spec). The conclusion endpoint accepts zero evidence actions only when the pinned mission version has this flag set.
+3. **`testsCriticalIgnoring` marks the critical-ignoring exception.** `API_CONTRACT.md` already required "at least one evidence action unless the mission explicitly tests critical ignoring" without a way to express it. Added `testsCriticalIgnoring` to the public `Mission` schema in `contracts/openapi.yaml` as an optional boolean with default `false`, and to the mission-minimum contract in `SCENARIO_PACK_SPEC.md` as the mission-level content policy field (`contracts/scenario-pack.schema.json` only validates the pack manifest, not per-mission JSON). The conclusion endpoint accepts zero evidence actions only when the pinned mission version has this flag set.
+
+   Amendment (2026-08-12): the public OpenAPI `Mission` projection still keeps
+   `testsCriticalIgnoring` optional with default `false` for client
+   compatibility, but mission fixture `schemaVersion: 2` requires an explicit
+   boolean before validation. Legacy/pre-v2 fixture importers may only default a
+   missing value during migration before validating as v2.
 
 4. **Idempotency-Key retention = 24 hours per `(route, principal, key)`.** Matches the existing RPO ≤24h figure in `NON_FUNCTIONAL_REQUIREMENTS.md` so the idempotency store and the durability story stay consistent, and comfortably covers a same-day reconnect after an offline/interrupted mission. Same key with a different request body within the window returns `409 Problem` (`idempotency-key-conflict`). After the TTL, the key may be reused with new semantics; Role 4 owns the cleanup job.
 

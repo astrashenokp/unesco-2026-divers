@@ -61,7 +61,7 @@ class FileMissionPolicyReader:
         self._pack_root = pack_root.resolve()
         self._manifest_validator = _validator(manifest_schema_path)
         self._mission_validator = _validator(mission_schema_path)
-        self._policies, self._missions = self._load_missions()
+        self._manifest, self._policies, self._missions = self._load_missions()
 
     async def get_policy(
         self, mission_id: MissionId, mission_version: MissionVersion
@@ -84,9 +84,61 @@ class FileMissionPolicyReader:
                 return deepcopy(action["deterministicResponse"])
         return None
 
+    async def get_learning_path(self) -> dict[str, Any]:
+        """Return a public path projection without answer or rubric material."""
+
+        nodes = []
+        for entry in self._manifest["missions"]:
+            mission_id = MissionId(entry["id"])
+            mission = self._mission_by_id(mission_id)
+            if mission is None:
+                continue
+            nodes.append(
+                {
+                    "missionId": mission["id"],
+                    "title": mission["title"],
+                    "state": "available",
+                }
+            )
+
+        return {
+            "version": self._manifest["version"],
+            "locale": self._manifest["locales"][0],
+            "nodes": nodes,
+        }
+
+    async def get_public_mission(self, mission_id: MissionId) -> dict[str, Any] | None:
+        """Return the public mission projection defined by contracts/openapi.yaml."""
+
+        mission = self._mission_by_id(mission_id)
+        if mission is None:
+            return None
+
+        presentation = mission["presentation"]
+        return {
+            "id": mission["id"],
+            "version": mission["version"],
+            "title": mission["title"],
+            "claim": presentation["claim"],
+            "media": deepcopy(presentation["media"]),
+            "accessibility": deepcopy(presentation["accessibility"]),
+            "reactions": list(presentation["allowedReactions"]),
+            "evidenceActions": [
+                {
+                    "id": action["id"],
+                    "type": action["type"],
+                    "label": action["label"],
+                }
+                for action in mission["evidenceActions"]
+            ],
+            "skillTags": list(mission["learning"]["skillTags"]),
+            "testsCriticalIgnoring": mission["testsCriticalIgnoring"],
+        }
+
     def _load_missions(
         self,
     ) -> tuple[
+        dict[str, Any],
         dict[tuple[MissionId, MissionVersion], MissionPolicy],
         dict[tuple[MissionId, MissionVersion], dict[str, Any]],
     ]:
@@ -126,7 +178,13 @@ class FileMissionPolicyReader:
                 )
             policies[key] = policy
             missions[key] = mission
-        return policies, missions
+        return manifest, policies, missions
+
+    def _mission_by_id(self, mission_id: MissionId) -> dict[str, Any] | None:
+        for (stored_id, _version), mission in self._missions.items():
+            if stored_id == mission_id:
+                return mission
+        return None
 
     def _resolve_mission_path(self, relative_path: str) -> Path:
         candidate = (self._pack_root / relative_path).resolve()

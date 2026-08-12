@@ -31,15 +31,30 @@ pack/
 ## Mission minimum
 
 - one learning objective and skill tags;
-- presented claim/context/media with alternatives;
+- presented claim/context/media with accessibility alternatives;
+- media assets referenced by `asset://<manifest-id>/...` resolve to checked-in
+  files inside the reviewed pack directory;
 - allowed initial reactions;
 - evidence actions and stable evidence IDs;
 - deterministic response for every P0 evidence action, so demo mode never depends on live third-party APIs;
 - gold evidence graph with source identity/retrieval/license metadata;
 - accepted three-axis assessments, including uncertainty ranges;
 - Socratic hint ladder and forbidden leakage terms;
-- rubric, correction/history metadata, reviewer sign-off;
-- explicit `testsCriticalIgnoring` boolean in P0 fixtures. Pack missions may treat the omitted value as `false`, but checked-in fixtures state it explicitly so Role 2 can map it to `Attempt.allows_no_evidence_conclusion` without parser ambiguity. When `true`, the conclusion endpoint accepts zero evidence actions for this mission version because the mission is deliberately testing whether the learner concludes without investigating (ADR-008).
+- rubric with eval hooks, correction/history metadata, reviewer sign-off;
+- explicit `testsCriticalIgnoring` boolean in P0 fixtures. Mission fixture
+  `schemaVersion: 2` requires this field; legacy/pre-v2 importers may only
+  default an omitted value to `false` during migration before validating as v2.
+  Role 2 maps the explicit v2 value to
+  `Attempt.allows_no_evidence_conclusion`. When `true`, the conclusion endpoint
+  accepts zero evidence actions for this mission version because the mission is
+  deliberately testing whether the learner concludes without investigating
+  (ADR-008).
+
+Mission fixture `schemaVersion: 2` makes presentation accessibility and rubric
+eval hooks mandatory. `rubric.evalHooks` includes `coachEvalCaseRefs` for the
+release gate, `observableSignals` for process-scoring instrumentation, and
+`blockingFailureSignals` for failures that should stop publication or demo
+promotion.
 
 ## Publication gates
 

@@ -317,6 +317,32 @@ class Strings {
 
   // --------------------------------------------------------------- profile
   String get profileTitle => _s('Your progress', 'Твій прогрес');
+
+  // Identity and data
+  String get youGuest => _s('Guest', 'Гість');
+  String get guestExplained => _s(
+        'Nothing you do here is tied to a name. Progress lives on this '
+            'device only.',
+        "Ніщо тут не прив'язане до імені. Прогрес зберігається лише на "
+            'цьому пристрої.',
+      );
+  String get exportData => _s('Export my data', 'Експортувати мої дані');
+  String get exportExplained => _s(
+        'Copies everything this app holds about you, as readable text.',
+        'Копіює все, що застосунок про тебе зберігає, у вигляді читабельного тексту.',
+      );
+  String get exportCopied => _s('Copied to the clipboard.', 'Скопійовано в буфер обміну.');
+
+  // Receipt history
+  String get historyTitle => _s('Your receipts', 'Твої квитанції');
+  String get historyEmpty => _s(
+        'Finish a mission and its receipt will appear here.',
+        "Заверши місію — і її квитанція з'явиться тут.",
+      );
+
+  // Skill detail
+  String get skillWhy => _s('Why it matters', 'Чому це важливо');
+  String get skillTrainedBy => _s('Trained by', 'Тренується в місіях');
   String totalXp(int xp) => _s('$xp XP earned for how you investigate', '$xp XP за те, як ти перевіряєш');
   String get skillsTitle => _s('Evidence skills', 'Навички перевірки');
   String masteryPercent(int percent) => _s('$percent% mastered', '$percent% засвоєно');
@@ -392,6 +418,7 @@ class Strings {
   // ------------------------------------------------------------ navigation
   String get navPath => _s('Path', 'Шлях');
   String get navProgress => _s('Progress', 'Прогрес');
+  String get navProfile => _s('You', 'Ти');
   String get navSettings => _s('Settings', 'Налаштування');
 
   // ------------------------------------------------------------------ axes

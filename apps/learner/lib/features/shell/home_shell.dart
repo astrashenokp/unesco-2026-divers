@@ -5,6 +5,7 @@ import '../../data/mission_repository.dart';
 import '../../l10n/strings.dart';
 import '../common/demo_banner.dart';
 import '../home/path_screen.dart';
+import '../profile/profile_screen.dart';
 import '../profile/progress_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -41,6 +42,11 @@ class _HomeShellState extends State<HomeShell> {
         label: s.navProgress
       ),
       (
+        icon: Icons.person_outline,
+        selectedIcon: Icons.person,
+        label: s.navProfile
+      ),
+      (
         icon: Icons.settings_outlined,
         selectedIcon: Icons.settings,
         label: s.navSettings
@@ -50,6 +56,7 @@ class _HomeShellState extends State<HomeShell> {
     final pages = [
       PathScreen(repository: widget.repository),
       ProgressScreen(repository: widget.repository),
+      ProfileScreen(repository: widget.repository),
       const SettingsScreen(),
     ];
 

@@ -1,6 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
+import '../../app_settings.dart';
 import '../../l10n/strings.dart';
 import '../auth/auth_screen.dart';
 
@@ -59,11 +60,17 @@ class _OnboardingCarouselScreenState extends State<OnboardingCarouselScreen> {
         child: ReadableWidth(
           child: Column(
             children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: EdgeInsets.all(tokens.space(2)),
-                  child: TextButton(onPressed: _goToAuth, child: Text(s.skip)),
+              Padding(
+                padding: EdgeInsets.all(tokens.space(2)),
+                child: Row(
+                  children: [
+                    // Language first, before anything asks to be read.
+                    // Burying it in settings means a Ukrainian speaker has
+                    // to get through an English onboarding to reach it.
+                    const _LanguagePicker(),
+                    const Spacer(),
+                    TextButton(onPressed: _goToAuth, child: Text(s.skip)),
+                  ],
                 ),
               ),
               Expanded(
@@ -133,6 +140,30 @@ class _OnboardingCarouselScreenState extends State<OnboardingCarouselScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+
+/// Language choice, available before the first word of onboarding.
+class _LanguagePicker extends StatelessWidget {
+  const _LanguagePicker();
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = AppSettingsScope.of(context);
+    final code = settings.locale.languageCode;
+
+    return SegmentedButton<String>(
+      segments: const [
+        ButtonSegment(value: 'uk', label: Text('Укр')),
+        ButtonSegment(value: 'en', label: Text('Eng')),
+      ],
+      selected: {code},
+      showSelectedIcon: false,
+      style: const ButtonStyle(visualDensity: VisualDensity.compact),
+      onSelectionChanged: (selection) =>
+          settings.locale = Locale(selection.first),
     );
   }
 }

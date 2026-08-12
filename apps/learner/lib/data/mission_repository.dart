@@ -28,6 +28,13 @@ abstract class MissionRepository {
   Future<Hint> requestHint(String attemptId, String missionId);
   Future<Progress> getMyProgress();
   Future<Receipt> getReceipt(String receiptId);
+
+  /// Receipts this learner has earned, newest first.
+  ///
+  /// The contract has no list endpoint yet, so the live implementation
+  /// returns empty rather than inventing one. Role 2 would need to add
+  /// GET /v1/receipts before this can show real history.
+  Future<List<Receipt>> listReceipts();
   Future<void> reportContent({
     required String missionId,
     required String reason,
@@ -247,6 +254,12 @@ class DemoMissionRepository implements MissionRepository {
   }
 
   @override
+  Future<List<Receipt>> listReceipts() async {
+    await _pause();
+    return _receipts.values.toList().reversed.toList();
+  }
+
+  @override
   Future<Receipt> getReceipt(String receiptId) async {
     await _pause();
     final receipt = _receipts[receiptId];
@@ -342,6 +355,11 @@ class LiveMissionRepository implements MissionRepository {
 
   @override
   Future<Receipt> getReceipt(String receiptId) => _client.getReceipt(receiptId);
+
+  @override
+  // No list endpoint exists in contracts/openapi.yaml. Returning empty is
+  // honest; fabricating a list here would be worse than showing none.
+  Future<List<Receipt>> listReceipts() async => const [];
 
   @override
   Future<void> reportContent({

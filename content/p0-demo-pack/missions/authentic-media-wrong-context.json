@@ -392,9 +392,9 @@
     },
     {
       "level": 4,
-      "text": "Use the source-page place and date result, then check whether the Munich caption has independent support.",
+      "text": "Use the source-page place and date result. Now check whether there is any matching Munich flood alert in the curated bulletin.",
       "allowedBeforeConclusion": true,
-      "suggestedActionId": "action-corroboration",
+      "suggestedActionId": "action-context-check",
       "evidenceRefs": [
         "E-ORIGINAL-CAPTION"
       ],
@@ -408,6 +408,7 @@
       "evidenceRefs": [
         "E-MEDIA-METADATA",
         "E-ORIGINAL-CAPTION",
+        "E-MUNICH-NO-MATCH",
         "E-INDEPENDENT-CONTEXT"
       ],
       "uncertainty": "low"

@@ -201,6 +201,25 @@ class Strings {
   String get startInvestigating => _s('Start investigating', 'Почати перевірку');
   String get investigateTitle => _s('Investigate', 'Перевірка');
   String get whatYouFound => _s('What you found', 'Що ти знайшла');
+  String get howItConnects => _s('How it connects', "Як це пов'язано");
+  String get theClaim => _s('The claim', 'Твердження');
+
+  /// How a piece of evidence relates to the claim. Never colour-only —
+  /// this text appears under every node and in its semantics.
+  String relation(String kind) => switch (kind) {
+        'supports' => _s('points the same way', 'вказує в той самий бік'),
+        'contradicts' => _s('points against it', 'вказує проти'),
+        _ => _s('relevant, but does not settle it', 'дотичне, але не вирішує'),
+      };
+
+  String sourceStanding(String kind) => switch (kind) {
+        'verified' => _s('Verified against metadata', 'Підтверджено метаданими'),
+        'curated' => _s('From a reviewed pack', 'З перевіреного паку'),
+        'conflicting' => _s('Sources disagree', 'Джерела не збігаються'),
+        _ => _s('Nothing could be confirmed', 'Нічого не вдалося підтвердити'),
+      };
+
+  String retrievedAt(String when) => _s('retrieved $when', 'отримано $when');
   String propUsed(String label) => _s('$label, already checked', '$label, вже перевірено');
   String get notFoundInSources =>
       _s('Not found in the queried sources.', 'Не знайдено в перевірених джерелах.');

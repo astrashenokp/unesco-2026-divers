@@ -660,8 +660,39 @@ class _InvestigatingStep extends StatelessWidget {
             for (final (index, result) in collected.values.indexed)
               RevealOnScroll(
                 delayIndex: index,
-                child: _EvidenceCard(result: result),
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: tokens.space(1.5)),
+                  child: _EvidenceCard(result: result),
+                ),
               ),
+            // Two or more findings can disagree, and a list hides that.
+            if (collected.length > 1) ...[
+              SizedBox(height: tokens.space(2)),
+              Text(s.howItConnects, style: Theme.of(context).textTheme.titleLarge),
+              const SectionRule(),
+              EvidenceGraph(
+                claimLabel: mission.claim,
+                nodes: [
+                  for (final result in collected.values)
+                    EvidenceNode(
+                      id: result.actionId,
+                      label: result.items.isEmpty
+                          ? s.notFoundInSources
+                          : result.items.first.title,
+                      // `not_found` qualifies rather than contradicts:
+                      // absence of a report is not evidence against.
+                      relation: switch (result.status) {
+                        'ok' => EdgeRelation.supports,
+                        'not_found' => EdgeRelation.qualifies,
+                        _ => EdgeRelation.qualifies,
+                      },
+                      relationLabel: s.relation(
+                        result.status == 'ok' ? 'supports' : 'qualifies',
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ],
           SizedBox(height: tokens.space(2)),
 
@@ -920,63 +951,58 @@ class _EvidenceCardState extends State<_EvidenceCard> {
     final tokens = context.tokens;
     final result = widget.result;
 
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(tokens.space(1.5)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (result.items.isEmpty)
-              Text(s.notFoundInSources)
-            else
-              for (final item in result.items)
-                Padding(
-                  padding: EdgeInsets.only(bottom: tokens.space(0.5)),
-                  child: Text('• ${item.title}'),
-                ),
-            if (result.limitations.isNotEmpty) ...[
-              SizedBox(height: tokens.space(0.5)),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () =>
-                      setState(() => _showLimitations = !_showLimitations),
-                  icon: Icon(
-                    _showLimitations ? Icons.expand_less : Icons.info_outline,
-                    size: 18,
-                  ),
-                  label: Text(
-                    _showLimitations ? s.hideLimitations : s.showLimitations,
-                  ),
-                ),
-              ),
-              AnimatedCrossFade(
-                duration: Motion.of(context, Motion.standard),
-                crossFadeState: _showLimitations
-                    ? CrossFadeState.showSecond
-                    : CrossFadeState.showFirst,
-                firstChild: const SizedBox(width: double.infinity),
-                secondChild: Padding(
-                  padding: EdgeInsets.only(bottom: tokens.space(0.5)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (final limitation in result.limitations)
-                        Padding(
-                          padding: EdgeInsets.only(bottom: tokens.space(0.25)),
-                          child: Text(
-                            limitation,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ],
+    if (result.items.isEmpty) {
+      return SourceCard(
+        title: s.notFoundInSources,
+        standing: SourceStanding.unverified,
+        standingLabel: s.sourceStanding('unverified'),
+        retrievedLabel: s.retrievedAt(DateTime.now().toLocal().toString().split(' ').first),
+        limitations: result.limitations,
+      );
+    }
+
+    final item = result.items.first;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SourceCard(
+          title: item.title,
+          publisher: item.sourceUrl,
+          standing: switch (item.verificationStatus) {
+            'verified_metadata' => SourceStanding.verified,
+            'curated' => SourceStanding.curated,
+            'conflicting' => SourceStanding.conflicting,
+            _ => SourceStanding.unverified,
+          },
+          standingLabel: s.sourceStanding(item.verificationStatus),
+          retrievedLabel: s.retrievedAt(
+            item.retrievedAt.toLocal().toString().split(' ').first,
+          ),
+          limitations: _showLimitations ? result.limitations : const [],
         ),
-      ),
+        if (result.limitations.isNotEmpty)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () =>
+                  setState(() => _showLimitations = !_showLimitations),
+              icon: Icon(
+                _showLimitations ? Icons.expand_less : Icons.info_outline,
+                size: 18,
+              ),
+              label: Text(
+                _showLimitations ? s.hideLimitations : s.showLimitations,
+              ),
+            ),
+          ),
+        // Additional findings from the same action, if any.
+        for (final extra in result.items.skip(1))
+          Padding(
+            padding: EdgeInsets.only(top: tokens.space(0.5)),
+            child: Text('• ${extra.title}',
+                style: Theme.of(context).textTheme.bodyMedium),
+          ),
+      ],
     );
   }
 }

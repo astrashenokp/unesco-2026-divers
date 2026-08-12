@@ -95,6 +95,7 @@ class _PropTileState extends State<PropTile> with SingleTickerProviderStateMixin
     duration: const Duration(milliseconds: 420),
   );
   bool _pressed = false;
+  bool _focused = false;
   Timer? _stagger;
 
   @override
@@ -128,12 +129,17 @@ class _PropTileState extends State<PropTile> with SingleTickerProviderStateMixin
     const edgeDepth = 5.0;
     final sink = _pressed && !reduceMotion ? edgeDepth - 2 : 0.0;
 
+    // InkWell rather than GestureDetector: it is focusable, so the tile
+    // is reachable by Tab and activated by Enter or Space. Built on a
+    // GestureDetector the tile was unreachable by keyboard entirely —
+    // and since a conclusion requires at least one evidence check, that
+    // made the whole mission impossible without a pointer.
     final tile = ExcludeSemantics(
-        child: GestureDetector(
-          onTap: widget.onTap,
-          onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
-          onTapUp: enabled ? (_) => setState(() => _pressed = false) : null,
-          onTapCancel: enabled ? () => setState(() => _pressed = false) : null,
+        child: InkWell(
+          onTap: enabled ? widget.onTap : null,
+          onHighlightChanged: enabled ? (v) => setState(() => _pressed = v) : null,
+          onFocusChange: (v) => setState(() => _focused = v),
+          borderRadius: BorderRadius.circular(tokens.space(2.5)),
           child: SizedBox(
             width: 104,
             height: 104 + edgeDepth,
@@ -166,8 +172,12 @@ class _PropTileState extends State<PropTile> with SingleTickerProviderStateMixin
                       color: widget.used ? tokens.surface : tokens.surfaceRaised,
                       borderRadius: BorderRadius.circular(tokens.space(2.5)),
                       border: Border.all(
-                        color: color.withValues(alpha: widget.used ? 0.35 : 1),
-                        width: 2,
+                        // A visible focus ring in the dedicated focus
+                        // colour, so keyboard position is never a guess.
+                        color: _focused
+                            ? tokens.focus
+                            : color.withValues(alpha: widget.used ? 0.35 : 1),
+                        width: _focused ? 3 : 2,
                       ),
                     ),
                     child: Column(

@@ -1,6 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // ignore_for_file: deprecated_member_use
@@ -87,6 +88,34 @@ void main() {
 
     expect(taps, 1);
     handle.dispose();
+  });
+
+  testWidgets('every interactive component is reachable by keyboard',
+      (tester) async {
+    // A web build makes this non-optional. PropTile was built on a
+    // GestureDetector, which is not focusable — so Tab skipped every
+    // evidence check, and since a conclusion needs at least one, the
+    // mission could not be completed without a pointer.
+    var taps = 0;
+    await tester.pumpWidget(_host(Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        PropTile(
+          prop: EvidenceProp.source,
+          label: 'Check the source',
+          semanticLabel: 'Check the source',
+          onTap: () => taps++,
+        ),
+      ],
+    )));
+    await tester.pump();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+
+    expect(taps, 1, reason: 'Tab then Enter must activate an evidence check');
   });
 
   testWidgets('ConfidenceSlider can be changed, not only read',

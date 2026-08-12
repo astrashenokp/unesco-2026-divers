@@ -28,6 +28,21 @@ Not yet checked by hand: real-device behaviour, 200% text on a physical screen, 
    - **Continue as guest** — talks to a live API at `http://localhost:8000/` (override with `flutter run --dart-define=API_BASE_URL=https://your-api/`). Guest auth is **not** wired to Firebase yet; see the TODO in `lib/features/auth/auth_screen.dart`.
 5. `flutter test` — six widget/invariant tests in `test/smoke_test.dart`.
 
+### Talking to a local API from the web build
+
+A Flutter web app served on one port calling an API on another is a
+cross-origin request, and the browser will block it unless the server
+sends CORS headers. For local development, use the built-in flag:
+
+```
+flutter run -d chrome --web-browser-flag=--disable-web-security   --dart-define=API_BASE_URL=http://localhost:8000/
+```
+
+This is scoped to that one run. Do **not** install a tool that patches
+the Flutter SDK to do the same thing — it persists across projects and
+breaks on upgrade. And neither approach substitutes for the server
+sending correct CORS headers anywhere that is not a laptop.
+
 > `pumpAndSettle` will hang in any test that renders a mascot: Lupa and Slid animate continuously, so there is never a frame-idle to settle on. Pump a bounded number of frames instead — see `_settle` in the test file.
 
 ### Seeing both layouts

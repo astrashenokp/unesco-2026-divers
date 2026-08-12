@@ -123,7 +123,7 @@ void main() {
     expect(thorough, greaterThan(hasty));
   });
 
-  test('the coach climbs its ladder and stops at five', () async {
+  test('the coach climbs its ladder and stops at four', () async {
     final r = repo();
     final attempt = await startFirst(r);
     final levels = <int>[];
@@ -131,10 +131,10 @@ void main() {
       final hint = await r.requestHint(attempt.id, 'viral-flood-photo');
       levels.add(hint.level);
     }
-    expect(levels.take(5).toList(), [1, 2, 3, 4, 5]);
+    expect(levels.take(4).toList(), [1, 2, 3, 4]);
     // Asking beyond the top must not wrap around to an easier hint or
     // escalate into giving the answer.
-    expect(levels.skip(5).every((l) => l == 5), isTrue);
+    expect(levels.skip(4).every((l) => l == 4), isTrue);
   });
 
   test('every hint declares itself a fallback in demo mode', () async {

@@ -23,11 +23,13 @@
     "level": {
       "type": "integer",
       "minimum": 1,
-      "maximum": 5
+      "maximum": 4
     },
     "suggestedActionId": {
-      "type": ["string", "null"],
-      "maxLength": 120
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "minLength": 1, "maxLength": 120 }
+      ]
     },
     "evidenceRefs": {
       "type": "array",

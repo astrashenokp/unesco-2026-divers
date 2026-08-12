@@ -1,9 +1,9 @@
 """Reviewed deterministic fallback backed by Role 3 mission fixtures."""
 
+from evidence_gym_api.catalog.mission_fixture_reader import FileMissionPolicyReader
 from evidence_gym_api.coach.errors import CoachProviderError
 from evidence_gym_api.coach.model import CoachHint
 from evidence_gym_api.coach.ports import CoachProvider, CoachRequest
-from evidence_gym_api.catalog.mission_fixture_reader import FileMissionPolicyReader
 
 
 class FixtureCoachProvider(CoachProvider):
@@ -17,4 +17,3 @@ class FixtureCoachProvider(CoachProvider):
         if hint is None:
             raise CoachProviderError("reviewed fallback hint is unavailable")
         return hint
-

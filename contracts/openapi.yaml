@@ -112,6 +112,8 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Hint' }
         '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
   /attempts/{attemptId}/conclusion:
     post:
       operationId: completeAttempt
@@ -317,13 +319,24 @@ components:
     Hint:
       type: object
       additionalProperties: false
-      required: [text, level, evidenceRefs, uncertainty, fallback]
+      required: [text, level, evidenceRefs, uncertainty, safetyFlags, fallback]
       properties:
-        text: { type: string }
-        level: { type: integer, minimum: 1, maximum: 5 }
-        suggestedActionId: { type: string }
-        evidenceRefs: { type: array, items: { type: string } }
+        text: { type: string, minLength: 1, maxLength: 600 }
+        level: { type: integer, minimum: 1, maximum: 4 }
+        suggestedActionId: { type: [string, 'null'], maxLength: 120 }
+        evidenceRefs: { type: array, uniqueItems: true, items: { type: string, pattern: '^E-[A-Za-z0-9._-]+$' } }
         uncertainty: { enum: [low, medium, high] }
+        safetyFlags:
+          type: array
+          uniqueItems: true
+          items:
+            enum:
+              - needs_more_evidence
+              - possible_leakage
+              - unsupported_citation
+              - prompt_injection_detected
+              - harm_sensitive
+              - provider_degraded
         fallback: { type: boolean }
     AxisAssessment:
       type: object

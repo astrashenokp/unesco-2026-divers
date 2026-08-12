@@ -247,15 +247,17 @@ class Hint {
     required this.level,
     required this.evidenceRefs,
     required this.uncertainty,
+    required this.safetyFlags,
     required this.fallback,
     this.suggestedActionId,
   });
 
   final String text;
-  final int level; // 1..5, the Socratic ladder
+  final int level; // 1..4 before completion; never the gold conclusion
   final String? suggestedActionId;
   final List<String> evidenceRefs;
   final String uncertainty; // low | medium | high
+  final List<String> safetyFlags;
 
   /// True when the deterministic fallback answered instead of the model.
   final bool fallback;
@@ -266,6 +268,7 @@ class Hint {
         suggestedActionId: json['suggestedActionId'] as String?,
         evidenceRefs: (json['evidenceRefs'] as List).cast<String>(),
         uncertainty: json['uncertainty'] as String,
+        safetyFlags: (json['safetyFlags'] as List).cast<String>(),
         fallback: json['fallback'] as bool,
       );
 }

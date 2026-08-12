@@ -38,14 +38,14 @@ from evidence_gym_api.learning.testing import (
     SequentialAttemptIdGenerator,
 )
 from evidence_gym_api.learning.use_cases import (
+    RequestHint,
+    RequestHintCommand,
     StartAttempt,
     StartAttemptCommand,
     SubmitPrediction,
     SubmitPredictionCommand,
     UseEvidenceAction,
     UseEvidenceActionCommand,
-    RequestHint,
-    RequestHintCommand,
 )
 
 
@@ -59,9 +59,45 @@ class MissingEvidenceProvider:
         raise EvidenceActionNotFound("action is not defined by the mission")
 
 
+class OrderedCoachPolicy:
+    async def get_coach_request_data(self, mission_id, mission_version):
+        return (
+            ("action-a", "action-b"),
+            {"action-a": ("E-A",), "action-b": ("E-B",)},
+            (),
+        )
+
+
+class LadderFallbackProvider:
+    async def request_hint(self, request):
+        if request.level == 3:
+            return CoachHint(
+                "This higher hint references evidence you have not opened.",
+                3,
+                None,
+                ("E-C",),
+                HintUncertainty.MEDIUM,
+                ("provider_degraded",),
+                True,
+            )
+        return CoachHint(
+            "Step back and decide which check would reduce uncertainty next.",
+            request.level,
+            "action-b",
+            (),
+            HintUncertainty.HIGH,
+            ("provider_degraded",),
+            True,
+        )
+
+
 class StubCoachPolicy:
     async def get_coach_request_data(self, mission_id, mission_version):
-        return (("inspect-source",), {"inspect-source": ("E-SOURCE",)})
+        return (
+            ("inspect-source",),
+            {"inspect-source": ("E-SOURCE",)},
+            ("gold label",),
+        )
 
 
 class SafeFallbackCoach:
@@ -77,15 +113,28 @@ class SafeFallbackCoach:
         )
 
 
-class UnsafeCoach:
+class StaticCoach:
+    def __init__(
+        self,
+        text: str,
+        *,
+        suggested_action_id: str | None = "inspect-source",
+        evidence_refs: tuple[str, ...] = (),
+        safety_flags: tuple[str, ...] = (),
+    ) -> None:
+        self._text = text
+        self._suggested_action_id = suggested_action_id
+        self._evidence_refs = evidence_refs
+        self._safety_flags = safety_flags
+
     async def request_hint(self, request):
         return CoachHint(
-            "The gold label is false.",
+            self._text,
             request.level,
-            "not-allowlisted",
-            ("E-INVENTED",),
+            self._suggested_action_id,
+            self._evidence_refs,
             HintUncertainty.LOW,
-            ("possible_leakage",),
+            self._safety_flags,
             False,
         )
 
@@ -371,6 +420,63 @@ def test_evidence_provider_failure_does_not_mutate_attempt() -> None:
     assert run(attempts.get(predicted.id)) == predicted
 
 
+def test_hint_fallback_degrades_to_lower_safe_level_when_refs_are_unavailable() -> None:
+    attempts, start, submit = make_dependencies()
+    idempotency = InMemoryIdempotencyRepository()
+    transactions = InMemoryTransactionManager()
+    clock = FixedClock()
+    use_evidence = UseEvidenceAction(
+        attempts,
+        StubEvidenceProvider(),
+        idempotency,
+        transactions,
+        clock,
+    )
+    request_hint = RequestHint(
+        attempts,
+        OrderedCoachPolicy(),
+        LadderFallbackProvider(),
+        idempotency,
+        transactions,
+        clock,
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+    first = run(
+        use_evidence.execute(
+            LEARNER,
+            evidence_command(
+                predicted.id,
+                key="evidence-key-001",
+                version=2,
+                action_id="action-a",
+            ),
+        )
+    )
+    run(
+        use_evidence.execute(
+            LEARNER,
+            evidence_command(
+                predicted.id,
+                key="evidence-key-002",
+                version=first.attempt_version,
+                action_id="action-b",
+            ),
+        )
+    )
+
+    hint = run(
+        request_hint.execute(
+            LEARNER,
+            RequestHintCommand(predicted.id, IdempotencyKey("hint-key-0001")),
+        )
+    )
+
+    assert hint.level == 2
+    assert hint.evidence_refs == ()
+    assert hint.fallback is True
+
+
 def test_request_hint_rejects_unsafe_provider_output_and_uses_fallback() -> None:
     attempts, start, submit = make_dependencies()
     idempotency = InMemoryIdempotencyRepository()
@@ -381,7 +487,7 @@ def test_request_hint_rejects_unsafe_provider_output_and_uses_fallback() -> None
         idempotency,
         InMemoryTransactionManager(),
         FixedClock(),
-        provider=UnsafeCoach(),
+        provider=StaticCoach("The gold label is false."),
     )
     attempt = run(start.execute(LEARNER, start_command()))
     predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
@@ -395,6 +501,47 @@ def test_request_hint_rejects_unsafe_provider_output_and_uses_fallback() -> None
     assert hint.fallback is True
     assert hint.safety_flags == ("provider_degraded",)
     assert stored == predicted
+
+
+@pytest.mark.parametrize(
+    "provider",
+    (
+        StaticCoach("Check https://example.invalid before deciding."),
+        StaticCoach(
+            "Which source property should you inspect next?",
+            safety_flags=("unsupported_citation",),
+        ),
+        StaticCoach(
+            "Which source property should you inspect next?",
+            safety_flags=("unknown_flag",),
+        ),
+    ),
+)
+def test_request_hint_rejects_fabricated_references_and_unknown_flags(
+    provider,
+) -> None:
+    attempts, start, submit = make_dependencies()
+    hints = RequestHint(
+        attempts,
+        StubCoachPolicy(),
+        SafeFallbackCoach(),
+        InMemoryIdempotencyRepository(),
+        InMemoryTransactionManager(),
+        FixedClock(),
+        provider=provider,
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+
+    hint = run(
+        hints.execute(
+            LEARNER,
+            RequestHintCommand(predicted.id, IdempotencyKey("hint-key-0001")),
+        )
+    )
+
+    assert hint.fallback is True
+    assert hint.text == "Which source property should you inspect next?"
 
 
 def test_request_hint_authorizes_owner_and_scopes_key_across_attempts() -> None:

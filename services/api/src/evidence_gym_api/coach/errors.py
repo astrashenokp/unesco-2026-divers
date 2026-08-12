@@ -1,6 +1,5 @@
 """Failures that must degrade to a reviewed deterministic hint."""
 
 
-class CoachProviderError(Exception):
-    """The coach could not return a safe, contract-valid response."""
-
+class CoachProviderError(RuntimeError):
+    """Raised when no safe model or deterministic coach hint can be returned."""

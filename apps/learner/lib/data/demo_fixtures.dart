@@ -220,7 +220,7 @@ Map<String, Mission> demoMissionsFor(String code) {
 ///
 /// `GAME_AND_LEARNING_DESIGN.md` specifies a hint ladder, not a single
 /// hint: each rung is a little less oblique than the last. The ladder
-/// stops at five and never reaches an answer — the top rung says so out
+/// stops at four and never reaches an answer — the top rung says so out
 /// loud, because a coach that eventually caves teaches learners to wait
 /// it out rather than to look.
 ///
@@ -231,7 +231,7 @@ Hint demoHintFor({
   required int level,
   String? nextActionId,
 }) {
-  final rung = level.clamp(1, 5);
+  final rung = level.clamp(1, 4);
   final uncertainty = switch (rung) {
     1 => 'low',
     2 || 3 => 'medium',
@@ -245,6 +245,7 @@ Hint demoHintFor({
     suggestedActionId: (rung == 2 || rung == 3) ? nextActionId : null,
     evidenceRefs: const [],
     uncertainty: uncertainty,
+    safetyFlags: const ['provider_degraded'],
     fallback: true,
   );
 }

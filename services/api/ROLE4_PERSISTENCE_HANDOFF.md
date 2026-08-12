@@ -1,11 +1,11 @@
-# Role 4 persistence handoff: attempts, predictions, and evidence actions
+# Role 4 persistence handoff: attempts, predictions, evidence actions, and hints
 
 ## Goal / status
 
 Ready for persistence implementation — Role 2 has defined the domain invariants,
 repository behavior, authorization checks, idempotency semantics, optimistic
-versioning and transaction intent for `StartAttempt`, `SubmitPrediction`, and
-`UseEvidenceAction`.
+versioning and transaction intent for `StartAttempt`, `SubmitPrediction`,
+`UseEvidenceAction`, and `RequestHint`.
 
 ## Changed
 
@@ -18,7 +18,9 @@ versioning and transaction intent for `StartAttempt`, `SubmitPrediction`, and
 
 ## Contracts and decisions
 
-No contract changed. Implement these ports without leaking physical persistence
+The public Hint contract stays learner-facing and pre-completion only:
+`contracts/openapi.yaml` and `contracts/coach-output.schema.json` cap exposed
+hint levels at 4. Implement these ports without leaking physical persistence
 objects into the domain:
 
 - `AttemptRepository.get/add/save`

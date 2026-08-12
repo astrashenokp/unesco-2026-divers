@@ -19,4 +19,3 @@ class CoachHint:
     uncertainty: HintUncertainty
     safety_flags: tuple[str, ...] = ()
     fallback: bool = False
-

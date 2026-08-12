@@ -55,6 +55,7 @@ def test_role3_fixture_supplies_safe_deterministic_coach_fallback() -> None:
         level=1,
         allowed_action_ids=("action-decompose-claim",),
         available_evidence_refs=(),
+        forbidden_terms=(),
     )
 
     hint = run(provider.request_hint(request))
@@ -178,6 +179,31 @@ def test_start_attempt_pins_real_role3_minimum_completion_evidence() -> None:
     assert attempt.mission_id == MissionId("ai-citation-integrity")
     assert attempt.mission_version == MissionVersion("0.1.0")
     assert attempt.minimum_required_evidence_actions == 3
+
+
+def test_reader_exposes_coach_grounding_and_safe_fallback_hint() -> None:
+    reader = make_reader()
+
+    data = run(
+        reader.get_coach_request_data(
+            MissionId("authentic-media-wrong-context"), MissionVersion("0.1.0")
+        )
+    )
+    hint = run(
+        reader.get_fallback_hint(
+            MissionId("authentic-media-wrong-context"), MissionVersion("0.1.0"), 1
+        )
+    )
+
+    assert data is not None
+    allowed_actions, evidence_by_action, forbidden_terms = data
+    assert "action-primary-source" in allowed_actions
+    assert "action-primary-source" in evidence_by_action
+    assert "gold label" in forbidden_terms
+    assert hint is not None
+    assert hint.level == 1
+    assert hint.safety_flags == ("provider_degraded",)
+    assert hint.fallback is True
 
 
 def test_reader_maps_trusted_critical_ignoring_flag(tmp_path: Path) -> None:

@@ -102,11 +102,12 @@ class EvidenceResultResponse(BaseModel):
 
 
 class HintResponse(BaseModel):
-    text: str
-    level: int = Field(ge=1, le=5)
+    text: str = Field(min_length=1, max_length=600)
+    level: int = Field(ge=1, le=4)
     suggestedActionId: str | None = None
     evidenceRefs: list[str]
     uncertainty: str
+    safetyFlags: list[str]
     fallback: bool
 
 
@@ -263,5 +264,6 @@ async def request_hint(
         suggestedActionId=hint.suggested_action_id,
         evidenceRefs=list(hint.evidence_refs),
         uncertainty=hint.uncertainty.value,
+        safetyFlags=list(hint.safety_flags),
         fallback=hint.fallback,
     )

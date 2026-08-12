@@ -445,7 +445,7 @@ class Strings {
   /// Resolves demo-pack hint keys. Live server hints arrive already
   /// localized, so anything unrecognised passes straight through.
   ///
-  /// Five rungs, each less oblique than the last. The fifth stops rather
+  /// Four rungs, each less oblique than the last. The fourth stops rather
   /// than answering: a coach that eventually caves teaches learners to
   /// wait it out instead of looking.
   String hintText(String raw) => switch (raw) {
@@ -472,12 +472,6 @@ class Strings {
             'Три осі не мусять збігатися. На яку з них ти відповідаєш просто зараз?',
             'The three answers can differ. Which one are you on?',
             'Три відповіді можуть різнитися. Яка з них зараз?',
-          ),
-        'demo_hint_5' => _p(
-            'That is as far as I go. If the evidence does not settle it, saying so is the honest answer.',
-            'Далі я не піду. Якщо докази не дають відповіді — сказати про це і є чесною відповіддю.',
-            'I stop here. Not knowing is a real answer.',
-            'Далі не підказую. Не знати — теж відповідь.',
           ),
         _ => raw,
       };
@@ -707,7 +701,7 @@ class Strings {
   String get hideLimitations => _s('Hide', 'Сховати');
 
   // Hint ladder
-  String hintLevel(int level) => _s('Nudge $level of 5', 'Підказка $level з 5');
+  String hintLevel(int level) => _s('Nudge $level of 4', 'Підказка $level з 4');
   String get hintDeeper => _s('Still stuck? Ask again', 'Досі не ясно? Запитай ще');
   String get hintExhausted => _s(
         'That is as far as the coach will go. The conclusion is yours.',

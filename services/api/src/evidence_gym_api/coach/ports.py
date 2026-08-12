@@ -15,6 +15,7 @@ class CoachRequest:
     level: int
     allowed_action_ids: tuple[str, ...]
     available_evidence_refs: tuple[str, ...]
+    forbidden_terms: tuple[str, ...]
 
 
 class CoachProvider(Protocol):
@@ -24,9 +25,8 @@ class CoachProvider(Protocol):
 class CoachPolicyReader(Protocol):
     async def get_coach_request_data(
         self, mission_id: MissionId, mission_version: MissionVersion
-    ) -> tuple[tuple[str, ...], dict[str, tuple[str, ...]]] | None: ...
+    ) -> tuple[tuple[str, ...], dict[str, tuple[str, ...]], tuple[str, ...]] | None: ...
 
     async def get_fallback_hint(
         self, mission_id: MissionId, mission_version: MissionVersion, level: int
     ) -> CoachHint | None: ...
-

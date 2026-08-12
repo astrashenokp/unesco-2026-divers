@@ -1,17 +1,24 @@
 """Learning application use cases with explicit authorization and retry semantics."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import timedelta
 from hashlib import sha256
 import json
+import re
 
 from evidence_gym_api.identity.model import Principal
-from evidence_gym_api.evidence.model import EvidenceResult
-from evidence_gym_api.evidence.ports import DeterministicEvidenceProvider
 from evidence_gym_api.coach.errors import CoachProviderError
 from evidence_gym_api.coach.model import CoachHint
 from evidence_gym_api.coach.ports import CoachPolicyReader, CoachProvider, CoachRequest
-from evidence_gym_api.learning.attempt import Attempt, Confidence, Prediction, Reaction
+from evidence_gym_api.evidence.model import EvidenceResult
+from evidence_gym_api.evidence.ports import DeterministicEvidenceProvider
+from evidence_gym_api.learning.attempt import (
+    Attempt,
+    Confidence,
+    IllegalAttemptTransition,
+    Prediction,
+    Reaction,
+)
 from evidence_gym_api.learning.errors import (
     AttemptAccessDenied,
     AttemptNotFound,
@@ -42,6 +49,20 @@ from evidence_gym_api.learning.value_objects import (
 )
 
 IDEMPOTENCY_RETENTION = timedelta(hours=24)
+ALLOWED_HINT_SAFETY_FLAGS = {
+    "needs_more_evidence",
+    "harm_sensitive",
+    "provider_degraded",
+}
+FORBIDDEN_HINT_SAFETY_FLAGS = {
+    "possible_leakage",
+    "prompt_injection_detected",
+    "unsupported_citation",
+}
+REFERENCE_LEAK_PATTERN = re.compile(
+    r"(https?://|www\.|doi:\s*10\.|10\.\d{4,9}/[-._;()/:A-Z0-9]+)",
+    re.IGNORECASE,
+)
 
 
 def _fingerprint(payload: dict[str, object]) -> str:
@@ -298,7 +319,9 @@ class RequestHint:
     ) -> CoachHint:
         fingerprint = _fingerprint({"attemptId": command.attempt_id.value})
         scope = IdempotencyScope(
-            principal.subject, "/attempts/{attemptId}/hints", command.idempotency_key
+            principal.subject,
+            "/attempts/{attemptId}/hints",
+            command.idempotency_key,
         )
         async with self._transactions.transaction():
             now = self._clock.now()
@@ -316,8 +339,6 @@ class RequestHint:
             if attempt.learner_id != principal.subject:
                 raise AttemptAccessDenied("attempt belongs to another learner")
             if attempt.state.value not in {"predicted", "investigating"}:
-                from evidence_gym_api.learning.attempt import IllegalAttemptTransition
-
                 raise IllegalAttemptTransition(
                     "hints require a predicted or investigating attempt"
                 )
@@ -327,7 +348,8 @@ class RequestHint:
             )
             if data is None:
                 raise MissionNotFound("exact mission version is unavailable")
-            allowed_actions, evidence_by_action = data
+
+            allowed_actions, evidence_by_action, forbidden_terms = data
             available_refs = tuple(
                 evidence_id
                 for action_id in attempt.evidence_action_refs
@@ -341,6 +363,7 @@ class RequestHint:
                 level=level,
                 allowed_action_ids=allowed_actions,
                 available_evidence_refs=available_refs,
+                forbidden_terms=forbidden_terms,
             )
             hint = await self._safe_hint(request)
             await self._idempotency.put_hint(
@@ -365,13 +388,24 @@ class RequestHint:
                 pass
 
         fallback = await self._fallback.request_hint(request)
-        if not self._is_safe(fallback, request):
-            raise CoachProviderError("reviewed fallback violated coach policy")
-        return fallback
+        if self._is_safe(fallback, request):
+            return fallback
+
+        for lower_level in range(request.level - 1, 0, -1):
+            lower_request = replace(request, level=lower_level)
+            fallback = await self._fallback.request_hint(lower_request)
+            if self._is_safe(fallback, lower_request):
+                return fallback
+
+        raise CoachProviderError("reviewed fallback violated coach policy")
 
     @staticmethod
     def _is_safe(hint: CoachHint, request: CoachRequest) -> bool:
-        forbidden_flags = {"possible_leakage", "prompt_injection_detected"}
+        normalized_text = hint.text.casefold()
+        forbidden_terms = tuple(
+            term.casefold() for term in request.forbidden_terms if term
+        )
+        safety_flags = set(hint.safety_flags)
         return (
             bool(hint.text.strip())
             and len(hint.text) <= 600
@@ -383,5 +417,8 @@ class RequestHint:
             )
             and set(hint.evidence_refs).issubset(request.available_evidence_refs)
             and len(hint.evidence_refs) == len(set(hint.evidence_refs))
-            and forbidden_flags.isdisjoint(hint.safety_flags)
+            and safety_flags.issubset(ALLOWED_HINT_SAFETY_FLAGS)
+            and FORBIDDEN_HINT_SAFETY_FLAGS.isdisjoint(safety_flags)
+            and not any(term in normalized_text for term in forbidden_terms)
+            and REFERENCE_LEAK_PATTERN.search(hint.text) is None
         )

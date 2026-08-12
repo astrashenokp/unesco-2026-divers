@@ -16,7 +16,7 @@ from evidence_gym_api.learning.testing import (
     SequentialAttemptIdGenerator,
 )
 from evidence_gym_api.learning.use_cases import StartAttempt, SubmitPrediction
-from evidence_gym_api.learning.use_cases import UseEvidenceAction, RequestHint
+from evidence_gym_api.learning.use_cases import RequestHint, UseEvidenceAction
 from evidence_gym_api.evidence import EvidenceResult, EvidenceStatus
 from evidence_gym_api.coach import CoachHint, HintUncertainty
 from evidence_gym_api.learning.value_objects import (
@@ -38,19 +38,32 @@ class StubEvidenceProvider:
 
 class StubCoachPolicy:
     async def get_coach_request_data(self, mission_id, mission_version):
-        return (("inspect-source",), {"inspect-source": ()})
+        return (("inspect-source",), {"inspect-source": ()}, ("hidden answer",))
 
 
 class StubCoachProvider:
     async def request_hint(self, request):
         return CoachHint(
-            "What source detail would you verify first?",
-            request.level,
-            "inspect-source",
-            (),
-            HintUncertainty.HIGH,
-            ("provider_degraded",),
-            True,
+            text="What source detail would you verify first?",
+            level=request.level,
+            suggested_action_id="inspect-source",
+            evidence_refs=(),
+            uncertainty=HintUncertainty.HIGH,
+            safety_flags=("provider_degraded",),
+            fallback=True,
+        )
+
+
+class UnsafeCoachProvider:
+    async def request_hint(self, request):
+        return CoachHint(
+            text="The hidden answer is true.",
+            level=request.level,
+            suggested_action_id="not-allowed",
+            evidence_refs=("E-invented",),
+            uncertainty=HintUncertainty.LOW,
+            safety_flags=("possible_leakage",),
+            fallback=False,
         )
 
 
@@ -84,6 +97,7 @@ def make_client() -> TestClient:
             idempotency,
             transactions,
             clock,
+            provider=UnsafeCoachProvider(),
         ),
     )
     verifier = FakeIdentityVerifier(
@@ -270,7 +284,7 @@ def test_evidence_action_stale_version_and_changed_retry_return_409() -> None:
     assert changed.json()["code"] == "idempotency-key-conflict"
 
 
-def test_hint_returns_fallback_without_advancing_attempt_version() -> None:
+def test_hint_returns_safe_fallback_without_advancing_attempt_version() -> None:
     with make_client() as client:
         attempt_id = start_attempt(client).json()["id"]
         client.post(
@@ -294,6 +308,7 @@ def test_hint_returns_fallback_without_advancing_attempt_version() -> None:
         "suggestedActionId": "inspect-source",
         "evidenceRefs": [],
         "uncertainty": "high",
+        "safetyFlags": ["provider_degraded"],
         "fallback": True,
     }
     assert replay.json() == first.json()

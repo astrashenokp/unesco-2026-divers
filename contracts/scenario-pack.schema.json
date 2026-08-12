@@ -33,9 +33,33 @@
     "review": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["reviewerIds", "reviewedAt", "expiresAt"],
+      "required": ["status", "authorIds", "draftedAt", "expiresAt"],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": { "enum": ["approved", "restricted"] }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["reviewedAt", "reviewerIds"],
+            "properties": {
+              "reviewerIds": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      ],
       "properties": {
-        "reviewerIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } },
+        "status": { "enum": ["draft", "review", "approved", "restricted", "withdrawn"] },
+        "authorIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "reviewerIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "draftedAt": { "type": "string", "format": "date-time" },
         "reviewedAt": { "type": "string", "format": "date-time" },
         "expiresAt": { "type": "string", "format": "date-time" }
       }

@@ -97,3 +97,15 @@ def test_coach_gate_runner_rejects_missing_case(tmp_path: Path) -> None:
 
     assert result.returncode == 1
     assert "Missing eval results" in result.stderr
+
+
+def test_coach_gate_runner_rejects_duplicate_result_id(tmp_path: Path) -> None:
+    results = passing_results()
+    results.append(dict(results[0]))
+    results_path = tmp_path / "results.json"
+    write_results(results_path, results)
+
+    result = run_gate(results_path)
+
+    assert result.returncode == 1
+    assert "Duplicate eval results" in result.stderr

@@ -11,8 +11,8 @@ an eval gate for the two demo missions.
 - `contracts/mission-fixture.schema.json`: strict mission fixture contract with
   explicit `testsCriticalIgnoring` and mandatory deterministic evidence
   responses.
-- `content/p0-demo-pack/manifest.json`: draft P0 demo pack manifest with mission
-  SHA-256 hashes.
+- `content/p0-demo-pack/manifest.json`: draft P0 demo pack manifest with
+  mission SHA-256 hashes and draft-only review metadata.
 - `content/p0-demo-pack/missions/authentic-media-wrong-context.json`: draft
   mission for authentic media used in misleading context.
 - `content/p0-demo-pack/missions/ai-citation-integrity.json`: draft mission for
@@ -69,8 +69,11 @@ an eval gate for the two demo missions.
   replacement or explicit approval of team-created demo assets.
 - The eval gate is executable against a result JSON file, but the model-run
   harness that produces those results still needs to plug into it.
-- JSON Schema validation is now wired through the `services/api[test]`
-  dependency set and validates the manifest plus both P0 mission fixtures.
+- JSON Schema validation is wired through the `services/api[test]` dependency
+  set with date-time/URI format checking for the manifest and both P0 mission
+  fixtures.
+- Semantic fixture tests enforce unique action/evidence IDs, ordered hint/rubric
+  levels, non-inverted confidence ranges and duplicate-free coach eval results.
 - Ukrainian learner-facing mission localization is not yet authored; one
   Ukrainian hard-rule eval case is included for coach behavior.
 

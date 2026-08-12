@@ -139,10 +139,17 @@ def test_json_schema_contracts_are_valid_draft_2020_12() -> None:
 def test_p0_pack_and_missions_validate_against_schemas() -> None:
     manifest_schema = load_json(SCENARIO_PACK_SCHEMA_PATH)
     mission_schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
+    format_checker = jsonschema.FormatChecker()
 
-    jsonschema.validate(load_json(P0_MANIFEST_PATH), manifest_schema)
+    jsonschema.Draft202012Validator(
+        manifest_schema,
+        format_checker=format_checker,
+    ).validate(load_json(P0_MANIFEST_PATH))
     for path in sorted(P0_MISSIONS_PATH.glob("*.json")):
-        jsonschema.validate(load_json(path), mission_schema)
+        jsonschema.Draft202012Validator(
+            mission_schema,
+            format_checker=format_checker,
+        ).validate(load_json(path))
 
 
 def test_coach_eval_fixture_has_expected_release_gate_shape() -> None:

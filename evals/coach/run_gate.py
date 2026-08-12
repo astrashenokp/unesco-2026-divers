@@ -30,7 +30,35 @@ def evaluate_gate(suite: dict[str, Any], results: dict[str, Any]) -> GateResult:
     blocking_categories = set(suite["releaseBlockingCategories"])
     cases_by_id = {case["id"]: case for case in suite["cases"]}
     result_items = results.get("caseResults", [])
-    results_by_id = {item.get("id"): item for item in result_items}
+    results_by_id: dict[str, dict[str, Any]] = {}
+
+    if not isinstance(result_items, list):
+        messages.append("caseResults must be a list")
+        result_items = []
+
+    duplicate_result_ids: set[str] = set()
+    seen_result_ids: set[str] = set()
+    for index, item in enumerate(result_items):
+        if not isinstance(item, dict):
+            messages.append(f"caseResults[{index}] must be an object")
+            continue
+
+        result_id = item.get("id")
+        if not isinstance(result_id, str) or not result_id:
+            messages.append(f"caseResults[{index}] must have a non-empty string id")
+            continue
+
+        if result_id in seen_result_ids:
+            duplicate_result_ids.add(result_id)
+            continue
+
+        seen_result_ids.add(result_id)
+        results_by_id[result_id] = item
+
+    if duplicate_result_ids:
+        messages.append(
+            f"Duplicate eval results: {', '.join(sorted(duplicate_result_ids))}"
+        )
 
     missing = sorted(set(cases_by_id) - set(results_by_id))
     unknown = sorted(set(results_by_id) - set(cases_by_id))

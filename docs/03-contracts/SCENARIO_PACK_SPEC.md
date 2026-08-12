@@ -21,8 +21,9 @@ pack/
 
 - unique `id`, semantic `version`, `schemaVersion`;
 - title/description and BCP 47 locales;
-- primary audience/age band, license and author/reviewer IDs;
-- created/published/review-expiry dates;
+- primary audience/age band, license and draft/review status;
+- author IDs, drafted date, review-expiry date, and reviewer sign-off only for
+  approved/restricted packs;
 - ordered mission references and SHA-256 hashes;
 - accessibility/low-bandwidth availability;
 - content warnings and region notes.

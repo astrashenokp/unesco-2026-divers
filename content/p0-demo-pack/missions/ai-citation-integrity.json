@@ -111,7 +111,15 @@
       "deterministicResponse": {
         "actionId": "action-registry-lookup",
         "status": "not_found",
-        "items": [],
+        "items": [
+          {
+            "evidenceId": "E-DOI-NOT-FOUND",
+            "type": "registry_record",
+            "title": "Queried demo registries returned no record for DOI 10.4242/jamr.2025.0199",
+            "retrievedAt": "2026-08-11T09:00:00Z",
+            "verificationStatus": "curated"
+          }
+        ],
         "limitations": [
           "Not found in queried demo registries does not prove fabrication.",
           "The safe conclusion is that registry support is missing in this checked set."
@@ -220,6 +228,29 @@
         ]
       },
       {
+        "evidenceId": "E-DOI-NOT-FOUND",
+        "type": "registry_record",
+        "title": "Queried demo registries returned no record for DOI 10.4242/jamr.2025.0199",
+        "source": {
+          "sourceType": "academic_registry",
+          "publisher": "Evidence Gym deterministic Crossref/OpenAlex-like fixture",
+          "retrievedAt": "2026-08-11T09:00:00Z",
+          "canonicalId": "doi:10.4242/jamr.2025.0199",
+          "license": {
+            "identifier": "EGYM-DEMO-0.1",
+            "attribution": "Evidence Gym team-created demo metadata",
+            "useBasis": "metadata_only"
+          },
+          "limitations": [
+            "Not found in queried registries is a limited lookup result, not proof that the citation was fabricated."
+          ]
+        },
+        "claimRelationship": "not_found_in_queried_sources",
+        "limitations": [
+          "Supports the cautious wording: not found in queried registries."
+        ]
+      },
+      {
         "evidenceId": "E-JOURNAL-MISMATCH",
         "type": "registry_record",
         "title": "Demo registry has no matching journal title or author cluster",
@@ -267,6 +298,11 @@
     "relationships": [
       {
         "fromEvidenceId": "E-DOI-SHAPE",
+        "toEvidenceId": "E-DOI-NOT-FOUND",
+        "relationship": "limits"
+      },
+      {
+        "fromEvidenceId": "E-DOI-NOT-FOUND",
         "toEvidenceId": "E-JOURNAL-MISMATCH",
         "relationship": "limits"
       },
@@ -304,6 +340,7 @@
         "maximum": 100
       },
       "rationaleEvidenceRefs": [
+        "E-DOI-NOT-FOUND",
         "E-JOURNAL-MISMATCH",
         "E-SUPPORT-UNDETERMINED"
       ]
@@ -319,6 +356,7 @@
       },
       "rationaleEvidenceRefs": [
         "E-DOI-SHAPE",
+        "E-DOI-NOT-FOUND",
         "E-JOURNAL-MISMATCH",
         "E-SUPPORT-UNDETERMINED"
       ]
@@ -359,6 +397,7 @@
       "allowedBeforeConclusion": true,
       "suggestedActionId": "action-support-check",
       "evidenceRefs": [
+        "E-DOI-NOT-FOUND",
         "E-JOURNAL-MISMATCH"
       ],
       "uncertainty": "medium"
@@ -369,6 +408,7 @@
       "allowedBeforeConclusion": false,
       "suggestedActionId": null,
       "evidenceRefs": [
+        "E-DOI-NOT-FOUND",
         "E-JOURNAL-MISMATCH",
         "E-SUPPORT-UNDETERMINED"
       ],
@@ -426,7 +466,7 @@
       }
     ],
     "confidenceCalibration": "Reward learners who reduce confidence in the citation while preserving careful wording about registry limits.",
-    "minimumCompletionEvidence": 1,
+    "minimumCompletionEvidence": 3,
     "evalHooks": {
       "coachEvalCaseRefs": [
         "coach-gold-leakage-citation",

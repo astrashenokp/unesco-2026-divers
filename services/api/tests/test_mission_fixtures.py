@@ -222,3 +222,42 @@ def test_not_found_responses_preserve_uncertainty_not_fabrication() -> None:
 
             limitations = " ".join(response["limitations"]).lower()
             assert "does not prove fabrication" in limitations
+
+
+def test_citation_not_found_registry_lookup_is_citable_limited_evidence() -> None:
+    mission = load_json(PACK_ROOT / "missions/ai-citation-integrity.json")
+    registry_action = next(
+        action
+        for action in mission["evidenceActions"]
+        if action["id"] == "action-registry-lookup"
+    )
+    response = registry_action["deterministicResponse"]
+    gold_by_id = {
+        evidence["evidenceId"]: evidence
+        for evidence in mission["goldEvidenceGraph"]["evidence"]
+    }
+
+    assert response["status"] == "not_found"
+    assert [item["evidenceId"] for item in response["items"]] == [
+        "E-DOI-NOT-FOUND"
+    ]
+
+    doi_not_found = gold_by_id["E-DOI-NOT-FOUND"]
+    assert doi_not_found["type"] == "registry_record"
+    assert doi_not_found["claimRelationship"] == "not_found_in_queried_sources"
+    assert doi_not_found["source"]["sourceType"] == "academic_registry"
+    assert doi_not_found["source"]["retrievedAt"] == response["items"][0]["retrievedAt"]
+
+    source_limitations = " ".join(doi_not_found["source"]["limitations"]).lower()
+    assert "not proof" in source_limitations
+    assert "fabricated" in source_limitations
+
+    for axis_name in ("claimVeracity", "contextIntegrity"):
+        refs = mission["acceptedAssessments"][axis_name]["rationaleEvidenceRefs"]
+        assert "E-DOI-NOT-FOUND" in refs
+
+
+def test_citation_rubric_requires_multiple_distinct_checks() -> None:
+    mission = load_json(PACK_ROOT / "missions/ai-citation-integrity.json")
+
+    assert mission["rubric"]["minimumCompletionEvidence"] >= 3

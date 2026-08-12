@@ -61,7 +61,10 @@ def test_not_found_remains_not_found_and_preserves_limitation() -> None:
     )
 
     assert result.status is EvidenceStatus.NOT_FOUND
-    assert result.items == ()
+    assert len(result.items) == 1
+    assert result.items[0].evidence_id == "E-DOI-NOT-FOUND"
+    assert result.items[0].type == "registry_record"
+    assert result.items[0].verification_status is VerificationStatus.CURATED
     assert "does not prove fabrication" in " ".join(result.limitations).lower()
 
 

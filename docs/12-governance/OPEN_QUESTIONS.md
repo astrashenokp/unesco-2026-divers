@@ -16,6 +16,8 @@ Resolve these deliberately; do not allow implementation convenience to answer th
 | OQ-010 | What is the sustainable funding model? | Determines access and incentives | budget and partner discovery | before scale commitment | open |
 | OQ-011 | What is the support and incident response promise? | Sets operational expectation | capacity and risk review | before public launch | open |
 | OQ-012 | What evidence can be shared publicly from pilots? | Consent and re-identification risk | consent scope and disclosure review | before publication | open |
+| OQ-013 | Do we build an under-16 mode, and if so what gates come first? | `PERSONAS_AND_PERMISSIONS.md` sets the band at 16–24 and requires the child/privacy gates in `PRIVACY.md` before going younger. Building the UI first would route minors through a product whose safeguarding is unfinished | legal/safeguarding necessity assessment, DPIA, consent model for minors | before any under-16 UI is written | open — raised by Role 1, 2026-08-12 |
+| OQ-014 | Which additional task formats enter scope, and what P0 work is dropped to pay for them? | Boosters, transfer tests and peer challenges are P1/P2 in `MVP_SCOPE.md`; adding them without removing equivalent effort is how a hackathon deadline is missed | named owner, acceptance criteria, the P0 item being traded away, security/privacy note | before implementation starts | open — raised by Role 1, 2026-08-12 |
 
 ## Closure rule
 

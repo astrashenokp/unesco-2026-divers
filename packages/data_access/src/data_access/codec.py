@@ -29,6 +29,7 @@ from evidence_gym_api.learning.value_objects import (
     MissionId,
     MissionVersion,
 )
+from evidence_gym_api.learning.ports import CompletionResult, ProgressResult, SkillProgress
 
 
 def _datetime(value: datetime) -> str:
@@ -183,4 +184,36 @@ def decode_coach_hint(value: dict[str, Any]) -> CoachHint:
         uncertainty=HintUncertainty(value["uncertainty"]),
         safety_flags=tuple(value["safety_flags"]),
         fallback=value["fallback"],
+    )
+
+
+def encode_completion_result(result: CompletionResult) -> dict[str, Any]:
+    return {
+        "receipt_id": result.receipt_id,
+        "xp_awarded": result.xp_awarded,
+        "progress": {
+            "total_xp": result.progress.total_xp,
+            "skills": [
+                {"skill": item.skill, "mastery": item.mastery, "due_at": _datetime(item.due_at) if item.due_at else None}
+                for item in result.progress.skills
+            ],
+        },
+    }
+
+
+def decode_completion_result(value: dict[str, Any]) -> CompletionResult:
+    return CompletionResult(
+        receipt_id=value["receipt_id"],
+        xp_awarded=value["xp_awarded"],
+        progress=ProgressResult(
+            total_xp=value["progress"]["total_xp"],
+            skills=tuple(
+                SkillProgress(
+                    skill=item["skill"],
+                    mastery=item["mastery"],
+                    due_at=datetime.fromisoformat(item["due_at"]) if item["due_at"] else None,
+                )
+                for item in value["progress"]["skills"]
+            ),
+        ),
     )

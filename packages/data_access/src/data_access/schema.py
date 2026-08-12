@@ -7,6 +7,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    Float,
     Index,
     Integer,
     MetaData,
@@ -75,4 +76,95 @@ idempotency_results = Table(
     Index("ix_idempotency_expiry", "expires_at"),
 )
 
-__all__ = ["attempts", "evidence_actions", "idempotency_results", "metadata"]
+conclusions = Table(
+    "conclusions",
+    metadata,
+    Column("attempt_id", String(128), ForeignKey("attempts.id", ondelete="CASCADE"), primary_key=True),
+    Column("mission_version", String(128), nullable=False),
+    Column("authenticity_json", JSON, nullable=False),
+    Column("claim_veracity_json", JSON, nullable=False),
+    Column("context_integrity_json", JSON, nullable=False),
+    Column("post_confidence", SmallInteger, nullable=False),
+    Column("share_decision", String(64), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    CheckConstraint("post_confidence BETWEEN 0 AND 100", name="ck_conclusions_post_confidence"),
+)
+
+xp_ledger = Table(
+    "xp_ledger",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("learner_id", String(128), nullable=False),
+    Column("attempt_id", String(128), ForeignKey("attempts.id", ondelete="CASCADE"), nullable=False),
+    Column("rule_code", String(128), nullable=False),
+    Column("amount", Integer, nullable=False),
+    Column("level", SmallInteger, nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    UniqueConstraint("attempt_id", "rule_code", name="uq_xp_ledger_attempt_rule"),
+    CheckConstraint("amount >= 0", name="ck_xp_ledger_amount_nonnegative"),
+    CheckConstraint("level BETWEEN 0 AND 4", name="ck_xp_ledger_level"),
+)
+
+skill_states = Table(
+    "skill_states",
+    metadata,
+    Column("learner_id", String(128), nullable=False),
+    Column("skill", String(128), nullable=False),
+    Column("mastery", Float, nullable=False),
+    Column("practices", Integer, nullable=False),
+    Column("due_at", DateTime(timezone=True), nullable=True),
+    Column("algorithm_version", Integer, nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+    UniqueConstraint("learner_id", "skill", name="uq_skill_states_learner_skill"),
+    CheckConstraint("practices >= 0", name="ck_skill_states_practices"),
+)
+
+learner_progress = Table(
+    "learner_progress",
+    metadata,
+    Column("learner_id", String(128), primary_key=True),
+    Column("total_xp", Integer, nullable=False),
+    Column("updated_at", DateTime(timezone=True), nullable=False),
+    CheckConstraint("total_xp >= 0", name="ck_learner_progress_total_xp"),
+)
+
+receipts = Table(
+    "receipts",
+    metadata,
+    Column("id", String(128), primary_key=True),
+    Column("attempt_id", String(128), ForeignKey("attempts.id", ondelete="RESTRICT"), nullable=False),
+    Column("mission_version", String(128), nullable=False),
+    Column("payload_json", JSON, nullable=False),
+    Column("hash", String(128), nullable=False),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    UniqueConstraint("attempt_id", name="uq_receipts_attempt"),
+)
+
+outbox = Table(
+    "outbox",
+    metadata,
+    Column("event_id", String(128), primary_key=True),
+    Column("event_type", String(128), nullable=False),
+    Column("occurred_at", DateTime(timezone=True), nullable=False),
+    Column("producer", String(128), nullable=False),
+    Column("subject_id", String(128), nullable=False),
+    Column("correlation_id", String(128), nullable=False),
+    Column("schema_version", SmallInteger, nullable=False),
+    Column("payload", JSON, nullable=False),
+    Column("published_at", DateTime(timezone=True), nullable=True),
+)
+
+Index("ix_xp_ledger_learner_created", xp_ledger.c.learner_id, xp_ledger.c.created_at)
+Index("ix_outbox_published_event", outbox.c.published_at, outbox.c.event_id)
+
+__all__ = [
+    "attempts",
+    "conclusions",
+    "evidence_actions",
+    "idempotency_results",
+    "learner_progress",
+    "metadata",
+    "outbox",
+    "skill_states",
+    "xp_ledger",
+]

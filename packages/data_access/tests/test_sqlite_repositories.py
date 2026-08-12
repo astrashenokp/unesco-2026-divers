@@ -4,12 +4,14 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from data_access.attempts import SqlAlchemyAttemptRepository
+from data_access.db import SqlAlchemyTransactionManager
 from data_access.idempotency import (
     SqlAlchemyIdempotencyRepository,
     cleanup_expired_idempotency,
 )
 from data_access.schema import metadata
 from evidence_gym_api.learning.attempt import Attempt
+from evidence_gym_api.learning.attempt import Confidence, Prediction, Reaction
 from evidence_gym_api.learning.errors import RepositoryConflict
 from evidence_gym_api.learning.ports import (
     IdempotencyScope,
@@ -101,6 +103,29 @@ def test_idempotency_replays_conflicts_and_cleans_expired_rows() -> None:
                 deleted = await cleanup_expired_idempotency(session, at=now + timedelta(days=2))
             assert deleted == 1
             assert await repository.get(scope, at=now + timedelta(days=2)) is None
+        await engine.dispose()
+
+    run(scenario())
+
+
+def test_transaction_manager_rolls_back_attempt_and_action_rows() -> None:
+    async def scenario() -> None:
+        engine, sessions = await session_factory()
+        async with sessions() as session:
+            repository = SqlAlchemyAttemptRepository(session)
+            manager = SqlAlchemyTransactionManager(session)
+            try:
+                async with manager.transaction():
+                    attempt = make_attempt()
+                    await repository.add(attempt)
+                    attempt.submit_prediction(Prediction(Reaction.INVESTIGATE, Confidence.known(50)))
+                    await repository.save(attempt, expected_version=1)
+                    attempt.record_evidence_action("rollback-action")
+                    await repository.save(attempt, expected_version=2)
+                    raise RuntimeError("forced rollback")
+            except RuntimeError:
+                pass
+            assert await repository.get(AttemptId("attempt-1")) is None
         await engine.dispose()
 
     run(scenario())

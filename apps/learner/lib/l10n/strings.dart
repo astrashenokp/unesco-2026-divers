@@ -222,6 +222,44 @@ class Strings {
       };
 
   String retrievedAt(String when) => _s('retrieved $when', 'отримано $when');
+  String checkedOn(String when) => _s('checked $when', 'перевірено $when');
+
+  /// A readable, localized date.
+  ///
+  /// Dates were being printed with `DateTime.toString()`, which put
+  /// `2026-08-12 14:23:45.123456` in front of learners in both
+  /// languages. Provenance is the subject this product teaches, so the
+  /// dates it shows are not a detail — a date nobody can read is a date
+  /// nobody checks.
+  ///
+  /// Written by hand rather than via `intl` to avoid pulling a
+  /// localization dependency in for one function. In Ukrainian the month
+  /// takes the genitive, because "12 серпень" is what a machine writes
+  /// and "12 серпня" is what a person reads.
+  String formatDate(DateTime when) {
+    final local = when.toLocal();
+    const en = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    const uk = [
+      'січня', 'лютого', 'березня', 'квітня', 'травня', 'червня',
+      'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня',
+    ];
+    final month = (_uk ? uk : en)[local.month - 1];
+    return _uk
+        ? '${local.day} $month ${local.year}'
+        : '${local.day} $month ${local.year}';
+  }
+
+  /// Date plus time, for a record whose exact moment matters.
+  String formatDateTime(DateTime when) {
+    final local = when.toLocal();
+    final hh = local.hour.toString().padLeft(2, '0');
+    final mm = local.minute.toString().padLeft(2, '0');
+    return _s('${formatDate(when)} at $hh:$mm',
+        '${formatDate(when)}, $hh:$mm');
+  }
   String propUsed(String label) => _s('$label, already checked', '$label, вже перевірено');
   String get notFoundInSources =>
       _s('Not found in the queried sources.', 'Не знайдено в перевірених джерелах.');
@@ -315,6 +353,15 @@ class Strings {
         'Для цієї спроби докази не зафіксовані.',
       );
   String receiptCreated(String when) => _s('Created $when', 'Створено $when');
+
+  /// A receipt's identifier is a storage key, not a name. The list used
+  /// to show it raw, so a learner's own record read "demo-receipt-1".
+  /// The mission title would be better, but `Receipt` in the contract
+  /// carries no `missionId` and there is no `GET /attempts/{id}` to
+  /// resolve one from `attemptId` — so a receipt cannot currently be
+  /// traced back to what it is about. Numbering is the honest fallback
+  /// until that gap is closed.
+  String receiptNumbered(int n) => _s('Receipt $n', 'Квитанція $n');
   String receiptMissionVersion(String version) =>
       _s('Mission version $version', 'Версія місії $version');
   String get receiptUnsigned => _s(

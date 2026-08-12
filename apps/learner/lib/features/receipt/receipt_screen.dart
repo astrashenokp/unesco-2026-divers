@@ -156,7 +156,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                     children: [
                       Text(s.receiptMissionVersion(receipt.missionVersion),
                           style: Theme.of(context).textTheme.bodySmall),
-                      Text(s.receiptCreated(receipt.createdAt.toLocal().toString()),
+                      Text(s.receiptCreated(s.formatDateTime(receipt.createdAt)),
                           style: Theme.of(context).textTheme.bodySmall),
                       Text(
                         receipt.hash == 'demo-unsigned'

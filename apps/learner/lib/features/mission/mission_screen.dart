@@ -969,7 +969,9 @@ class _EvidenceCardState extends State<_EvidenceCard> {
         title: s.notFoundInSources,
         standing: SourceStanding.unverified,
         standingLabel: s.sourceStanding('unverified'),
-        retrievedLabel: s.retrievedAt(DateTime.now().toLocal().toString().split(' ').first),
+        // "Checked", not "retrieved": nothing was retrieved here, and a
+        // card that says otherwise implies a source that does not exist.
+        retrievedLabel: s.checkedOn(s.formatDate(DateTime.now())),
         limitations: result.limitations,
       );
     }
@@ -988,9 +990,7 @@ class _EvidenceCardState extends State<_EvidenceCard> {
             _ => SourceStanding.unverified,
           },
           standingLabel: s.sourceStanding(item.verificationStatus),
-          retrievedLabel: s.retrievedAt(
-            item.retrievedAt.toLocal().toString().split(' ').first,
-          ),
+          retrievedLabel: s.retrievedAt(s.formatDate(item.retrievedAt)),
           limitations: _showLimitations ? result.limitations : const [],
         ),
         if (result.limitations.isNotEmpty)

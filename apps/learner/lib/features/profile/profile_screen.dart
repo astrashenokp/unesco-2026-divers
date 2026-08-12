@@ -129,22 +129,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   RevealOnScroll(
                     delayIndex: index,
                     child: Card(
-                      child: ListTile(
-                        // ListTile with onTap is tappable but not
-                        // announced as a button without this.
-                        onFocusChange: null,
-                        leading: Icon(Icons.receipt_long_outlined,
-                            color: tokens.evidencePrimary),
-                        title: Text(receipt.id),
-                        subtitle: Text(
-                          receipt.createdAt.toLocal().toString(),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => ReceiptScreen(
-                              repository: widget.repository,
-                              receiptId: receipt.id,
+                      // `onFocusChange: null` sat here with a comment
+                      // claiming it made the tile announce as a button.
+                      // It is the parameter's default and does nothing;
+                      // ListTile's InkWell carries the tap action but
+                      // never sets the button flag. This is the node that
+                      // actually declares the role.
+                      child: Semantics(
+                        button: true,
+                        child: ListTile(
+                          leading: Icon(Icons.receipt_long_outlined,
+                              color: tokens.evidencePrimary),
+                          title: Text(s.receiptNumbered(index + 1)),
+                          subtitle: Text(
+                            s.formatDateTime(receipt.createdAt),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ReceiptScreen(
+                                repository: widget.repository,
+                                receiptId: receipt.id,
+                              ),
                             ),
                           ),
                         ),

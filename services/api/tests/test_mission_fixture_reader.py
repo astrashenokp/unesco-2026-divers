@@ -10,6 +10,8 @@ import pytest
 
 from conftest import REPOSITORY_ROOT
 from evidence_gym_api.catalog import FileMissionPolicyReader, MissionFixtureError
+from evidence_gym_api.coach.fixture_provider import FixtureCoachProvider
+from evidence_gym_api.coach.ports import CoachRequest
 from evidence_gym_api.identity import Principal
 from evidence_gym_api.learning.testing import (
     FixedClock,
@@ -41,6 +43,26 @@ def make_reader(pack_root: Path = PACK_ROOT) -> FileMissionPolicyReader:
         manifest_schema_path=MANIFEST_SCHEMA,
         mission_schema_path=MISSION_SCHEMA,
     )
+
+
+def test_role3_fixture_supplies_safe_deterministic_coach_fallback() -> None:
+    reader = make_reader()
+    provider = FixtureCoachProvider(reader)
+    request = CoachRequest(
+        mission_id=MissionId("ai-citation-integrity"),
+        mission_version=MissionVersion("0.1.0"),
+        attempt_state="predicted",
+        level=1,
+        allowed_action_ids=("action-decompose-claim",),
+        available_evidence_refs=(),
+    )
+
+    hint = run(provider.request_hint(request))
+
+    assert hint.level == 1
+    assert hint.suggested_action_id == "action-decompose-claim"
+    assert hint.fallback is True
+    assert hint.safety_flags == ("provider_degraded",)
 
 
 def copy_pack(tmp_path: Path) -> Path:

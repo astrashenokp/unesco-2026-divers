@@ -26,6 +26,7 @@ from evidence_gym_api.evidence.errors import (
     EvidenceActionNotFound,
     EvidenceMissionNotFound,
 )
+from evidence_gym_api.coach.errors import CoachProviderError
 from evidence_gym_api.trace import TRACE_ID_HEADER, get_trace_id, normalize_trace_id
 
 
@@ -180,6 +181,18 @@ def create_app(
             code="domain-validation-failed",
             title="Request validation failed",
             detail="The request contains an invalid domain value.",
+        )
+        return problem_response(problem, get_trace_id(request))
+
+    @app.exception_handler(CoachProviderError)
+    async def handle_coach_unavailable(
+        request: Request, exc: CoachProviderError
+    ) -> JSONResponse:
+        problem = ApiProblem(
+            status=503,
+            code="coach-unavailable",
+            title="Coach unavailable",
+            detail="A safe coaching response is temporarily unavailable.",
         )
         return problem_response(problem, get_trace_id(request))
 

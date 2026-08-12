@@ -82,36 +82,14 @@ class StatTile extends StatelessWidget {
   }
 }
 
-/// Lupa plus a line of encouragement, used at the top of the path.
+/// Lupa plus what she has to say on the path screen.
 class LupaGreeting extends StatelessWidget {
-  const LupaGreeting({super.key, required this.line, this.size = 84});
+  const LupaGreeting({super.key, required this.lines, this.size = 84});
 
-  final String line;
+  final List<String> lines;
   final double size;
 
   @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Lupa(mood: LupaMood.idle, size: size),
-        SizedBox(width: tokens.space(1.5)),
-        Expanded(
-          child: Semantics(
-            liveRegion: true,
-            child: Container(
-              padding: EdgeInsets.all(tokens.space(1.5)),
-              decoration: BoxDecoration(
-                color: tokens.surfaceRaised,
-                borderRadius: BorderRadius.circular(tokens.space(2)),
-                border: Border.all(color: tokens.action.withValues(alpha: 0.25)),
-              ),
-              child: Text(line, style: Theme.of(context).textTheme.bodyLarge),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) =>
+      LupaSpeech(lines: lines, mascotSize: size);
 }

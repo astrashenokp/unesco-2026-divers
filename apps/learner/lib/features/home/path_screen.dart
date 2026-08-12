@@ -157,7 +157,7 @@ class _PathHeader extends StatelessWidget {
         Text(s.yourPath, style: Theme.of(context).textTheme.headlineMedium),
         const SectionRule(),
         SizedBox(height: tokens.space(1)),
-        LupaGreeting(line: s.lupaPathLine(completed: completed, total: total)),
+        LupaGreeting(lines: s.lupaPathLines(completed: completed, total: total)),
         SizedBox(height: tokens.space(2)),
         Wrap(
           spacing: tokens.space(1),

@@ -7,6 +7,7 @@ export 'src/theme.dart';
 export 'src/breakpoints.dart';
 export 'src/mascot/lupa.dart';
 export 'src/mascot/slid.dart';
+export 'src/mascot/lupa_speech.dart';
 export 'src/components/three_axis_chip.dart';
 export 'src/components/confidence_slider.dart';
 export 'src/components/mission_card.dart';

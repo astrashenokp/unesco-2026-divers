@@ -5,164 +5,325 @@ import 'package:flutter/scheduler.dart';
 
 import '../tokens.dart';
 
-/// Lupa's behavioral state. Never a verdict — only ever "how the coach
-/// is currently relating to the learner." See MASCOT_AND_VISUAL_LANGUAGE.md.
-enum LupaMood { idle, thinking, asking, encouraging }
+/// Lupa's behavioural state.
+///
+/// Never a verdict — only ever how the coach is relating to the learner.
+/// There is deliberately no "wrong" or "correct" mood: the product does
+/// not hand down judgements, and neither does its mascot.
+enum LupaMood {
+  idle,
+  thinking,
+  asking,
+  encouraging,
 
-/// The Socratic-coach mascot: a friendly creature whose face is a
-/// magnifying-glass lens. Procedurally drawn with [CustomPainter] so it
-/// renders correctly with no external art asset to go missing.
+  /// Something went wrong for the learner — a failed load, a lost
+  /// connection. Concerned, never alarmed: this is not a hazard.
+  concerned,
+}
+
+/// The Socratic-coach mascot: a creature whose face is a magnifying-glass
+/// lens.
+///
+/// Drawn procedurally so there is no art asset to ship or lose. Tapping
+/// it makes it hop and blink — small, pointless, and the sort of thing
+/// that makes a character feel present rather than printed.
 class Lupa extends StatefulWidget {
-  const Lupa({super.key, this.mood = LupaMood.idle, this.size = 96});
+  const Lupa({
+    super.key,
+    this.mood = LupaMood.idle,
+    this.size = 96,
+    this.respondToTap = true,
+  });
 
   final LupaMood mood;
   final double size;
+
+  /// Tapping triggers a hop. Disable where the mascot sits inside another
+  /// tappable surface, so the two gestures don't compete.
+  final bool respondToTap;
 
   @override
   State<Lupa> createState() => _LupaState();
 }
 
-class _LupaState extends State<Lupa> with SingleTickerProviderStateMixin {
+class _LupaState extends State<Lupa> with TickerProviderStateMixin {
   late final Ticker _ticker;
+  late final AnimationController _hop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 620),
+  );
+
   double _t = 0;
+  final List<_Particle> _particles = [];
+  LupaMood? _lastMood;
 
   @override
   void initState() {
     super.initState();
     _ticker = createTicker((elapsed) {
       if (!mounted) return;
-      setState(() => _t = elapsed.inMilliseconds / 1000.0);
-    })
-      ..start();
+      setState(() {
+        _t = elapsed.inMilliseconds / 1000.0;
+        _stepParticles();
+      });
+    })..start();
+  }
+
+  @override
+  void didUpdateWidget(covariant Lupa oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.mood == LupaMood.encouraging && oldWidget.mood != LupaMood.encouraging) {
+      _burst();
+    }
+  }
+
+  void _burst() {
+    if (MediaQuery.maybeOf(context)?.disableAnimations ?? false) return;
+    final random = math.Random();
+    for (var i = 0; i < 18; i++) {
+      final angle = -math.pi / 2 + (random.nextDouble() - 0.5) * 2.2;
+      final speed = 0.55 + random.nextDouble() * 0.75;
+      _particles.add(_Particle(
+        velocity: Offset(math.cos(angle) * speed, math.sin(angle) * speed),
+        shape: i % 3,
+      ));
+    }
+  }
+
+  void _stepParticles() {
+    if (_particles.isEmpty) return;
+    for (final p in _particles) {
+      p.position += p.velocity * 0.016 * 60;
+      p.velocity = Offset(p.velocity.dx * 0.985, p.velocity.dy + 0.035);
+      p.life -= 0.014;
+      p.spin += 0.09;
+    }
+    _particles.removeWhere((p) => p.life <= 0);
+  }
+
+  void _onTap() {
+    if (MediaQuery.of(context).disableAnimations) return;
+    _hop.forward(from: 0);
   }
 
   @override
   void dispose() {
     _ticker.dispose();
+    _hop.dispose();
     super.dispose();
   }
+
+  String _label(LupaMood mood) => switch (mood) {
+        LupaMood.idle => 'Lupa, your coach',
+        LupaMood.thinking => 'Lupa is thinking',
+        LupaMood.asking => 'Lupa is asking a question',
+        LupaMood.encouraging => 'Lupa is pleased with how you investigated',
+        LupaMood.concerned => 'Lupa noticed something went wrong',
+      };
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final reduceMotion = MediaQuery.of(context).disableAnimations;
     final t = reduceMotion ? 0.0 : _t;
 
-    return Semantics(
-      label: switch (widget.mood) {
-        LupaMood.idle => 'Lupa, your Socratic coach',
-        LupaMood.thinking => 'Lupa is thinking',
-        LupaMood.asking => 'Lupa is asking a question',
-        LupaMood.encouraging => 'Lupa is celebrating your investigation',
+    if (_lastMood != widget.mood) _lastMood = widget.mood;
+
+    final art = AnimatedBuilder(
+      animation: _hop,
+      builder: (context, _) {
+        // A single squash-and-stretch hop, driven only by taps.
+        final hopT = _hop.value;
+        final lift = math.sin(hopT * math.pi) * widget.size * 0.14;
+        final squash = 1 - math.sin(hopT * math.pi) * 0.07;
+        return Transform.translate(
+          offset: Offset(0, -lift),
+          child: Transform.scale(scaleX: 1 / squash, scaleY: squash, child: _paint(t, tokens)),
+        );
       },
-      child: SizedBox(
+    );
+
+    return Semantics(
+      label: _label(widget.mood),
+      child: ExcludeSemantics(
+        child: widget.respondToTap
+            ? GestureDetector(onTap: _onTap, behavior: HitTestBehavior.opaque, child: art)
+            : art,
+      ),
+    );
+  }
+
+  Widget _paint(double t, EvidenceGymTokens tokens) => SizedBox(
         width: widget.size,
         height: widget.size,
         child: CustomPaint(
           painter: _LupaPainter(
             t: t,
             mood: widget.mood,
-            bodyColor: tokens.action,
-            lensRim: tokens.evidenceSecondary,
-            sparkColor: tokens.evidencePrimary,
+            body: tokens.action,
+            rim: tokens.evidenceSecondary,
+            spark: tokens.evidencePrimary,
+            shadow: tokens.textPrimary,
+            particles: _particles,
+            particleColors: [tokens.action, tokens.evidenceSecondary, tokens.evidencePrimary],
           ),
         ),
-      ),
-    );
-  }
+      );
+}
+
+class _Particle {
+  _Particle({required this.velocity, required this.shape});
+  Offset position = Offset.zero;
+  Offset velocity;
+  double life = 1;
+  double spin = 0;
+  final int shape;
 }
 
 class _LupaPainter extends CustomPainter {
   _LupaPainter({
     required this.t,
     required this.mood,
-    required this.bodyColor,
-    required this.lensRim,
-    required this.sparkColor,
+    required this.body,
+    required this.rim,
+    required this.spark,
+    required this.shadow,
+    required this.particles,
+    required this.particleColors,
   });
 
   final double t;
   final LupaMood mood;
-  final Color bodyColor;
-  final Color lensRim;
-  final Color sparkColor;
+  final Color body;
+  final Color rim;
+  final Color spark;
+  final Color shadow;
+  final List<_Particle> particles;
+  final List<Color> particleColors;
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final r = size.shortestSide / 2;
 
-    // Idle bob: gentle vertical drift, ~2.4s period.
-    final bob = mood == LupaMood.idle
-        ? math.sin(t * (2 * math.pi / 2.4)) * (r * 0.06)
-        : mood == LupaMood.encouraging
-            ? -math.max(0, math.sin(t * 6)) * (r * 0.18)
-            : 0.0;
-    final lensCenter = center.translate(0, -r * 0.05 + bob);
+    final bob = switch (mood) {
+      LupaMood.idle => math.sin(t * (2 * math.pi / 2.4)) * (r * 0.055),
+      LupaMood.encouraging => -math.max(0, math.sin(t * 5.5)) * (r * 0.16),
+      LupaMood.concerned => math.sin(t * 1.4) * (r * 0.02),
+      _ => 0.0,
+    };
+    final lens = center.translate(0, -r * 0.04 + bob);
 
-    // Handle-tail.
-    final handlePaint = Paint()
-      ..color = bodyColor
-      ..strokeWidth = r * 0.28
-      ..strokeCap = StrokeCap.round;
-    final handleTilt = mood == LupaMood.thinking ? math.sin(t * 3) * 0.15 : 0.0;
-    final handleEnd = lensCenter +
-        Offset.fromDirection(math.pi / 4 + handleTilt, r * 1.05);
-    canvas.drawLine(
-      lensCenter + Offset.fromDirection(math.pi / 4 + handleTilt, r * 0.62),
-      handleEnd,
-      handlePaint,
+    // Contact shadow: without it the mascot floats rather than sits.
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(center.dx, center.dy + r * 0.86),
+        width: r * (1.05 - bob / (r * 4)),
+        height: r * 0.16,
+      ),
+      Paint()..color = shadow.withValues(alpha: 0.13),
     );
 
-    // Lens rim (body).
-    final rimPaint = Paint()..color = lensRim;
-    canvas.drawCircle(lensCenter, r * 0.62, rimPaint);
+    // Handle, tucked behind the lens.
+    final tilt = switch (mood) {
+      LupaMood.thinking => math.sin(t * 2.6) * 0.16,
+      LupaMood.concerned => 0.24,
+      _ => 0.0,
+    };
+    canvas.drawLine(
+      lens + Offset.fromDirection(math.pi / 4 + tilt, r * 0.60),
+      lens + Offset.fromDirection(math.pi / 4 + tilt, r * 1.06),
+      Paint()
+        ..color = Color.lerp(body, shadow, 0.25)!
+        ..strokeWidth = r * 0.27
+        ..strokeCap = StrokeCap.round,
+    );
 
-    // Lens glass.
-    final glassPaint = Paint()..color = bodyColor.withValues(alpha: 0.92);
-    canvas.drawCircle(lensCenter, r * 0.5, glassPaint);
+    // Rim, then glass.
+    canvas.drawCircle(lens, r * 0.64, Paint()..color = rim);
+    canvas.drawCircle(lens, r * 0.55, Paint()..color = Color.lerp(rim, shadow, 0.18)!);
+    canvas.drawCircle(lens, r * 0.50, Paint()..color = body);
 
-    // Blink: iris contracts briefly once every ~4s.
-    final blinkPhase = (t % 4.0);
-    final blinking = blinkPhase > 3.85 && blinkPhase < 4.0;
-    final eyeOpen = blinking ? 0.15 : 1.0;
-
-    final eyePaint = Paint()..color = Colors.white;
+    // Eye. Blinks about every four seconds; squints when concerned.
+    final blink = (t % 4.0) > 3.86;
+    final openness = blink ? 0.12 : (mood == LupaMood.concerned ? 0.62 : 1.0);
     canvas.save();
-    canvas.translate(lensCenter.dx, lensCenter.dy);
-    canvas.scale(1, eyeOpen);
-    canvas.drawCircle(Offset.zero, r * 0.22, eyePaint);
+    canvas.translate(lens.dx, lens.dy);
+    canvas.scale(1, openness);
+    canvas.drawCircle(Offset.zero, r * 0.23, Paint()..color = Colors.white);
     canvas.restore();
 
-    final pupilPaint = Paint()..color = bodyColor;
-    if (!blinking) {
-      canvas.drawCircle(lensCenter, r * 0.1, pupilPaint);
+    if (!blink) {
+      // The pupil drifts while thinking — it is looking around.
+      final drift = mood == LupaMood.thinking
+          ? Offset(math.sin(t * 1.9) * r * 0.07, math.cos(t * 1.5) * r * 0.04)
+          : Offset.zero;
+      canvas.drawCircle(lens + drift, r * 0.105, Paint()..color = body);
+      canvas.drawCircle(
+        lens + drift + Offset(-r * 0.04, -r * 0.04),
+        r * 0.032,
+        Paint()..color = Colors.white.withValues(alpha: 0.9),
+      );
     }
 
-    // Thinking dots.
+    // Glass highlight: a soft sweep across the upper-left of the lens.
+    final highlight = Path()
+      ..addArc(
+        Rect.fromCircle(center: lens, radius: r * 0.44),
+        math.pi * 1.05,
+        math.pi * 0.55,
+      );
+    canvas.drawPath(
+      highlight,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.34)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = r * 0.09
+        ..strokeCap = StrokeCap.round,
+    );
+
     if (mood == LupaMood.thinking) {
-      final dotPaint = Paint()..color = sparkColor;
       for (var i = 0; i < 3; i++) {
-        final angle = t * 4 + (i * 2 * math.pi / 3);
-        final dotCenter =
-            lensCenter + Offset.fromDirection(angle, r * 0.95) + const Offset(0, -8);
-        canvas.drawCircle(dotCenter, r * 0.06, dotPaint);
+        final angle = t * 3.4 + (i * 2 * math.pi / 3);
+        canvas.drawCircle(
+          lens + Offset.fromDirection(angle, r * 0.92) + Offset(0, -r * 0.1),
+          r * 0.055,
+          Paint()..color = spark.withValues(alpha: 0.85),
+        );
       }
     }
 
-    // Asking spark.
     if (mood == LupaMood.asking) {
-      final sparkPaint = Paint()..color = sparkColor;
-      final sparkPulse = 0.6 + 0.4 * math.sin(t * 8).abs();
+      final pulse = 0.6 + 0.4 * math.sin(t * 7).abs();
       canvas.drawCircle(
-        lensCenter + Offset(r * 0.55, -r * 0.75),
-        r * 0.14 * sparkPulse,
-        sparkPaint,
+        lens + Offset(r * 0.56, -r * 0.74),
+        r * 0.13 * pulse,
+        Paint()..color = spark,
       );
+    }
+
+    // Celebration particles, in the product's own palette — never the
+    // gold-and-green of a "correct answer".
+    for (final p in particles) {
+      final paint = Paint()
+        ..color = particleColors[p.shape % particleColors.length]
+            .withValues(alpha: p.life.clamp(0.0, 1.0));
+      final at = lens + p.position * r * 0.9;
+      canvas.save();
+      canvas.translate(at.dx, at.dy);
+      canvas.rotate(p.spin);
+      final s = r * 0.06 * (0.6 + p.life * 0.6);
+      if (p.shape == 0) {
+        canvas.drawCircle(Offset.zero, s, paint);
+      } else if (p.shape == 1) {
+        canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: s * 2, height: s * 0.8), paint);
+      } else {
+        canvas.drawLine(Offset(-s, 0), Offset(s, 0), paint..strokeWidth = s * 0.7);
+      }
+      canvas.restore();
     }
   }
 
   @override
-  bool shouldRepaint(covariant _LupaPainter oldDelegate) =>
-      oldDelegate.t != t || oldDelegate.mood != mood;
+  bool shouldRepaint(covariant _LupaPainter old) => true;
 }

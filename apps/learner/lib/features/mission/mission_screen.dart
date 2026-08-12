@@ -444,7 +444,7 @@ class _BusyBanner extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: tokens.space(2), vertical: tokens.space(1)),
         child: Row(
           children: [
-            const ExcludeSemantics(child: Lupa(mood: LupaMood.thinking, size: 40)),
+            const ExcludeSemantics(child: Lupa(mood: LupaMood.thinking, size: 40, respondToTap: false)),
             SizedBox(width: tokens.space(1)),
             Expanded(child: Text(message)),
           ],
@@ -580,7 +580,7 @@ class _InvestigatingStep extends StatelessWidget {
               children: [
                 Text(s.whatYouFound, style: Theme.of(context).textTheme.titleLarge),
                 SizedBox(width: tokens.space(1)),
-                const Expanded(child: Slid(height: 24)),
+                Expanded(child: Slid(height: 24, steps: mission.evidenceActions.length, reached: collected.length)),
               ],
             ),
             SizedBox(height: tokens.space(1)),

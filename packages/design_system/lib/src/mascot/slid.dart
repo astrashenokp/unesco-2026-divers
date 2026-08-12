@@ -5,29 +5,35 @@ import 'package:flutter/scheduler.dart';
 
 import '../tokens.dart';
 
-/// Slid ("слід" — trace) is the provenance companion: a small trail of
-/// footprints that walks along beside evidence, animating the
-/// "follow the trail" metaphor from `DESIGN_SYSTEM.md`.
+/// Slid — "слід", a trace.
 ///
-/// Deliberately *not* a character with a face — Lupa is the only voice in
-/// the product. Slid is a motif, so it never looks like a second opinion.
+/// A trail of footprints that writes itself onward as the learner
+/// gathers evidence. Deliberately not a character with a face: Lupa is
+/// the only voice in the product, and a second face would read as a
+/// second opinion.
+///
+/// [steps] is how many prints the trail can hold; [reached] is how many
+/// have been earned. Prints beyond [reached] stay faint, so the trail
+/// shows progress by shape rather than by colour alone.
 class Slid extends StatefulWidget {
   const Slid({
     super.key,
     this.steps = 4,
+    this.reached,
     this.width = 120,
     this.height = 32,
     this.active = true,
   });
 
-  /// How many footprints in the trail.
   final int steps;
+
+  /// Defaults to all of them — a decorative full trail.
+  final int? reached;
   final double width;
   final double height;
 
-  /// When false the full trail is shown at rest (also the reduced-motion
-  /// and screen-reader appearance) — the end state is identical, so no
-  /// information is carried by the animation.
+  /// When false the trail rests at its end state, which is also what
+  /// reduced motion and screen readers get.
   final bool active;
 
   @override
@@ -67,7 +73,9 @@ class _SlidState extends State<Slid> with SingleTickerProviderStateMixin {
           painter: _SlidPainter(
             t: animate ? _t : double.infinity,
             steps: widget.steps,
+            reached: widget.reached ?? widget.steps,
             color: tokens.evidenceSecondary,
+            muted: tokens.textMuted,
           ),
         ),
       ),
@@ -76,12 +84,20 @@ class _SlidState extends State<Slid> with SingleTickerProviderStateMixin {
 }
 
 class _SlidPainter extends CustomPainter {
-  _SlidPainter({required this.t, required this.steps, required this.color});
+  _SlidPainter({
+    required this.t,
+    required this.steps,
+    required this.reached,
+    required this.color,
+    required this.muted,
+  });
 
-  /// Elapsed seconds, or [double.infinity] to draw the settled trail.
+  /// Elapsed seconds, or [double.infinity] for the settled trail.
   final double t;
   final int steps;
+  final int reached;
   final Color color;
+  final Color muted;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -91,20 +107,26 @@ class _SlidPainter extends CustomPainter {
     final footHeight = size.height * 0.34;
 
     for (var i = 0; i < steps; i++) {
-      // Each print fades in on its own beat, then the trail loops.
+      final earned = i < reached;
+
       final double opacity;
-      if (settled) {
-        opacity = 0.35 + 0.65 * (i / math.max(1, steps - 1));
+      if (!earned) {
+        // Not yet walked: a faint outline of where the trail could go.
+        opacity = 0.13;
+      } else if (settled) {
+        opacity = 0.45 + 0.55 * (i / math.max(1, steps - 1));
       } else {
+        // Each print pulses on its own beat, so the trail reads as
+        // moving forward rather than blinking as a block.
         final phase = (t * 1.6 - i * 0.28) % 2.6;
         opacity = phase < 0 || phase > 1.6
-            ? 0.15
-            : 0.15 + 0.85 * math.sin((phase / 1.6) * math.pi);
+            ? 0.2
+            : 0.2 + 0.8 * math.sin((phase / 1.6) * math.pi);
       }
 
-      final paint = Paint()..color = color.withValues(alpha: opacity.clamp(0.0, 1.0));
+      final paint = Paint()
+        ..color = (earned ? color : muted).withValues(alpha: opacity.clamp(0.0, 1.0));
 
-      // Alternate above/below the centre line so it reads as walking.
       final dy = size.height / 2 + (i.isEven ? -footHeight * 0.5 : footHeight * 0.5);
       final center = Offset(spacing * (i + 0.5), dy);
 
@@ -112,7 +134,7 @@ class _SlidPainter extends CustomPainter {
         Rect.fromCenter(center: center, width: footWidth, height: footHeight),
         paint,
       );
-      // Toe dot, so the print reads as directional rather than a blob.
+      // Toe dot: makes the print directional rather than a blob.
       canvas.drawCircle(
         center.translate(footWidth * 0.62, -footHeight * 0.16),
         footHeight * 0.16,
@@ -122,6 +144,6 @@ class _SlidPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _SlidPainter oldDelegate) =>
-      oldDelegate.t != t || oldDelegate.steps != steps || oldDelegate.color != color;
+  bool shouldRepaint(covariant _SlidPainter old) =>
+      old.t != t || old.steps != steps || old.reached != reached;
 }

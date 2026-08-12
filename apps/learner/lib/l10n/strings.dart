@@ -114,6 +114,25 @@ class Strings {
   String pathProgress(int done, int total) =>
       _s('$done of $total missions done', 'Пройдено $done з $total місій');
 
+  /// Lupa's lines on the path screen, shown in sequence. Everything she
+  /// says is also visible elsewhere on the screen, so missing a line
+  /// costs the learner nothing.
+  List<String> lupaPathLines({required int completed, required int total}) => [
+        lupaPathLine(completed: completed, total: total),
+        _p(
+          'Whatever you pick, check who is behind it before you decide.',
+          'Що б ти не обрала — спершу подивись, хто за цим стоїть.',
+          'Always check who made it.',
+          'Завжди дивись, хто це зробив.',
+        ),
+        _p(
+          'Saying you do not have enough to decide is a real answer here.',
+          '«Мені бракує даних, щоб сказати» — тут це справжня відповідь.',
+          'You can always answer "not enough evidence".',
+          'Завжди можна відповісти «недостатньо доказів».',
+        ),
+      ];
+
   /// What Lupa says on the path screen. Never a verdict, never pressure.
   String lupaPathLine({required int completed, required int total}) {
     if (completed == 0) {

@@ -39,7 +39,7 @@ class FailureView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Lupa(mood: offline ? LupaMood.idle : LupaMood.thinking, size: 80),
+            Lupa(mood: offline ? LupaMood.idle : LupaMood.concerned, size: 80),
             SizedBox(height: tokens.space(2)),
             Row(
               mainAxisSize: MainAxisSize.min,

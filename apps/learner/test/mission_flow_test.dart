@@ -1,4 +1,5 @@
 import 'package:evidence_gym_learner/data/api_client.dart';
+import 'package:evidence_gym_learner/data/arenas.dart';
 import 'package:evidence_gym_learner/data/audience.dart';
 import 'package:evidence_gym_learner/data/demo_fixtures.dart';
 import 'package:evidence_gym_learner/data/mission_repository.dart';
@@ -338,5 +339,26 @@ void main() {
       expect(childXp, adultXp,
           reason: 'the younger mode paid differently for the same work');
     });
+  });
+
+  test('every mission belongs to exactly one arena', () async {
+    // An untagged mission would be reachable only through "Everything"
+    // and would vanish from every arena — present in the product and
+    // absent from the way people navigate it.
+    final path = await repo().getLearningPath();
+    for (final node in path.nodes) {
+      expect(demoArenaOf[node.missionId], isNotNull,
+          reason: '${node.missionId} belongs to no arena');
+    }
+
+    // And every arena has something in it, or it is a room with a sign
+    // and no door.
+    for (final arena in kArenaOrder) {
+      expect(
+        path.nodes.where((n) => demoArenaOf[n.missionId] == arena),
+        isNotEmpty,
+        reason: '$arena is empty in the adult mode',
+      );
+    }
   });
 }

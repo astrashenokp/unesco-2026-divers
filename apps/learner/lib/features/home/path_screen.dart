@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../../data/demo_fixtures.dart';
 import '../../data/mission_repository.dart';
 import '../../data/models.dart';
+import 'arena_screen.dart';
+import '../../data/arenas.dart';
 import '../../l10n/strings.dart';
 import '../common/failure_view.dart';
 import '../mission/mission_screen.dart';
@@ -27,6 +29,16 @@ class PathScreen extends StatefulWidget {
 
 class _PathScreenState extends State<PathScreen> {
   late Future<({LearningPath path, Progress progress})> _future;
+
+  /// Which arena the learner is working in, or null for the whole path.
+  ///
+  /// Starts null so nothing is chosen for them, and the grid is what
+  /// they meet first. Held here rather than in settings because it is a
+  /// "what am I doing right now" choice, not a preference — coming back
+  /// tomorrow should offer the whole board again, not silently resume a
+  /// subject they picked once.
+  DisinfoArena? _arena;
+  bool _chosen = false;
 
   @override
   void initState() {
@@ -94,8 +106,37 @@ class _PathScreenState extends State<PathScreen> {
           );
         }
 
-        final path = snapshot.data!.path;
+        final allNodes = snapshot.data!.path.nodes;
         final progress = snapshot.data!.progress;
+
+        // The arena grid is the screen until a choice is made.
+        if (!_chosen) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(context.tokens.space(2)),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: ArenaGrid(
+                  nodes: allNodes,
+                  onSelect: (arena) => setState(() {
+                    _arena = arena;
+                    _chosen = true;
+                  }),
+                ),
+              ),
+            ),
+          );
+        }
+
+        final path = LearningPath(
+          version: snapshot.data!.path.version,
+          locale: snapshot.data!.path.locale,
+          nodes: _arena == null
+              ? allNodes
+              : allNodes
+                  .where((n) => demoArenaOf[n.missionId] == _arena)
+                  .toList(),
+        );
         final completed = path.nodes.where((n) => n.state == 'completed').length;
 
         LearningPathNode? next;
@@ -114,6 +155,10 @@ class _PathScreenState extends State<PathScreen> {
           skillsPractised: progress.skills.length,
           next: resume,
           onContinue: resume == null ? null : () => _openMission(resume),
+          arenaLabel: _arena == null
+              ? s.arenaAll
+              : s.arenaTitleOf(_arena!.name),
+          onChangeArena: () => setState(() => _chosen = false),
         );
 
         final map = _PathMap(nodes: path.nodes, onOpen: _openMission);
@@ -175,6 +220,8 @@ class _PathScreenState extends State<PathScreen> {
 
 class _PathHeader extends StatelessWidget {
   const _PathHeader({
+    required this.arenaLabel,
+    required this.onChangeArena,
     required this.completed,
     required this.total,
     required this.totalXp,
@@ -191,6 +238,13 @@ class _PathHeader extends StatelessWidget {
   /// unlike the two numbers that used to sit beside it.
   final int skillsPractised;
 
+  /// Which arena this path is showing, and the way back to the choice.
+  /// Without it the filter is invisible — a learner who picked a subject
+  /// and later wonders where the other missions went has no way to find
+  /// out that they filtered them.
+  final String arenaLabel;
+  final VoidCallback onChangeArena;
+
   /// The first mission still open, if any.
   final LearningPathNode? next;
   final VoidCallback? onContinue;
@@ -205,6 +259,15 @@ class _PathHeader extends StatelessWidget {
       children: [
         Text(s.yourPath, style: Theme.of(context).textTheme.headlineMedium),
         const SectionRule(),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ActionChip(
+            avatar: const Icon(Icons.swap_horiz, size: 18),
+            label: Text('${s.arenaNowIn(arenaLabel)} · ${s.arenaChange}'),
+            onPressed: onChangeArena,
+          ),
+        ),
+        SizedBox(height: tokens.space(1)),
         SizedBox(height: tokens.space(1)),
         LupaGreeting(lines: s.lupaPathLines(completed: completed, total: total)),
         SizedBox(height: tokens.space(2)),

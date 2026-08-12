@@ -93,6 +93,11 @@ void main() {
     await _settle(tester);
     await _enterDemo(tester);
 
+    expect(find.text('What are you up against?'), findsOneWidget);
+    await tester.ensureVisible(find.text('Everything'));
+    await tester.pump();
+    await tester.tap(find.text('Everything'));
+    await tester.pump(const Duration(seconds: 1));
     expect(find.text('Your path'), findsOneWidget);
     _expectNoOverflow();
   });

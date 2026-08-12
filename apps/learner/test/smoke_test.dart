@@ -75,6 +75,7 @@ void main() {
     await tester.tap(find.text('Enter demo'));
     await _settle(tester);
 
+    await _chooseEverything(tester);
     expect(find.text('Your path'), findsOneWidget);
     expect(find.text('The flood photo'), findsWidgets);
   });
@@ -142,7 +143,56 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Enter demo'));
     await _settle(tester);
+    await _chooseEverything(tester);
     expect(find.text('Your path'), findsOneWidget,
         reason: 'the demo entry did not actually work at phone size');
   });
+
+  testWidgets('choosing an arena narrows the path, and it can be changed back',
+      (tester) async {
+    await tester.pumpWidget(EvidenceGymApp(settings: _english()));
+    await _settle(tester);
+    await tester.tap(find.text('Skip'));
+    await _settle(tester);
+    await tester.enterText(find.byType(TextField), demoAccessKey);
+    await tester.ensureVisible(find.text('Enter demo'));
+    await tester.pump();
+    await tester.tap(find.text('Enter demo'));
+    await _settle(tester);
+
+    // Crisis holds the flood photo and the protest clip; the AI citation
+    // belongs to health and science and must not follow the learner in.
+    await tester.ensureVisible(find.text('Crisis and emergency'));
+    await tester.pump();
+    await tester.tap(find.text('Crisis and emergency'));
+    await _settle(tester);
+
+    expect(find.text('Your path'), findsOneWidget);
+    expect(find.text('The flood photo'), findsWidgets,
+        reason: 'the arena is missing a mission that belongs to it');
+    expect(find.text('The suspicious citation'), findsNothing,
+        reason: 'a mission from another arena leaked into this one');
+
+    // A filter nobody can undo is a trap: a learner who wonders where
+    // the other missions went needs the way back to be on the screen.
+    expect(find.textContaining('Change subject'), findsOneWidget);
+    await tester.ensureVisible(find.textContaining('Change subject'));
+    await tester.pump();
+    await tester.tap(find.textContaining('Change subject'));
+    await _settle(tester);
+    expect(find.text('What are you up against?'), findsOneWidget);
+  });
+}
+
+/// Entering the demo now lands on the arena grid — the choice of which
+/// kind of disinformation to work on — and the path is one tap further
+/// in. Tests that want the path say so explicitly rather than pretending
+/// the screen order did not change.
+Future<void> _chooseEverything(WidgetTester tester) async {
+  expect(find.text('What are you up against?'), findsOneWidget,
+      reason: 'the arena grid should be the first thing after entering');
+  await tester.ensureVisible(find.text('Everything'));
+  await tester.pump();
+  await tester.tap(find.text('Everything'));
+  await _settle(tester);
 }

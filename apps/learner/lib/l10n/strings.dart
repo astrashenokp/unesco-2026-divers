@@ -244,6 +244,92 @@ class Strings {
             "налаштуваннях.",
       );
 
+  // ---------------------------------------------------------------- arenas
+  //
+  // Named for what the learner meets, not for an academic category.
+  // "Health and science misinformation" is a research label; "someone
+  // says a study proves it" is the thing they actually scrolled past.
+  String get arenasTitle =>
+      _s('What are you up against?', 'Проти чого працюємо?');
+  String get arenasIntro => _p(
+        'The same three checks work everywhere. Pick the ground you want '
+            'to practise on — you can change it whenever you like.',
+        "Ті самі три перевірки працюють усюди. Обери ґрунт, на якому "
+            "хочеться потренуватися, — змінити можна будь-коли.",
+        'The same checks work everywhere. Pick where to start.',
+        "Ті самі перевірки працюють усюди. Обери, з чого почати.",
+      );
+  String get arenaAll => _s('Everything', 'Усе разом');
+  String get arenaAllExample => _p(
+        'Every mission, in the order the skills build.',
+        "Усі місії, у порядку, в якому нарощуються навички.",
+        'All the missions in order.',
+        "Усі місії по порядку.",
+      );
+
+  String arenaTitleOf(String arena) => switch (arena) {
+        'crisis' => _s('Crisis and emergency', 'Криза й надзвичайне'),
+        'healthAndScience' => _s('Health and science', 'Здоров’я і наука'),
+        'powerAndMoney' => _s('Power and money', 'Влада й гроші'),
+        'syntheticAndRecycled' =>
+          _s('Fake and recycled media', 'Підроблене й перевикористане'),
+        _ => arena,
+      };
+
+  /// One concrete thing from the arena, in the words a learner would use.
+  String arenaExampleOf(String arena) => switch (arena) {
+        'crisis' => _p(
+            'A flood photo from another year. Footage of a crowd moved to a '
+                'different country. The pull to share before checking is '
+                'strongest here.',
+            "Фото повені з іншого року. Кадри натовпу, перенесені в іншу "
+                "країну. Саме тут найдужче тягне поширити, не перевіривши.",
+            'An old flood photo shared as if it were today.',
+            "Старе фото повені, подане як сьогоднішнє.",
+          ),
+        'healthAndScience' => _p(
+            'A confident answer citing a study with a real-looking title, '
+                'authors and DOI — none of which exist.',
+            "Впевнена відповідь із посиланням на дослідження, у якого "
+                "переконлива назва, автори й DOI — і жодного з них не існує.",
+            'A study that sounds real and is not.',
+            "Дослідження, яке звучить справжнім, але його немає.",
+          ),
+        'powerAndMoney' => _p(
+            '"Officials have confirmed", with no name and no department. '
+                'Real figures arranged into a story they do not support.',
+            "«Посадовці підтвердили» — без імені й без відомства. Справжні "
+                "цифри, складені в історію, якої вони не підтверджують.",
+            '"Officials say" with nobody named.',
+            "«Посадовці кажуть» — і жодного імені.",
+          ),
+        'syntheticAndRecycled' => _p(
+            'An image that is almost certainly generated, about an event '
+                'that really happened. A real clip with a new caption.',
+            "Зображення, майже напевно згенероване, про подію, яка справді "
+                "сталася. Справжній кадр із новим підписом.",
+            'A generated picture of something real.',
+            "Згенероване зображення чогось справжнього.",
+          ),
+        _ => '',
+      };
+
+  String arenaProgress(int done, int total) => _s(
+        '$done of $total done',
+        'Пройдено $done з $total',
+      );
+  String arenaDue(int n) => _s('$n to revisit', 'повторити: $n');
+  String get arenaEmpty => _p(
+        'No missions here in this mode. Try another subject, or switch to '
+            'the adult mode in settings.',
+        "У цьому режимі тут немає місій. Обери іншу тему або перемкни "
+            "дорослий режим у налаштуваннях.",
+        'Nothing here right now. Try another subject.',
+        "Тут поки порожньо. Обери іншу тему.",
+      );
+  String get arenaChange => _s('Change subject', 'Змінити тему');
+  String arenaNowIn(String title) => _s('In $title', 'Тема: $title');
+
   // ------------------------------------------------------------------ path
   String get yourPath => _s('Your path', 'Твій шлях');
   String get pathEmpty => _s('No missions available yet.', 'Поки що немає доступних місій.');

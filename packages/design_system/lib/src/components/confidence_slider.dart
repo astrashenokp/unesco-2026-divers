@@ -16,7 +16,8 @@ class ConfidenceSlider extends StatelessWidget {
     required this.onChanged,
     required this.label,
     required this.bandLabel,
-    required this.percentSemantics,
+    required this.describeValue,
+    this.step = 5,
   });
 
   final int value;
@@ -29,8 +30,15 @@ class ConfidenceSlider extends StatelessWidget {
   /// Localized plain-language band for [value], e.g. "Fairly sure".
   final String bandLabel;
 
-  /// Localized spoken form of the value, e.g. "72 percent".
-  final String percentSemantics;
+  /// Localized spoken form of any value, e.g. 72 -> "72 percent, fairly
+  /// sure". Taken as a function rather than a string because a slider
+  /// that offers increase/decrease must also announce what the value
+  /// *would become* — Flutter asserts if `value` is set without
+  /// `increasedValue` and `decreasedValue`.
+  final String Function(int) describeValue;
+
+  /// How far one assistive-technology step moves the value.
+  final int step;
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +48,18 @@ class ConfidenceSlider extends StatelessWidget {
       children: [
         Text(label, style: Theme.of(context).textTheme.titleLarge),
         SizedBox(height: tokens.space(0.5)),
+        // The actions must live on the same node as the role. An earlier
+        // version put `slider: true` on the wrapper and ExcludeSemantics
+        // on the Slider, which deleted its increase/decrease — the value
+        // could be read and never changed.
         Semantics(
           slider: true,
           label: label,
-          value: '$percentSemantics, $bandLabel',
+          value: describeValue(value),
+          increasedValue: describeValue((value + step).clamp(0, 100)),
+          decreasedValue: describeValue((value - step).clamp(0, 100)),
+          onIncrease: () => onChanged((value + step).clamp(0, 100)),
+          onDecrease: () => onChanged((value - step).clamp(0, 100)),
           child: ExcludeSemantics(
             child: Slider(
               value: value.toDouble(),

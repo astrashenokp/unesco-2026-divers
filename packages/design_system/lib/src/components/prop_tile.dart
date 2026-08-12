@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../tokens.dart';
@@ -93,18 +95,24 @@ class _PropTileState extends State<PropTile> with SingleTickerProviderStateMixin
     duration: const Duration(milliseconds: 420),
   );
   bool _pressed = false;
+  Timer? _stagger;
 
   @override
   void initState() {
     super.initState();
-    // Stagger, then spring in. Cancelled safely if we're disposed first.
-    Future<void>.delayed(Duration(milliseconds: 60 * widget.delayIndex), () {
-      if (mounted) _entrance.forward();
-    });
+    // A cancellable Timer, not Future.delayed: an un-cancellable future
+    // outlives dispose. The mounted guard makes that harmless in the app
+    // but it leaves a pending timer that fails any widget test which
+    // unmounts inside the stagger window.
+    _stagger = Timer(
+      Duration(milliseconds: 60 * widget.delayIndex),
+      () => _entrance.forward(),
+    );
   }
 
   @override
   void dispose() {
+    _stagger?.cancel();
     _entrance.dispose();
     super.dispose();
   }
@@ -120,11 +128,7 @@ class _PropTileState extends State<PropTile> with SingleTickerProviderStateMixin
     const edgeDepth = 5.0;
     final sink = _pressed && !reduceMotion ? edgeDepth - 2 : 0.0;
 
-    final tile = Semantics(
-      button: true,
-      enabled: enabled,
-      label: widget.semanticLabel,
-      child: ExcludeSemantics(
+    final tile = ExcludeSemantics(
         child: GestureDetector(
           onTap: widget.onTap,
           onTapDown: enabled ? (_) => setState(() => _pressed = true) : null,
@@ -196,23 +200,36 @@ class _PropTileState extends State<PropTile> with SingleTickerProviderStateMixin
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    if (reduceMotion) return tile;
+    final animated = reduceMotion
+        ? tile
+        : AnimatedBuilder(
+            animation: _entrance,
+            builder: (context, child) {
+              final t = Curves.elasticOut.transform(_entrance.value.clamp(0.0, 1.0));
+              return Opacity(
+                // Fade completes well before the spring settles, so the
+                // tile is readable while it is still moving.
+                opacity: (_entrance.value * 2).clamp(0.0, 1.0),
+                child: Transform.scale(scale: 0.7 + 0.3 * t, child: child),
+              );
+            },
+            child: tile,
+          );
 
-    return AnimatedBuilder(
-      animation: _entrance,
-      builder: (context, child) {
-        final t = Curves.elasticOut.transform(_entrance.value.clamp(0.0, 1.0));
-        return Opacity(
-          // Fade completes well before the spring settles, so the tile is
-          // readable while it is still moving.
-          opacity: (_entrance.value * 2).clamp(0.0, 1.0),
-          child: Transform.scale(scale: 0.7 + 0.3 * t, child: child),
-        );
-      },
-      child: tile,
+    // Semantics wraps the *animation*, not the other way round. Opacity
+    // at zero drops its subtree from the semantics tree entirely, so an
+    // inner Semantics node would be invisible to assistive technology
+    // for the whole staggered entrance. The action lives here too: on
+    // the node that declares `button: true`, because ExcludeSemantics
+    // below removes the GestureDetector's own tap.
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: widget.semanticLabel,
+      onTap: enabled ? widget.onTap : null,
+      child: animated,
     );
   }
 }

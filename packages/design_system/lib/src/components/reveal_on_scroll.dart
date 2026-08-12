@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../tokens.dart';
@@ -32,6 +34,7 @@ class RevealOnScroll extends StatefulWidget {
 
 class _RevealOnScrollState extends State<RevealOnScroll> {
   bool _revealed = false;
+  Timer? _retry;
 
   @override
   void initState() {
@@ -42,8 +45,16 @@ class _RevealOnScrollState extends State<RevealOnScroll> {
     // leave them permanently invisible.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeReveal();
-      Future<void>.delayed(const Duration(milliseconds: 120), _maybeReveal);
+      // Cancellable, so it cannot outlive dispose and strand a pending
+      // timer in a widget test.
+      _retry = Timer(const Duration(milliseconds: 120), _maybeReveal);
     });
+  }
+
+  @override
+  void dispose() {
+    _retry?.cancel();
+    super.dispose();
   }
 
   void _maybeReveal() {

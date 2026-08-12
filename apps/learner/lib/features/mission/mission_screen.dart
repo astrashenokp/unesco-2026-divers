@@ -392,7 +392,7 @@ class _Confidence extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       bandLabel: s.confidenceBand(value),
-      percentSemantics: s.percentSpoken(value),
+      describeValue: (v) => '${s.percentSpoken(v)}, ${s.confidenceBand(v)}',
     );
   }
 }

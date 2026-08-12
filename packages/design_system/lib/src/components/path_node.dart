@@ -136,10 +136,15 @@ class _PathNodeState extends State<PathNode> with SingleTickerProviderStateMixin
       );
     }
 
+    // `onTap` belongs on the node that declares `button: true`. Without
+    // it, ExcludeSemantics removes the InkWell's action and the node
+    // announces as a button that does nothing when activated — which
+    // made every mission unreachable without sight.
     return Semantics(
       button: widget.state != PathNodeState.locked,
       enabled: widget.state != PathNodeState.locked,
       label: semanticLabel,
+      onTap: widget.state == PathNodeState.locked ? null : widget.onTap,
       child: ExcludeSemantics(
         child: Material(
           color: Colors.transparent,

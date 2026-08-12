@@ -16,14 +16,23 @@ import 'tokens.dart';
 /// Both were chosen for their Cyrillic, not adapted to it. A system font
 /// stack treats Ukrainian as a fallback, and it showed: headings read as
 /// body text scaled up. See MASCOT_AND_VISUAL_LANGUAGE.md.
-ThemeData buildEvidenceGymTheme() {
-  const tokens = EvidenceGymTokens.standard;
+///
+/// [brightness] picks the token set. Both themes are built by this one
+/// function on purpose: a second builder for dark is how a dark theme
+/// drifts, gets a control the light one lacks, and quietly stops being
+/// tested. Everything below reads from tokens, so the two stay in step.
+ThemeData buildEvidenceGymTheme({Brightness brightness = Brightness.light}) {
+  final tokens = brightness == Brightness.dark
+      ? EvidenceGymTokens.dark
+      : EvidenceGymTokens.standard;
 
   final colorScheme = ColorScheme.fromSeed(
     seedColor: tokens.action,
-    brightness: Brightness.light,
+    brightness: brightness,
     primary: tokens.action,
+    onPrimary: tokens.onAction,
     surface: tokens.surface,
+    onSurface: tokens.textPrimary,
     error: tokens.danger,
   );
 
@@ -60,7 +69,7 @@ ThemeData buildEvidenceGymTheme() {
   );
 
   return base.copyWith(
-    extensions: const [tokens],
+    extensions: [tokens],
     textTheme: base.textTheme.copyWith(
       // Unbounded for display: wide, geometric, and confident enough to
       // carry a heading on its own. The point of a display face here is
@@ -107,7 +116,7 @@ ThemeData buildEvidenceGymTheme() {
       style: ElevatedButton.styleFrom(
         minimumSize: const Size(44, 44),
         backgroundColor: tokens.action,
-        foregroundColor: Colors.white,
+        foregroundColor: tokens.onAction,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(tokens.space(1.5)),
         ),

@@ -233,6 +233,52 @@ class Strings {
         'Overall, how has your confidence changed?',
         'Загалом, як змінилася твоя впевненість?',
       );
+  // --------------------------------------------------------- uncertainty
+  String get uncertaintyTitle => _s(
+        '"Not enough evidence" is a conclusion.',
+        "«Недостатньо доказів» — це висновок.",
+      );
+  String get uncertaintyBody => _p(
+        'You looked, and what you found does not settle the question. Saying '
+            'so is more accurate than picking a side to feel finished — and '
+            'it is scored as a real answer here, not as a skip.',
+        "Ти перевірила, і знайдене не дає відповіді. Сказати про це — "
+            "точніше, ніж обрати бік, щоб просто завершити. Тут це "
+            "зараховується як справжня відповідь, а не як пропуск.",
+        'You checked, and it is still unclear. Saying so is the honest '
+            'answer, and it counts.',
+        "Ти перевірила, і досі незрозуміло. Сказати про це — чесна "
+            "відповідь, і вона зараховується.",
+      );
+  String get uncertaintyPrompt =>
+      _s('What would settle it?', 'Що б це вирішило?');
+
+  /// Deliberately generic: these are the moves that work on any claim,
+  /// which is what makes them worth learning rather than memorising.
+  List<String> get uncertaintyOptions => _uk
+      ? const [
+          'Первинне джерело',
+          'Незалежне друге повідомлення',
+          'Оригінальний файл або знімок',
+          'Датований запис',
+          'Відповідь того, кого це стосується',
+          'Хтось, хто був на місці',
+        ]
+      : const [
+          'The primary source',
+          'An independent second report',
+          'The original file or photo',
+          'A dated record',
+          'A response from whoever it concerns',
+          'Someone who was there',
+        ];
+  String get uncertaintyFootnote => _s(
+        'If nothing here is available yet, "Keep investigating" is the share '
+            'decision that matches this conclusion.',
+        "Якщо нічого з цього поки немає, «Продовжити перевірку» — це "
+            "рішення про поширення, яке відповідає такому висновку.",
+      );
+
   String get wouldYouShare => _s('Would you share this?', 'Чи поширила б ти це?');
   String get shareDoNot => _s('Do not share', 'Не поширювати');
   String get shareWithContext => _s('Share with context', 'Поширити з контекстом');
@@ -486,6 +532,14 @@ class Strings {
   // -------------------------------------------------------------- settings
   String get settingsTitle => _s('Settings', 'Налаштування');
   String get languageLabel => _s('Language', 'Мова');
+  String get appearanceLabel => _s('Appearance', 'Вигляд');
+  String get themeSystem => _s('Device', 'Як на пристрої');
+  String get themeLight => _s('Light', 'Світла');
+  String get themeDark => _s('Dark', 'Темна');
+  String get themeHint => _s(
+        'Only the colours change. Nothing about how you are scored depends on this.',
+        "Змінюються лише кольори. Оцінювання від цього не залежить.",
+      );
   String get readingLabel => _s('Reading and motion', 'Читання та рух');
   String get simpleLanguageLabel => _s('Simpler wording', 'Простіші слова');
   String get simpleLanguageHint => _s(

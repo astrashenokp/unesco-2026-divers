@@ -191,12 +191,12 @@ class _AxisChoiceChip extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 44),
       child: ChoiceChip(
-        avatar: Icon(icon, color: selected ? Colors.white : color, size: 18),
+        avatar: Icon(icon, color: selected ? tokens.onAction : color, size: 18),
         label: Text(option.label),
         selected: selected,
         selectedColor: color,
         labelStyle: TextStyle(
-          color: selected ? Colors.white : tokens.textPrimary,
+          color: selected ? tokens.onAction : tokens.textPrimary,
           fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
         ),
         side: BorderSide(color: color, width: selected ? 2 : 1),

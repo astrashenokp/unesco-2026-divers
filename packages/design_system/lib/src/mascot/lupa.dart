@@ -164,7 +164,13 @@ class _LupaState extends State<Lupa> with TickerProviderStateMixin {
             body: tokens.action,
             rim: tokens.evidenceSecondary,
             spark: tokens.evidencePrimary,
-            shadow: tokens.textPrimary,
+            // Shading is a property of Lupa, not of the page she is on.
+            // This was `tokens.textPrimary`, which is near-white on the
+            // dark theme — it turned her contact shadow into a glow and
+            // flattened the shading on her body by lerping toward white
+            // instead of away from it. A shadow darkens in every theme,
+            // so it takes the light theme's ink in both.
+            shadow: EvidenceGymTokens.standard.textPrimary,
             particles: _particles,
             particleColors: [tokens.action, tokens.evidenceSecondary, tokens.evidencePrimary],
           ),

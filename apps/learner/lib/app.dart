@@ -37,6 +37,8 @@ class _EvidenceGymAppState extends State<EvidenceGymApp> {
             title: 'Evidence Gym',
             debugShowCheckedModeBanner: false,
             theme: buildEvidenceGymTheme(),
+            darkTheme: buildEvidenceGymTheme(brightness: Brightness.dark),
+            themeMode: _settings.themeMode,
             locale: _settings.locale,
             supportedLocales: const [Locale('uk'), Locale('en')],
             localizationsDelegates: const [

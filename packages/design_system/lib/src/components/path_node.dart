@@ -87,8 +87,8 @@ class _PathNodeState extends State<PathNode> with SingleTickerProviderStateMixin
 
     final (bg, fg, icon) = switch (widget.state) {
       PathNodeState.locked => (tokens.surfaceRaised, tokens.textMuted, Icons.lock_outline),
-      PathNodeState.available => (tokens.action, Colors.white, Icons.explore_outlined),
-      PathNodeState.completed => (tokens.evidencePrimary, Colors.white, Icons.check),
+      PathNodeState.available => (tokens.action, tokens.onAction, Icons.explore_outlined),
+      PathNodeState.completed => (tokens.evidencePrimary, tokens.onAction, Icons.check),
     };
 
     final semanticLabel = widget.boosterDue && widget.boosterLabel != null

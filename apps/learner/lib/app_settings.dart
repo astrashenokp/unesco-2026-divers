@@ -16,17 +16,20 @@ class AppSettings extends ChangeNotifier {
     bool simpleLanguage = false,
     bool forceReduceMotion = false,
     double textScale = 1.0,
+    ThemeMode themeMode = ThemeMode.system,
     SharedPreferences? store,
   })  : _locale = locale,
         _simpleLanguage = simpleLanguage,
         _forceReduceMotion = forceReduceMotion,
         _textScale = textScale,
+        _themeMode = themeMode,
         _store = store;
 
   static const _kLocale = 'settings.locale';
   static const _kSimple = 'settings.simpleLanguage';
   static const _kReduceMotion = 'settings.forceReduceMotion';
   static const _kTextScale = 'settings.textScale';
+  static const _kThemeMode = 'settings.themeMode';
 
   final SharedPreferences? _store;
 
@@ -34,6 +37,7 @@ class AppSettings extends ChangeNotifier {
   bool _simpleLanguage;
   bool _forceReduceMotion;
   double _textScale;
+  ThemeMode _themeMode;
 
   /// Loads saved choices. Falls back to defaults if storage is
   /// unavailable — a settings store that cannot be read must never stop
@@ -46,6 +50,8 @@ class AppSettings extends ChangeNotifier {
         simpleLanguage: store.getBool(_kSimple) ?? false,
         forceReduceMotion: store.getBool(_kReduceMotion) ?? false,
         textScale: store.getDouble(_kTextScale) ?? 1.0,
+        themeMode: ThemeMode.values.asNameMap()[store.getString(_kThemeMode)] ??
+            ThemeMode.system,
         store: store,
       );
     } catch (_) {
@@ -91,6 +97,22 @@ class AppSettings extends ChangeNotifier {
     if (_forceReduceMotion == value) return;
     _forceReduceMotion = value;
     _persist((s) => s.setBool(_kReduceMotion, value));
+    notifyListeners();
+  }
+
+  /// Light, dark, or whatever the device is set to.
+  ///
+  /// Defaults to [ThemeMode.system], because someone who has set their
+  /// phone to dark has already answered this question and should not be
+  /// asked twice. The explicit choices exist because the device setting
+  /// is often not a preference at all — it is a schedule, or a battery
+  /// saver — and a learner reading at night should be able to overrule
+  /// it without changing their whole phone.
+  ThemeMode get themeMode => _themeMode;
+  set themeMode(ThemeMode value) {
+    if (_themeMode == value) return;
+    _themeMode = value;
+    _persist((s) => s.setString(_kThemeMode, value.name));
     notifyListeners();
   }
 

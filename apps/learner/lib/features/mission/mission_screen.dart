@@ -211,7 +211,7 @@ class _MissionScreenState extends State<MissionScreen> {
                   color: tokens.action,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.explore_outlined, size: 16, color: Colors.white),
+                child: Icon(Icons.explore_outlined, size: 16, color: tokens.onAction),
               ),
             ),
             SizedBox(width: tokens.space(1)),
@@ -835,6 +835,19 @@ class _ConclusionStep extends StatelessWidget {
             onChanged: onPostConfidence,
           ),
           SizedBox(height: tokens.space(2)),
+          // Appears the moment any axis is answered with uncertainty, and
+          // sits above the share question rather than below it — naming
+          // what evidence is missing is what should inform the decision
+          // to share, so it has to come first.
+          if ([authenticity, claim, contextIntegrity]
+              .any((option) => option?.tone == AxisTone.unknown))
+            UncertaintyPanel(
+              title: s.uncertaintyTitle,
+              body: s.uncertaintyBody,
+              prompt: s.uncertaintyPrompt,
+              options: s.uncertaintyOptions,
+              footnote: s.uncertaintyFootnote,
+            ),
           Text(s.wouldYouShare, style: Theme.of(context).textTheme.titleLarge),
           SizedBox(height: tokens.space(1)),
           Wrap(

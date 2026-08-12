@@ -25,3 +25,4 @@ export 'src/components/rolling_number.dart';
 export 'src/components/evidence_graph.dart';
 export 'src/components/source_card.dart';
 export 'src/components/receipt_timeline.dart';
+export 'src/components/uncertainty_panel.dart';

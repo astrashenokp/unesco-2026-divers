@@ -63,7 +63,15 @@ class LivingBackground extends StatelessWidget {
           Positioned.fill(
             child: ExcludeSemantics(
               child: Opacity(
-                opacity: 0.32,
+                // Much fainter on the dark theme. The illustration is
+                // drawn on warm paper, so on a dark ground it is the
+                // brightest thing on screen — the exact inversion of
+                // what a background is for. Rather than ship a second
+                // artwork, it drops to a suggestion of texture, which is
+                // all it was ever meant to be.
+                opacity: Theme.of(context).brightness == Brightness.dark
+                    ? 0.10
+                    : 0.32,
                 child: Image(
                   image: artwork!,
                   fit: BoxFit.cover,
@@ -85,6 +93,7 @@ class LivingBackground extends StatelessWidget {
                   variant: artwork == null ? variant : GroundVariant.plain,
                   hasArtwork: artwork != null,
                   base: tokens.surface,
+                  lift: tokens.surfaceRaised,
                   bloomA: tokens.action,
                   bloomB: tokens.evidencePrimary,
                   grain: tokens.textPrimary,
@@ -105,6 +114,7 @@ class _BackgroundPainter extends CustomPainter {
     required this.variant,
     required this.hasArtwork,
     required this.base,
+    required this.lift,
     required this.bloomA,
     required this.bloomB,
     required this.grain,
@@ -114,6 +124,11 @@ class _BackgroundPainter extends CustomPainter {
   final GroundVariant variant;
   final bool hasArtwork;
   final Color base;
+
+  /// The raised surface colour, used as the direction the wash leans in.
+  /// Lerping toward a literal white lit the top of the page grey on the
+  /// dark theme — the token moves the right way in both themes.
+  final Color lift;
   final Color bloomA;
   final Color bloomB;
   final Color grain;
@@ -148,7 +163,7 @@ class _BackgroundPainter extends CustomPainter {
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color.lerp(base, Colors.white, 0.5)!, Color.lerp(base, bloomA, 0.10)!],
+          colors: [Color.lerp(base, lift, 0.5)!, Color.lerp(base, bloomA, 0.10)!],
         ).createShader(rect),
     );
 
@@ -225,6 +240,7 @@ class _BackgroundPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _BackgroundPainter old) =>
       old.base != base ||
+      old.lift != lift ||
       old.bloomA != bloomA ||
       old.bloomB != bloomB ||
       old.variant != variant ||

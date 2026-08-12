@@ -105,6 +105,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     Text(s.orDivider, style: Theme.of(context).textTheme.bodySmall),
                     SizedBox(height: tokens.space(2)),
                     TextField(
+                      key: const ValueKey('auth.demoKey'),
                       controller: _demoKeyController,
                       textCapitalization: TextCapitalization.characters,
                       autocorrect: false,
@@ -119,6 +120,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(
+                        key: const ValueKey('auth.enterDemo'),
                         onPressed: _enterDemoKey,
                         child: Text(s.enterDemo),
                       ),

@@ -62,15 +62,28 @@ class _OnboardingCarouselScreenState extends State<OnboardingCarouselScreen> {
             children: [
               Padding(
                 padding: EdgeInsets.all(tokens.space(2)),
-                child: Row(
-                  children: [
-                    // Language first, before anything asks to be read.
-                    // Burying it in settings means a Ukrainian speaker has
-                    // to get through an English onboarding to reach it.
-                    const _LanguagePicker(),
-                    const Spacer(),
-                    TextButton(onPressed: _goToAuth, child: Text(s.skip)),
-                  ],
+                // A Wrap, not a Row: at 200% text the language switch and
+                // Skip together exceed a phone's width, and a Row would
+                // clip Skip off the edge rather than move it down.
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    runSpacing: tokens.space(1),
+                    children: [
+                      // Language first, before anything asks to be read.
+                      // Burying it in settings means a Ukrainian speaker
+                      // has to get through an English onboarding to
+                      // reach it.
+                      const _LanguagePicker(),
+                      TextButton(
+                        key: const ValueKey('onboarding.skip'),
+                        onPressed: _goToAuth,
+                        child: Text(s.skip),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Expanded(

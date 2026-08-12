@@ -42,20 +42,25 @@ class EvidenceGymTokens extends ThemeExtension<EvidenceGymTokens> {
   final Duration motionFast;
   final Duration motionSlow;
 
+  /// Every pair that actually appears together in the UI is checked
+  /// against WCAG 2.2 AA by `test/contrast_test.dart`. Four of these
+  /// values were adjusted after that test was written, because the
+  /// original palette had been eyeballed and four pairs missed by a
+  /// small margin. Do not hand-tune a colour here without re-running it.
   static const EvidenceGymTokens standard = EvidenceGymTokens(
     surface: Color(0xFFFAFAF7),
     surfaceRaised: Color(0xFFFFFFFF),
     textPrimary: Color(0xFF1E1B2E),
     textMuted: Color(0xFF615C78),
     action: Color(0xFF4A47A3),
-    evidencePrimary: Color(0xFF1F8A85),
-    evidenceSecondary: Color(0xFFD9A441),
+    evidencePrimary: Color(0xFF1D847F),
+    evidenceSecondary: Color(0xFFBA8D37),
     unknown: Color(0xFF6B7280),
     supported: Color(0xFF2E7D6B),
     contradicted: Color(0xFF8E4585),
     misleading: Color(0xFFC97A2B),
-    focus: Color(0xFF2D9CDB),
-    danger: Color(0xFFD64545),
+    focus: Color(0xFF2C98D6),
+    danger: Color(0xFFD14343),
     spaceUnit: 8,
     motionFast: Duration(milliseconds: 150),
     motionSlow: Duration(milliseconds: 300),

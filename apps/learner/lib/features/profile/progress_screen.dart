@@ -5,6 +5,7 @@ import '../../data/mission_repository.dart';
 import '../../data/models.dart';
 import '../../l10n/strings.dart';
 import '../common/failure_view.dart';
+import 'skill_screen.dart';
 
 /// Skill mastery and process XP.
 ///
@@ -86,12 +87,22 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 for (var i = 0; i < progress.skills.length; i++)
                   RevealOnScroll(
                     delayIndex: i,
-                    child: SkillMeter(
-                      label: s.skillName(progress.skills[i].skill),
-                      mastery: progress.skills[i].mastery,
-                      masteryLabel:
-                          s.masteryPercent((progress.skills[i].mastery * 100).round()),
-                      dueLabel: progress.skills[i].dueAt == null ? null : s.boosterDue,
+                    // Each meter opens the skill behind it: a percentage
+                    // with no explanation tells a learner they are at 40%
+                    // of something they cannot name.
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => SkillScreen(skill: progress.skills[i]),
+                        ),
+                      ),
+                      child: SkillMeter(
+                        label: s.skillName(progress.skills[i].skill),
+                        mastery: progress.skills[i].mastery,
+                        masteryLabel:
+                            s.masteryPercent((progress.skills[i].mastery * 100).round()),
+                        dueLabel: progress.skills[i].dueAt == null ? null : s.boosterDue,
+                      ),
                     ),
                   ),
             ],

@@ -34,7 +34,12 @@ class StatTile extends StatelessWidget {
     return Semantics(
       label: '$value $label',
       child: ExcludeSemantics(
-        child: Container(
+        // A Wrap gives its children unbounded width, so without a cap
+        // this Row grows past the screen at large text sizes instead of
+        // wrapping to the next line.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 240),
+          child: Container(
           padding: EdgeInsets.symmetric(
             horizontal: tokens.space(1.5),
             vertical: tokens.space(1),
@@ -49,7 +54,8 @@ class StatTile extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: tint),
               SizedBox(width: tokens.space(1)),
-              Column(
+              Flexible(
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -74,8 +80,10 @@ class StatTile extends StatelessWidget {
                   Text(label, style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
+              ),
             ],
           ),
+        ),
         ),
       ),
     );

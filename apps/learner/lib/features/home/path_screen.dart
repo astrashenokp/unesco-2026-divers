@@ -258,11 +258,14 @@ class _PathHeader extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Text(s.continueAction,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: tokens.action, fontWeight: FontWeight.w700)),
+                    Flexible(
+                      child: Text(
+                        s.continueAction,
+                        textAlign: TextAlign.end,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: tokens.action, fontWeight: FontWeight.w700),
+                      ),
+                    ),
                   ],
                 ),
               ),

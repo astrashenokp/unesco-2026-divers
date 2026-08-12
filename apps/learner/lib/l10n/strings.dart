@@ -342,6 +342,60 @@ class Strings {
 
   // Skill detail
   String get skillWhy => _s('Why it matters', 'Чому це важливо');
+
+  /// Why each evidence skill is worth having. Written as something a
+  /// learner can act on, not a definition.
+  String skillWhyText(String code) => switch (code) {
+        'source_identity' => _s(
+            'Most misleading posts do not fake the content. They rely on you '
+                'never asking who is behind it.',
+            'Більшість оманливих дописів не підробляють зміст. Вони розраховують, '
+                'що ти не спитаєш, хто за цим стоїть.',
+          ),
+        'primary_source' => _s(
+            'A summary of a summary loses the caveats. The original almost '
+                'always says something narrower.',
+            'Переказ переказу губить застереження. Оригінал майже завжди '
+                'говорить щось вужче.',
+          ),
+        'corroboration' => _s(
+            'Ten accounts repeating one source is still one source.',
+            'Десять акаунтів, що повторюють одне джерело, — це все одно одне джерело.',
+          ),
+        'context_time_place' => _s(
+            'Real media in the wrong context is the most common trap, because '
+                'nothing about the file is fake.',
+            'Справжнє медіа в хибному контексті — найпоширеніша пастка, бо в '
+                'самому файлі немає нічого підробленого.',
+          ),
+        'provenance' => _s(
+            'Where a file came from is checkable. Whether it feels real is not.',
+            'Звідки взявся файл — можна перевірити. Чи він «виглядає справжнім» — ні.',
+          ),
+        'citation_integrity' => _s(
+            'A citation that looks correct is easy to generate. Checking that '
+                'it exists takes seconds.',
+            'Посилання, що виглядає правильним, легко згенерувати. Перевірити, '
+                'чи воно існує, — справа секунд.',
+          ),
+        'claim_decomposition' => _s(
+            'One post usually makes several claims. They are rarely all true '
+                'or all false together.',
+            'Один допис зазвичай містить кілька тверджень. Вони рідко бувають '
+                'усі правдиві чи всі хибні разом.',
+          ),
+        'uncertainty' => _s(
+            'Knowing what you cannot yet conclude is a skill, not a failure.',
+            'Розуміти, чого ти ще не можеш стверджувати, — це навичка, а не поразка.',
+          ),
+        'responsible_sharing' => _s(
+            'Sharing with the context attached costs one sentence and undoes '
+                'most of the harm.',
+            'Поширити разом із контекстом коштує одного речення — і знімає '
+                'більшу частину шкоди.',
+          ),
+        _ => '',
+      };
   String get skillTrainedBy => _s('Trained by', 'Тренується в місіях');
   String totalXp(int xp) => _s('$xp XP earned for how you investigate', '$xp XP за те, як ти перевіряєш');
   String get skillsTitle => _s('Evidence skills', 'Навички перевірки');

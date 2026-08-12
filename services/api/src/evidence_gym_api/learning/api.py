@@ -17,6 +17,8 @@ from evidence_gym_api.learning.use_cases import (
     SubmitPredictionCommand,
     UseEvidenceAction,
     UseEvidenceActionCommand,
+    RequestHint,
+    RequestHintCommand,
 )
 from evidence_gym_api.learning.ports import EvidenceActionResult
 from evidence_gym_api.learning.value_objects import (
@@ -35,6 +37,7 @@ class LearningServices:
     start_attempt: StartAttempt
     submit_prediction: SubmitPrediction
     use_evidence_action: UseEvidenceAction | None = None
+    request_hint: RequestHint | None = None
 
 
 class StartAttemptBody(BaseModel):
@@ -96,6 +99,15 @@ class EvidenceResultResponse(BaseModel):
             limitations=list(evidence.limitations),
             attemptVersion=result.attempt_version,
         )
+
+
+class HintResponse(BaseModel):
+    text: str
+    level: int = Field(ge=1, le=5)
+    suggestedActionId: str | None = None
+    evidenceRefs: list[str]
+    uncertainty: str
+    fallback: bool
 
 
 class AttemptResponse(BaseModel):
@@ -218,3 +230,38 @@ async def use_evidence_action(
         ),
     )
     return EvidenceResultResponse.from_domain(result)
+
+
+@router.post(
+    "/attempts/{attemptId}/hints",
+    operation_id="requestHint",
+    response_model=HintResponse,
+)
+async def request_hint(
+    attemptId: str,
+    idempotency_key: IdempotencyHeader,
+    principal: PrincipalDependency,
+    services: ServicesDependency,
+) -> HintResponse:
+    if services.request_hint is None:
+        raise ApiProblem(
+            status=503,
+            code="coach-service-unavailable",
+            title="Service not ready",
+            detail="Coaching services are unavailable.",
+        )
+    hint = await services.request_hint.execute(
+        principal,
+        RequestHintCommand(
+            attempt_id=AttemptId(attemptId),
+            idempotency_key=IdempotencyKey(idempotency_key),
+        ),
+    )
+    return HintResponse(
+        text=hint.text,
+        level=hint.level,
+        suggestedActionId=hint.suggested_action_id,
+        evidenceRefs=list(hint.evidence_refs),
+        uncertainty=hint.uncertainty.value,
+        fallback=hint.fallback,
+    )

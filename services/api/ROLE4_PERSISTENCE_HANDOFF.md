@@ -25,6 +25,7 @@ objects into the domain:
 - `MissionPolicyReader.get_policy`
 - `IdempotencyRepository.get/put`
 - `EvidenceIdempotencyRepository.get_evidence/put_evidence`
+- `HintIdempotencyRepository.get_hint/put_hint`
 - `TransactionManager.transaction`
 
 Required invariants:
@@ -46,6 +47,9 @@ Required invariants:
   validation, deterministic provider result, attempt update and the complete
   evidence-response snapshot insert share one transaction. A provider failure
   must not mutate the attempt or create an idempotency record.
+- `RequestHint`: hint idempotency lookup, ownership/state validation and the safe
+  provider-or-fallback response snapshot share one idempotency operation. It does
+  not save the attempt or advance `Attempt.version`.
 
 The physical schema, constraints, indexes, migration order, isolation/locking
 strategy and recovery procedure remain Role 4 decisions. The implementation must

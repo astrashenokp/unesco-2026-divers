@@ -60,3 +60,10 @@ assessment or rubric fields, and never calls a live provider. The
 `POST /attempts/{attemptId}/evidence-actions` endpoint validates ownership and
 optimistic versioning, records the action atomically, supports idempotent retries,
 and returns the updated `attemptVersion` required by the shared API contract.
+
+`RequestHint` accepts only owned attempts in `predicted` or `investigating`,
+keeps `Attempt.version` unchanged, and validates a Role 3 `CoachProvider` result
+against the pinned mission's allowlisted actions and available evidence IDs.
+Unsafe, malformed, or unavailable provider output degrades to the reviewed
+`hintLadder` entry through `FixtureCoachProvider`; level 5 is never exposed before
+conclusion.

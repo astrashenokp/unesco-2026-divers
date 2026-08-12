@@ -13,6 +13,7 @@ from jsonschema.exceptions import SchemaError, ValidationError
 
 from evidence_gym_api.learning.ports import MissionPolicy
 from evidence_gym_api.learning.value_objects import MissionId, MissionVersion
+from evidence_gym_api.coach.model import CoachHint, HintUncertainty
 
 
 class MissionFixtureError(RuntimeError):
@@ -137,6 +138,43 @@ class FileMissionPolicyReader:
                 "minimumCompletionEvidence"
             ],
         }
+
+    async def get_coach_request_data(
+        self, mission_id: MissionId, mission_version: MissionVersion
+    ) -> tuple[tuple[str, ...], dict[str, tuple[str, ...]]] | None:
+        mission = self._missions.get((mission_id, mission_version))
+        if mission is None:
+            return None
+        action_evidence = {
+            action["id"]: tuple(
+                item["evidenceId"]
+                for item in action["deterministicResponse"]["items"]
+            )
+            for action in mission["evidenceActions"]
+        }
+        return tuple(action_evidence), action_evidence
+
+    async def get_fallback_hint(
+        self, mission_id: MissionId, mission_version: MissionVersion, level: int
+    ) -> CoachHint | None:
+        mission = self._missions.get((mission_id, mission_version))
+        if mission is None:
+            return None
+        document = next(
+            (hint for hint in mission["hintLadder"] if hint["level"] == level),
+            None,
+        )
+        if document is None or not document["allowedBeforeConclusion"]:
+            return None
+        return CoachHint(
+            text=document["text"],
+            level=document["level"],
+            suggested_action_id=document.get("suggestedActionId"),
+            evidence_refs=tuple(document["evidenceRefs"]),
+            uncertainty=HintUncertainty(document["uncertainty"]),
+            safety_flags=("provider_degraded",),
+            fallback=True,
+        )
 
     def _load_missions(
         self,

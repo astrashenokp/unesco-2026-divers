@@ -17,6 +17,7 @@ from evidence_gym_api.learning.value_objects import (
 )
 
 if TYPE_CHECKING:
+    from evidence_gym_api.coach.model import CoachHint
     from evidence_gym_api.evidence.model import EvidenceResult
 
 
@@ -55,6 +56,13 @@ class StoredEvidenceResult:
     expires_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class StoredHintResult:
+    request_fingerprint: str
+    result: CoachHint
+    expires_at: datetime
+
+
 class AttemptRepository(Protocol):
     async def get(self, attempt_id: AttemptId) -> Attempt | None: ...
 
@@ -90,6 +98,16 @@ class EvidenceIdempotencyRepository(Protocol):
 
     async def put_evidence(
         self, scope: IdempotencyScope, result: StoredEvidenceResult
+    ) -> None: ...
+
+
+class HintIdempotencyRepository(Protocol):
+    async def get_hint(
+        self, scope: IdempotencyScope, *, at: datetime
+    ) -> StoredHintResult | None: ...
+
+    async def put_hint(
+        self, scope: IdempotencyScope, result: StoredHintResult
     ) -> None: ...
 
 

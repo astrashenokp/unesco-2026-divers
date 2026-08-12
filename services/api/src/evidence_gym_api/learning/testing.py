@@ -14,6 +14,7 @@ from evidence_gym_api.learning.ports import (
     MissionPolicy,
     StoredAttemptResult,
     StoredEvidenceResult,
+    StoredHintResult,
 )
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
@@ -67,6 +68,7 @@ class InMemoryIdempotencyRepository:
     def __init__(self) -> None:
         self._results: dict[IdempotencyScope, StoredAttemptResult] = {}
         self._evidence_results: dict[IdempotencyScope, StoredEvidenceResult] = {}
+        self._hint_results: dict[IdempotencyScope, StoredHintResult] = {}
 
     async def get(
         self, scope: IdempotencyScope, *, at: datetime
@@ -101,6 +103,23 @@ class InMemoryIdempotencyRepository:
         if existing is not None and existing != result:
             raise RepositoryConflict("idempotency result already exists")
         self._evidence_results[scope] = deepcopy(result)
+
+    async def get_hint(
+        self, scope: IdempotencyScope, *, at: datetime
+    ) -> StoredHintResult | None:
+        result = self._hint_results.get(scope)
+        if result is not None and result.expires_at <= at:
+            del self._hint_results[scope]
+            return None
+        return deepcopy(result) if result is not None else None
+
+    async def put_hint(
+        self, scope: IdempotencyScope, result: StoredHintResult
+    ) -> None:
+        existing = self._hint_results.get(scope)
+        if existing is not None and existing != result:
+            raise RepositoryConflict("idempotency result already exists")
+        self._hint_results[scope] = deepcopy(result)
 
 
 class InMemoryTransactionManager:

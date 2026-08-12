@@ -2,9 +2,10 @@
 
 ## Goal / status
 
-Partial but integration-ready - Role 3 has created schema-first P0 mission
-fixtures, deterministic evidence responses, a bounded coach output contract and
-an eval gate for the two demo missions.
+Integration-ready draft - Role 3 has created schema-first P0 mission fixtures,
+deterministic evidence responses, a bounded coach output contract and an eval
+gate for the two demo missions. The branch has been merged with `origin/main`
+through ADR-009 and the deterministic fixture reader/provider work.
 
 ## Changed
 
@@ -27,8 +28,9 @@ an eval gate for the two demo missions.
 - `evals/coach/p0-eval-cases.json`: release thresholds and critical eval cases.
 - `evals/coach/run_gate.py`: executable threshold gate for coach/model run
   results.
-- `services/api/tests/test_contract.py`, `test_mission_fixtures.py`, and
-  `test_coach_evals.py`: contract/fixture/eval guard tests.
+- `services/api/tests/test_contract.py`, `test_mission_fixtures.py`,
+  `test_mission_fixture_reader.py`, `test_deterministic_evidence_provider.py`
+  and `test_coach_evals.py`: contract/fixture/reader/provider/eval guard tests.
 
 ## Contracts and decisions
 
@@ -40,9 +42,12 @@ an eval gate for the two demo missions.
   must not require live Crossref/OpenAlex/search/C2PA calls.
 - Coach output must validate against `contracts/coach-output.schema.json` before
   learner display.
-- No OpenAPI endpoint shape changed.
+- OpenAPI evidence-action shape follows ADR-009: evidence-action requests carry
+  `version`, evidence results carry `attemptVersion`, hints do not advance
+  `Attempt.version`, and completion is atomic.
 - ADR-008 remains the source of truth for foreign attempts, guest auth,
-  idempotency retention and `reflected`.
+  idempotency retention and `testsCriticalIgnoring`; ADR-009 supersedes its
+  earlier checkpoint wording for `reflected`.
 
 ## Safety and data
 
@@ -64,8 +69,8 @@ an eval gate for the two demo missions.
 - `python3 -m json.tool content/p0-demo-pack/missions/authentic-media-wrong-context.json`
 - `python3 -m json.tool content/p0-demo-pack/missions/ai-citation-integrity.json`
 - `python3 -m json.tool evals/coach/p0-eval-cases.json`
-- `python3 -m pytest services/api -q -p no:cacheprovider` - 113 passed.
-- `python3 -m pytest services/api --collect-only -q` - 113 tests collected.
+- `python3 -m pytest services/api -q -p no:cacheprovider` - 128 passed.
+- `python3 -m pytest services/api --collect-only -q` - 128 tests collected.
 
 ## Risks / assumptions
 
@@ -76,7 +81,8 @@ an eval gate for the two demo missions.
   harness that produces those results still needs to plug into it.
 - JSON Schema validation is wired through the `services/api[test]` dependency
   set with date-time/URI format checking for the manifest and both P0 mission
-  fixtures.
+  fixtures. The reader also rejects duplicate JSON properties, hash mismatches,
+  duplicate mission versions and paths outside the reviewed missions folder.
 - Semantic fixture tests enforce unique action/evidence IDs, ordered hint/rubric
   levels, non-inverted confidence ranges and duplicate-free coach eval results.
 - Mission fixtures now expose explicit presentation accessibility fields and
@@ -91,10 +97,10 @@ an eval gate for the two demo missions.
 
 ## Next
 
-- Role 2: implement `MissionPolicyReader` against
-  `contracts/mission-fixture.schema.json` and deterministic evidence-action
-  responses. Acceptance: reads both fixtures, pins mission version, maps
-  `testsCriticalIgnoring`, and never calls a live provider in demo mode.
+- Role 2: wire the deterministic evidence provider into the evidence-action use
+  case while preserving ADR-009 version checks. Acceptance: reads both fixtures,
+  pins mission version, maps `testsCriticalIgnoring`, returns `attemptVersion`
+  and never calls a live provider in demo mode.
 - Role 1: render mission claim/media/actions/hints from fixtures. Acceptance:
   both missions are playable with accessible alt text and no binary truth cues.
 - Role 4: map rubric/skill tags into XP/progression rules without letting AI

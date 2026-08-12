@@ -67,6 +67,7 @@ class MissionResponse(BaseModel):
     evidenceActions: list[EvidenceActionResponse]
     skillTags: list[str]
     testsCriticalIgnoring: bool = False
+    minimumCompletionEvidence: int = Field(ge=0, le=6)
 
 
 def catalog_reader(request: Request) -> PublicCatalogReader:

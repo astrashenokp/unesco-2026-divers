@@ -133,6 +133,9 @@ class FileMissionPolicyReader:
             ],
             "skillTags": list(mission["learning"]["skillTags"]),
             "testsCriticalIgnoring": mission["testsCriticalIgnoring"],
+            "minimumCompletionEvidence": mission["rubric"][
+                "minimumCompletionEvidence"
+            ],
         }
 
     def _load_missions(

@@ -138,11 +138,13 @@ class _MissionScreenState extends State<MissionScreen> {
     }, Strings.of(context).askCoach);
   }
 
-  /// Mirrors the server rule: a conclusion needs at least one evidence
-  /// action, unless this mission version is deliberately testing whether
-  /// the learner concludes without investigating (ADR-008).
+  /// Mirrors the server-pinned mission policy: a conclusion needs the
+  /// mission's minimum evidence actions, unless this mission version is
+  /// deliberately testing whether the learner concludes without
+  /// investigating (ADR-008).
   bool get _canConclude =>
-      _collected.isNotEmpty || (_mission?.testsCriticalIgnoring ?? false);
+      (_mission?.testsCriticalIgnoring ?? false) ||
+      _collected.length >= (_mission?.minimumCompletionEvidence ?? 1);
 
   Future<void> _submitConclusion() async {
     final attempt = _attempt;

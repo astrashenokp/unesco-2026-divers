@@ -74,6 +74,16 @@ def test_operation_ids_are_unique() -> None:
     assert len(operation_ids) == len(set(operation_ids))
 
 
+def test_public_mission_contract_exposes_completion_evidence_policy() -> None:
+    mission_schema = load_contract()["components"]["schemas"]["Mission"]
+
+    assert "minimumCompletionEvidence" in mission_schema["required"]
+    minimum = mission_schema["properties"]["minimumCompletionEvidence"]
+    assert minimum["type"] == "integer"
+    assert minimum["minimum"] == 0
+    assert minimum["maximum"] == 6
+
+
 def test_every_mutation_requires_idempotency_key() -> None:
     contract = load_contract()
     expected_reference = "#/components/parameters/IdempotencyKey"

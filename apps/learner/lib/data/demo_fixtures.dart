@@ -135,6 +135,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       reactions: const ['trust', 'suspicious', 'investigate'],
       evidenceActions: [citation, source, others],
       skillTags: const ['citation_integrity', 'primary_source', 'uncertainty'],
+      minimumCompletionEvidence: 3,
     ),
     'context-swap': Mission(
       id: 'context-swap',

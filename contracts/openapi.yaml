@@ -227,7 +227,7 @@ components:
     Mission:
       type: object
       additionalProperties: false
-      required: [id, version, title, claim, media, accessibility, reactions, evidenceActions, skillTags]
+      required: [id, version, title, claim, media, accessibility, reactions, evidenceActions, skillTags, minimumCompletionEvidence]
       properties:
         id: { type: string }
         version: { type: string }
@@ -256,6 +256,10 @@ components:
               label: { type: string }
         skillTags: { type: array, items: { type: string } }
         testsCriticalIgnoring: { type: boolean, default: false }
+        minimumCompletionEvidence:
+          type: integer
+          minimum: 0
+          maximum: 6
     Accessibility:
       type: object
       additionalProperties: false

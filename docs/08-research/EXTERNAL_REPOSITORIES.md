@@ -38,6 +38,51 @@ Checked 2026-08-12. These are candidate sources for animation and layout techniq
 
 Copying is a licensing act, so it needs the same discipline as any dependency: record what was taken and from where in `THIRD_PARTY_NOTICES.md`, preserve the copyright notice, and mark adaptations. Prefer learning the technique and writing our own widget — our components carry semantics, reduced-motion paths and design tokens that none of these samples have, so a verbatim copy usually has to be rewritten anyway.
 
+## Second batch, triaged 2026-08-12
+
+Eight more candidates. Four are not usable here at all, and saying so is
+the useful part — three of them are React/React-Native/PHP component
+libraries whose code cannot cross into Flutter, and one is a blog theme.
+
+| Repository | Licence | Verdict |
+|---|---|---|
+| [home-assistant/frontend](https://github.com/home-assistant/frontend) | Apache-2.0 (GitHub reports NOASSERTION; `LICENSE.md` is Apache 2.0) | **Read it.** A large production app with unusually disciplined keyboard navigation, focus management and 60-plus-language i18n. Patterns transfer even though the code cannot. |
+| [mui/base-ui](https://github.com/mui/base-ui) | MIT | **Read it.** Headless components built accessibility-first; its focus-trap, roving-tabindex and dialog semantics are worth copying as *behaviour*. React, so no code moves. |
+| [SillyTavern/SillyTavern](https://github.com/SillyTavern/SillyTavern) | **AGPL-3.0** | **Do not copy anything.** See the warning below. |
+| [RVC-Project/…-Voice-Conversion-WebUI](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI) | MIT | **Subject matter, not a dependency.** This is voice-cloning software — precisely the capability a synthetic-audio mission would teach learners to reason about. Useful for understanding what learners face; never shipped in the product. |
+| [Rexios80/flutter_cors](https://github.com/Rexios80/flutter_cors) | BSD-3-Clause | **Not needed.** See below. |
+| [GeekyAnts/NativeBase](https://github.com/GeekyAnts/NativeBase) | MIT | Not applicable — React Native components, and archived-in-practice (last push 2026-01, superseded by gluestack). |
+| [oswaldoacauan/ghostium](https://github.com/oswaldoacauan/ghostium) | MIT | Not applicable — a Ghost blog theme, unmaintained since 2022. |
+| [symfony/ux](https://github.com/symfony/ux) | MIT | Not applicable — PHP/Symfony front-end integration. |
+
+### SillyTavern: an AGPL trap worth naming
+
+AGPL-3.0 is copyleft that reaches across a network. Copying SillyTavern
+code into this project would oblige us to release the **entire** work
+under AGPL — including `services/api`, because the server would be
+conveying AGPL-derived code to users over a network. That is a decision
+with legal and partnership consequences (`docs/12-governance/LICENSE_DECISION.md`
+is still open), not a detail to discover after the fact.
+
+Reading it for ideas is fine and costs nothing. Its persona/character
+presentation is the nearest thing in this list to what Lupa does. Take
+the idea, write the widget.
+
+### flutter_cors: solved by the SDK already
+
+Its purpose — letting a locally-served Flutter web app call an API on
+another origin during development — is covered by a built-in flag:
+
+```
+flutter run -d chrome --web-browser-flag=--disable-web-security
+```
+
+`flutter_cors` instead **patches files inside the Flutter SDK**, which
+survives across projects, breaks on SDK upgrade, and was last updated in
+2023. The built-in flag is scoped to one run and leaves nothing behind.
+Neither is a substitute for the server sending correct CORS headers in
+any environment that is not a developer's laptop.
+
 ## Public APIs shortlist policy
 
 Prefer official primary providers already justified in raw research: Crossref/OpenAlex for metadata, Google Fact Check/ClaimReview for discovery, C2PA SDK/spec for provenance. Every adapter needs ToS/license/privacy/quota/SLA/retention/residency/commercial-use review, timeout/cache/circuit/fallback and contract tests.

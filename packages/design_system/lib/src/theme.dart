@@ -139,7 +139,13 @@ ThemeData buildEvidenceGymTheme({Brightness brightness = Brightness.light}) {
       // Enough lift to separate a card from the textured ground without
       // the heavy drop-shadow look Material defaults to.
       elevation: 0,
-      shadowColor: tokens.textPrimary.withValues(alpha: 0.18),
+      // The light theme's ink, in both themes. This read
+      // `tokens.textPrimary`, which is near-white on dark — every card
+      // would have cast a white glow the moment anything raised its
+      // elevation above zero. A shadow darkens; it is not a themed
+      // colour. Same reasoning as Lupa's contact shadow.
+      shadowColor:
+          EvidenceGymTokens.standard.textPrimary.withValues(alpha: 0.18),
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.space(2.25)),

@@ -1,5 +1,6 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 import '../../data/api_client.dart';
 import '../../data/mission_repository.dart';
@@ -98,7 +99,11 @@ class _MissionScreenState extends State<MissionScreen> {
         ),
       );
       _attempt = updated;
-      if (mounted) setState(() => _step = _Step.investigating);
+      if (!mounted) return;
+      setState(() => _step = _Step.investigating);
+      // After setState, not before: _announceStep reads _step, so
+      // announcing first names the stage being left.
+      _announceStep(Strings.of(context));
     }, Strings.of(context).busyPrediction);
   }
 
@@ -169,7 +174,11 @@ class _MissionScreenState extends State<MissionScreen> {
       );
       _receiptId = result.receiptId;
       _xpAwarded = result.xpAwarded;
-      if (mounted) setState(() => _step = _Step.receipt);
+      if (!mounted) return;
+      setState(() => _step = _Step.receipt);
+      // After setState, not before: _announceStep reads _step, so
+      // announcing first names the stage being left.
+      _announceStep(Strings.of(context));
     }, Strings.of(context).busyConclusion);
   }
 
@@ -296,6 +305,26 @@ class _MissionScreenState extends State<MissionScreen> {
     );
   }
 
+  /// Names the stage the learner has just arrived at.
+  ///
+  /// The stages swap in place, so there is no route change for assistive
+  /// technology to notice and nothing moves focus. Without this a screen
+  /// reader user submits a prediction and hears silence, then finds
+  /// themselves somewhere unexplained.
+  void _announceStep(Strings s) {
+    final name = switch (_step) {
+      _Step.prediction => s.stepPrediction,
+      _Step.investigating => s.stepInvestigating,
+      _Step.conclusion => s.stepConclusion,
+      _Step.receipt => s.stepReceipt,
+    };
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      s.stepArrived(name),
+      Directionality.of(context),
+    );
+  }
+
   Widget _buildStep(Mission mission, Strings s) {
     final wide = formFactorOf(context).isWide;
     return AnimatedSwitcher(
@@ -337,7 +366,10 @@ class _MissionScreenState extends State<MissionScreen> {
             hint: _hint,
             onAskCoach: _askCoach,
             canConclude: _canConclude,
-            onConclude: () => setState(() => _step = _Step.conclusion),
+            onConclude: () {
+              setState(() => _step = _Step.conclusion);
+              _announceStep(s);
+            },
           ),
         _Step.conclusion => _ConclusionStep(
             key: const ValueKey('conclusion'),
@@ -657,14 +689,26 @@ class _InvestigatingStep extends StatelessWidget {
               ],
             ),
             SizedBox(height: tokens.space(1)),
-            for (final (index, result) in collected.values.indexed)
-              RevealOnScroll(
-                delayIndex: index,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: tokens.space(1.5)),
-                  child: _EvidenceCard(result: result),
-                ),
+            // The findings are the whole payoff of tapping a check, and
+            // they arrive in place with nothing to draw attention to
+            // them. Without this the button appears to do nothing to a
+            // screen-reader user, which is the same as it not working.
+            Semantics(
+              liveRegion: true,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final (index, result) in collected.values.indexed)
+                    RevealOnScroll(
+                      delayIndex: index,
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: tokens.space(1.5)),
+                        child: _EvidenceCard(result: result),
+                      ),
+                    ),
+                ],
               ),
+            ),
             // Two or more findings can disagree, and a list hides that.
             if (collected.length > 1) ...[
               SizedBox(height: tokens.space(2)),
@@ -699,7 +743,12 @@ class _InvestigatingStep extends StatelessWidget {
           // The coach is opt-in and sits below the evidence, never above
           // it: the learner should reach for their own checks first.
           if (hint != null) ...[
-            CoachBubble(
+            // Same reason as the evidence block: the answer appears
+            // below the button that asked for it, and nothing announces
+            // that it arrived.
+            Semantics(
+              liveRegion: true,
+              child: CoachBubble(
               text: s.hintText(hint!.text),
               uncertainty: hint!.uncertainty,
               aiLabel: s.aiCoachLabel,
@@ -709,6 +758,7 @@ class _InvestigatingStep extends StatelessWidget {
               rungLabel: s.hintLevel(hint!.level),
               exhaustedLabel: s.hintExhausted,
               level: hint!.level,
+              ),
             ),
             SizedBox(height: tokens.space(2)),
           ],

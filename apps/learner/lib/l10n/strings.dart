@@ -203,6 +203,17 @@ class Strings {
   String get startInvestigating => _s('Start investigating', 'Почати перевірку');
   String get investigateTitle => _s('Investigate', 'Перевірка');
   String get whatYouFound => _s('What you found', 'Що ти знайшла');
+
+  /// Spoken when the mission moves to a new stage.
+  ///
+  /// The stages swap in place inside an AnimatedSwitcher, so a screen
+  /// reader user is left parked on a widget that no longer exists and is
+  /// never told the mission moved on.
+  String stepArrived(String step) => _s('Step: $step', 'Крок: $step');
+  String get stepPrediction => _s('First impression', 'Перше враження');
+  String get stepInvestigating => _s('Investigate', 'Перевірка');
+  String get stepConclusion => _s('Conclusion', 'Висновок');
+  String get stepReceipt => _s('Evidence receipt', 'Квитанція доказів');
   String get howItConnects => _s('How it connects', "Як це пов'язано");
   String get theClaim => _s('The claim', 'Твердження');
 

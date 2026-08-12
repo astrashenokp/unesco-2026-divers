@@ -135,26 +135,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       // ListTile's InkWell carries the tap action but
                       // never sets the button flag. This is the node that
                       // actually declares the role.
-                      child: Semantics(
-                        button: true,
-                        child: ListTile(
-                          leading: Icon(Icons.receipt_long_outlined,
-                              color: tokens.evidencePrimary),
-                          title: Text(s.receiptNumbered(index + 1)),
-                          subtitle: Text(
-                            s.formatDateTime(receipt.createdAt),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => ReceiptScreen(
-                                repository: widget.repository,
-                                receiptId: receipt.id,
+                      child: Builder(builder: (context) {
+                        void open() => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => ReceiptScreen(
+                                  repository: widget.repository,
+                                  receiptId: receipt.id,
+                                ),
                               ),
+                            );
+                        // The role and the action go on the same node.
+                        // Declaring `button: true` here while the action
+                        // lives on the ListTile's InkWell below leaves a
+                        // node that announces as a button and does
+                        // nothing when activated — the exact defect
+                        // semantics_test.dart was written to catch.
+                        return Semantics(
+                          button: true,
+                          onTap: open,
+                          child: ListTile(
+                            leading: Icon(Icons.receipt_long_outlined,
+                                color: tokens.evidencePrimary),
+                            title: Text(s.receiptNumbered(index + 1)),
+                            subtitle: Text(
+                              s.formatDateTime(receipt.createdAt),
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
+                            onTap: open,
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                     ),
                   ),
               SizedBox(height: tokens.space(3)),

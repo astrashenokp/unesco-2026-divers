@@ -6,6 +6,8 @@ from hashlib import sha256
 import json
 
 from evidence_gym_api.identity.model import Principal
+from evidence_gym_api.evidence.model import EvidenceResult
+from evidence_gym_api.evidence.ports import DeterministicEvidenceProvider
 from evidence_gym_api.learning.attempt import Attempt, Confidence, Prediction, Reaction
 from evidence_gym_api.learning.errors import (
     AttemptAccessDenied,
@@ -18,10 +20,13 @@ from evidence_gym_api.learning.ports import (
     AttemptIdGenerator,
     AttemptRepository,
     Clock,
+    EvidenceActionResult,
+    EvidenceIdempotencyRepository,
     IdempotencyRepository,
     IdempotencyScope,
     MissionPolicyReader,
     StoredAttemptResult,
+    StoredEvidenceResult,
     TransactionManager,
 )
 from evidence_gym_api.learning.value_objects import (
@@ -179,3 +184,77 @@ class SubmitPrediction:
                 ),
             )
             return attempt
+
+
+@dataclass(frozen=True, slots=True)
+class UseEvidenceActionCommand:
+    attempt_id: AttemptId
+    action_id: str
+    input: dict[str, object]
+    version: int
+    idempotency_key: IdempotencyKey
+
+
+class UseEvidenceAction:
+    def __init__(
+        self,
+        attempts: AttemptRepository,
+        evidence: DeterministicEvidenceProvider,
+        idempotency: EvidenceIdempotencyRepository,
+        transactions: TransactionManager,
+        clock: Clock,
+    ) -> None:
+        self._attempts = attempts
+        self._evidence = evidence
+        self._idempotency = idempotency
+        self._transactions = transactions
+        self._clock = clock
+
+    async def execute(
+        self, principal: Principal, command: UseEvidenceActionCommand
+    ) -> EvidenceActionResult:
+        fingerprint = _fingerprint(
+            {
+                "attemptId": command.attempt_id.value,
+                "actionId": command.action_id,
+                "input": command.input,
+                "version": command.version,
+            }
+        )
+        scope = IdempotencyScope(
+            principal.subject,
+            "/attempts/{attemptId}/evidence-actions",
+            command.idempotency_key,
+        )
+        async with self._transactions.transaction():
+            now = self._clock.now()
+            stored = await self._idempotency.get_evidence(scope, at=now)
+            if stored is not None:
+                if stored.request_fingerprint != fingerprint:
+                    raise IdempotencyConflict(
+                        "idempotency key was reused with another request"
+                    )
+                return stored.result
+
+            attempt = await self._attempts.get(command.attempt_id)
+            if attempt is None:
+                raise AttemptNotFound("attempt does not exist")
+            if attempt.learner_id != principal.subject:
+                raise AttemptAccessDenied("attempt belongs to another learner")
+            if attempt.version != command.version:
+                raise StaleAttemptVersion("attempt version is stale")
+
+            result = await self._evidence.get_result(
+                attempt.mission_id, attempt.mission_version, command.action_id
+            )
+            expected_version = attempt.version
+            attempt.record_evidence_action(result.action_id)
+            await self._attempts.save(attempt, expected_version=expected_version)
+            response = EvidenceActionResult(result, attempt.version)
+            await self._idempotency.put_evidence(
+                scope,
+                StoredEvidenceResult(
+                    fingerprint, response, now + IDEMPOTENCY_RETENTION
+                ),
+            )
+            return response

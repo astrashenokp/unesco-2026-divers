@@ -1,10 +1,11 @@
-# Role 4 persistence handoff: attempts and predictions
+# Role 4 persistence handoff: attempts, predictions, and evidence actions
 
 ## Goal / status
 
 Ready for persistence implementation — Role 2 has defined the domain invariants,
 repository behavior, authorization checks, idempotency semantics, optimistic
-versioning and transaction intent for `StartAttempt` and `SubmitPrediction`.
+versioning and transaction intent for `StartAttempt`, `SubmitPrediction`, and
+`UseEvidenceAction`.
 
 ## Changed
 
@@ -23,6 +24,7 @@ objects into the domain:
 - `AttemptRepository.get/add/save`
 - `MissionPolicyReader.get_policy`
 - `IdempotencyRepository.get/put`
+- `EvidenceIdempotencyRepository.get_evidence/put_evidence`
 - `TransactionManager.transaction`
 
 Required invariants:
@@ -40,6 +42,10 @@ Required invariants:
   idempotency-result insert share one transaction.
 - `SubmitPrediction`: idempotency lookup, attempt ownership/version validation,
   attempt update and idempotency-result insert share one transaction.
+- `UseEvidenceAction`: evidence idempotency lookup, attempt ownership/version
+  validation, deterministic provider result, attempt update and the complete
+  evidence-response snapshot insert share one transaction. A provider failure
+  must not mutate the attempt or create an idempotency record.
 
 The physical schema, constraints, indexes, migration order, isolation/locking
 strategy and recovery procedure remain Role 4 decisions. The implementation must

@@ -22,6 +22,10 @@ from evidence_gym_api.learning.errors import (
     StaleAttemptVersion,
 )
 from evidence_gym_api.problem import ApiProblem, problem_response
+from evidence_gym_api.evidence.errors import (
+    EvidenceActionNotFound,
+    EvidenceMissionNotFound,
+)
 from evidence_gym_api.trace import TRACE_ID_HEADER, get_trace_id, normalize_trace_id
 
 
@@ -114,6 +118,19 @@ def create_app(
             code="mission-version-unavailable",
             title="Mission version unavailable",
             detail="The exact mission version cannot be started.",
+        )
+        return problem_response(problem, get_trace_id(request))
+
+    @app.exception_handler(EvidenceActionNotFound)
+    @app.exception_handler(EvidenceMissionNotFound)
+    async def handle_evidence_not_found(
+        request: Request, exc: EvidenceActionNotFound | EvidenceMissionNotFound
+    ) -> JSONResponse:
+        problem = ApiProblem(
+            status=404,
+            code="evidence-action-not-found",
+            title="Evidence action not found",
+            detail="The evidence action was not found for this mission.",
         )
         return problem_response(problem, get_trace_id(request))
 

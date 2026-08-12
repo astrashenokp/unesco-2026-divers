@@ -13,6 +13,7 @@ from evidence_gym_api.learning.ports import (
     IdempotencyScope,
     MissionPolicy,
     StoredAttemptResult,
+    StoredEvidenceResult,
 )
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
@@ -65,6 +66,7 @@ class SequentialAttemptIdGenerator:
 class InMemoryIdempotencyRepository:
     def __init__(self) -> None:
         self._results: dict[IdempotencyScope, StoredAttemptResult] = {}
+        self._evidence_results: dict[IdempotencyScope, StoredEvidenceResult] = {}
 
     async def get(
         self, scope: IdempotencyScope, *, at: datetime
@@ -82,6 +84,23 @@ class InMemoryIdempotencyRepository:
         if existing is not None and existing != result:
             raise RepositoryConflict("idempotency result already exists")
         self._results[scope] = deepcopy(result)
+
+    async def get_evidence(
+        self, scope: IdempotencyScope, *, at: datetime
+    ) -> StoredEvidenceResult | None:
+        result = self._evidence_results.get(scope)
+        if result is not None and result.expires_at <= at:
+            del self._evidence_results[scope]
+            return None
+        return deepcopy(result) if result is not None else None
+
+    async def put_evidence(
+        self, scope: IdempotencyScope, result: StoredEvidenceResult
+    ) -> None:
+        existing = self._evidence_results.get(scope)
+        if existing is not None and existing != result:
+            raise RepositoryConflict("idempotency result already exists")
+        self._evidence_results[scope] = deepcopy(result)
 
 
 class InMemoryTransactionManager:

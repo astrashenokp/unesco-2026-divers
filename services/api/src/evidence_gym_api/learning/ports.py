@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Protocol
 
 from evidence_gym_api.learning.attempt import Attempt
+from evidence_gym_api.evidence.model import EvidenceResult
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
     IdempotencyKey,
@@ -36,6 +37,19 @@ class StoredAttemptResult:
     expires_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class EvidenceActionResult:
+    evidence: EvidenceResult
+    attempt_version: int
+
+
+@dataclass(frozen=True, slots=True)
+class StoredEvidenceResult:
+    request_fingerprint: str
+    result: EvidenceActionResult
+    expires_at: datetime
+
+
 class AttemptRepository(Protocol):
     async def get(self, attempt_id: AttemptId) -> Attempt | None: ...
 
@@ -61,6 +75,16 @@ class IdempotencyRepository(Protocol):
 
     async def put(
         self, scope: IdempotencyScope, result: StoredAttemptResult
+    ) -> None: ...
+
+
+class EvidenceIdempotencyRepository(Protocol):
+    async def get_evidence(
+        self, scope: IdempotencyScope, *, at: datetime
+    ) -> StoredEvidenceResult | None: ...
+
+    async def put_evidence(
+        self, scope: IdempotencyScope, result: StoredEvidenceResult
     ) -> None: ...
 
 

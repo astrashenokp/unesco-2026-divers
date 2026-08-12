@@ -9,7 +9,13 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from evidence_gym_api.identity.dependencies import current_principal
 from evidence_gym_api.identity.model import Principal
-from evidence_gym_api.learning.attempt import Attempt, Confidence, Reaction
+from evidence_gym_api.learning.attempt import (
+    Attempt,
+    AxisAssessment,
+    Confidence,
+    Reaction,
+    ShareDecision,
+)
 from evidence_gym_api.learning.use_cases import (
     StartAttempt,
     StartAttemptCommand,
@@ -19,8 +25,10 @@ from evidence_gym_api.learning.use_cases import (
     UseEvidenceActionCommand,
     RequestHint,
     RequestHintCommand,
+    CompleteAttempt,
+    CompleteAttemptCommand,
 )
-from evidence_gym_api.learning.ports import EvidenceActionResult
+from evidence_gym_api.learning.ports import CompletionResult, EvidenceActionResult
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
     IdempotencyKey,
@@ -38,6 +46,7 @@ class LearningServices:
     submit_prediction: SubmitPrediction
     use_evidence_action: UseEvidenceAction | None = None
     request_hint: RequestHint | None = None
+    complete_attempt: CompleteAttempt | None = None
 
 
 class StartAttemptBody(BaseModel):
@@ -109,6 +118,62 @@ class HintResponse(BaseModel):
     uncertainty: str
     safetyFlags: list[str]
     fallback: bool
+
+
+class AxisAssessmentBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    label: str = Field(min_length=1)
+    confidence: int = Field(ge=0, le=100)
+
+    def to_domain(self) -> AxisAssessment:
+        return AxisAssessment(self.label, Confidence.known(self.confidence))
+
+
+class ConclusionBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    authenticity: AxisAssessmentBody
+    claimVeracity: AxisAssessmentBody
+    contextIntegrity: AxisAssessmentBody
+    postConfidence: int = Field(ge=0, le=100)
+    shareDecision: ShareDecision
+    version: int = Field(ge=1)
+
+
+class SkillProgressResponse(BaseModel):
+    skill: str
+    mastery: float = Field(ge=0, le=1)
+    dueAt: datetime | None = None
+
+
+class ProgressResponse(BaseModel):
+    totalXp: int = Field(ge=0)
+    skills: list[SkillProgressResponse]
+
+
+class CompletionResponse(BaseModel):
+    receiptId: str
+    xpAwarded: int = Field(ge=0)
+    progress: ProgressResponse
+
+    @classmethod
+    def from_domain(cls, result: CompletionResult) -> "CompletionResponse":
+        return cls(
+            receiptId=result.receipt_id,
+            xpAwarded=result.xp_awarded,
+            progress=ProgressResponse(
+                totalXp=result.progress.total_xp,
+                skills=[
+                    SkillProgressResponse(
+                        skill=item.skill,
+                        mastery=item.mastery,
+                        dueAt=item.due_at,
+                    )
+                    for item in result.progress.skills
+                ],
+            ),
+        )
 
 
 class AttemptResponse(BaseModel):
@@ -267,3 +332,38 @@ async def request_hint(
         safetyFlags=list(hint.safety_flags),
         fallback=hint.fallback,
     )
+
+
+@router.post(
+    "/attempts/{attemptId}/conclusion",
+    operation_id="completeAttempt",
+    response_model=CompletionResponse,
+)
+async def complete_attempt(
+    attemptId: str,
+    body: ConclusionBody,
+    idempotency_key: IdempotencyHeader,
+    principal: PrincipalDependency,
+    services: ServicesDependency,
+) -> CompletionResponse:
+    if services.complete_attempt is None:
+        raise ApiProblem(
+            status=503,
+            code="completion-service-unavailable",
+            title="Service not ready",
+            detail="Completion services are unavailable.",
+        )
+    result = await services.complete_attempt.execute(
+        principal,
+        CompleteAttemptCommand(
+            attempt_id=AttemptId(attemptId),
+            authenticity=body.authenticity.to_domain(),
+            claim_veracity=body.claimVeracity.to_domain(),
+            context_integrity=body.contextIntegrity.to_domain(),
+            post_confidence=Confidence.known(body.postConfidence),
+            share_decision=body.shareDecision,
+            version=body.version,
+            idempotency_key=IdempotencyKey(idempotency_key),
+        ),
+    )
+    return CompletionResponse.from_domain(result)

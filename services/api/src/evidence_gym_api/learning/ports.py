@@ -19,6 +19,7 @@ from evidence_gym_api.learning.value_objects import (
 if TYPE_CHECKING:
     from evidence_gym_api.coach.model import CoachHint
     from evidence_gym_api.evidence.model import EvidenceResult
+    from evidence_gym_api.learning.attempt import Conclusion
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,6 +61,33 @@ class StoredEvidenceResult:
 class StoredHintResult:
     request_fingerprint: str
     result: CoachHint
+    expires_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class SkillProgress:
+    skill: str
+    mastery: float
+    due_at: datetime | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ProgressResult:
+    total_xp: int
+    skills: tuple[SkillProgress, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class CompletionResult:
+    receipt_id: str
+    xp_awarded: int
+    progress: ProgressResult
+
+
+@dataclass(frozen=True, slots=True)
+class StoredCompletionResult:
+    request_fingerprint: str
+    result: CompletionResult
     expires_at: datetime
 
 
@@ -109,6 +137,29 @@ class HintIdempotencyRepository(Protocol):
     async def put_hint(
         self, scope: IdempotencyScope, result: StoredHintResult
     ) -> None: ...
+
+
+class CompletionIdempotencyRepository(Protocol):
+    async def get_completion(
+        self, scope: IdempotencyScope, *, at: datetime
+    ) -> StoredCompletionResult | None: ...
+
+    async def put_completion(
+        self, scope: IdempotencyScope, result: StoredCompletionResult
+    ) -> None: ...
+
+
+class AtomicCompletionWriter(Protocol):
+    """Persist attempt, receipt, XP, progress and outbox as one unit."""
+
+    async def complete(
+        self,
+        attempt: Attempt,
+        conclusion: Conclusion,
+        *,
+        expected_version: int,
+        completed_at: datetime,
+    ) -> CompletionResult: ...
 
 
 class TransactionManager(Protocol):

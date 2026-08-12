@@ -117,7 +117,7 @@
           {
             "evidenceId": "E-ORIGINAL-CAPTION",
             "type": "source_note",
-            "title": "USGS source page places the photo in Brooklyn, NY during a 2023 storm",
+            "title": "USGS source page places the photo in the Gowanus neighbourhood of Brooklyn, NY, September 2023",
             "sourceUrl": "https://www.usgs.gov/media/images/abandoned-cars-a-flooded-street-brooklyn-ny",
             "retrievedAt": "2026-08-12T00:00:00Z",
             "verificationStatus": "curated"
@@ -234,7 +234,7 @@
       {
         "evidenceId": "E-ORIGINAL-CAPTION",
         "type": "source_note",
-        "title": "USGS source page places the photo in Brooklyn, NY during a 2023 storm",
+        "title": "USGS source page places the photo in the Gowanus neighbourhood of Brooklyn, NY, September 2023",
         "source": {
           "sourceType": "official",
           "publisher": "U.S. Geological Survey",
@@ -247,12 +247,12 @@
             "useBasis": "public_domain"
           },
           "limitations": [
-            "The source establishes the photo context as Brooklyn, not Munich."
+            "The source establishes the photo context as Gowanus, Brooklyn (September 2023), not Munich."
           ]
         },
         "claimRelationship": "contradicts",
         "limitations": [
-          "The Brooklyn 2023 record contradicts the Munich-right-now framing."
+          "The Gowanus, Brooklyn September 2023 record contradicts the Munich-right-now framing."
         ]
       },
       {

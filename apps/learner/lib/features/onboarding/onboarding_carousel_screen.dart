@@ -38,10 +38,14 @@ class _OnboardingCarouselScreenState extends State<OnboardingCarouselScreen> {
       _goToAuth();
       return;
     }
-    _controller.nextPage(
-      duration: context.tokens.motionSlow,
-      curve: Curves.easeOutCubic,
-    );
+    final duration = Motion.of(context, Motion.standard);
+    if (duration == Duration.zero) {
+      // jumpToPage rather than a zero-duration animateTo: the latter
+      // still schedules a frame of animation.
+      _controller.jumpToPage(_index + 1);
+      return;
+    }
+    _controller.nextPage(duration: duration, curve: Motion.curveStandard);
   }
 
   @override
@@ -99,7 +103,7 @@ class _OnboardingCarouselScreenState extends State<OnboardingCarouselScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           SizedBox(height: tokens.space(2)),
-                          Lupa(mood: slide.mood, size: 140),
+                          Lupa(mood: slide.mood, size: 140, semanticLabel: s.lupaLabel(slide.mood.name)),
                           SizedBox(height: tokens.space(3)),
                           Text(
                             slide.title,
@@ -127,7 +131,7 @@ class _OnboardingCarouselScreenState extends State<OnboardingCarouselScreen> {
                   children: [
                     for (var i = 0; i < slides.length; i++)
                       AnimatedContainer(
-                        duration: tokens.motionFast,
+                        duration: Motion.of(context, Motion.fast),
                         margin: EdgeInsets.symmetric(horizontal: tokens.space(0.5)),
                         width: i == _index ? 24 : 8,
                         height: 8,
@@ -174,7 +178,6 @@ class _LanguagePicker extends StatelessWidget {
       ],
       selected: {code},
       showSelectedIcon: false,
-      style: const ButtonStyle(visualDensity: VisualDensity.compact),
       onSelectionChanged: (selection) =>
           settings.locale = Locale(selection.first),
     );

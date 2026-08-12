@@ -457,21 +457,27 @@ class _ErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    return Container(
+    // liveRegion, like the busy banner beside it. Without it a failed
+    // evidence check announced nothing at all — the button simply went
+    // quiet and a screen-reader user had no idea why.
+    return Semantics(
+      liveRegion: true,
+      child: Container(
       width: double.infinity,
       margin: EdgeInsets.all(tokens.space(1)),
       padding: EdgeInsets.all(tokens.space(1.5)),
       decoration: BoxDecoration(
-        color: tokens.danger.withValues(alpha: 0.08),
-        border: Border.all(color: tokens.danger),
+        color: tokens.misleading.withValues(alpha: 0.08),
+        border: Border.all(color: tokens.misleading),
         borderRadius: BorderRadius.circular(tokens.space(1)),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: tokens.danger),
+          Icon(Icons.error_outline, color: tokens.misleading),
           SizedBox(width: tokens.space(1)),
           Expanded(child: Text(message)),
         ],
+      ),
       ),
     );
   }
@@ -490,7 +496,7 @@ class _BusyBanner extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: tokens.space(2), vertical: tokens.space(1)),
         child: Row(
           children: [
-            const ExcludeSemantics(child: Lupa(mood: LupaMood.thinking, size: 40, respondToTap: false)),
+            const Lupa(mood: LupaMood.thinking, size: 40, respondToTap: false),
             SizedBox(width: tokens.space(1)),
             Expanded(child: Text(message)),
           ],
@@ -563,6 +569,12 @@ class _PredictionStep extends StatelessWidget {
             onChanged: onConfidence,
           ),
           SizedBox(height: tokens.space(3)),
+          if (onSubmit == null)
+            Padding(
+              padding: EdgeInsets.only(bottom: tokens.space(1)),
+              child: Text(s.needReaction,
+                  style: Theme.of(context).textTheme.bodySmall),
+            ),
           ElevatedButton(onPressed: onSubmit, child: Text(s.startInvestigating)),
           SizedBox(height: tokens.space(2)),
         ],
@@ -795,6 +807,12 @@ class _ConclusionStep extends StatelessWidget {
             ],
           ),
           SizedBox(height: tokens.space(3)),
+          if (!canSubmit)
+            Padding(
+              padding: EdgeInsets.only(bottom: tokens.space(1)),
+              child: Text(s.needConclusion,
+                  style: Theme.of(context).textTheme.bodySmall),
+            ),
           ElevatedButton(
             onPressed: canSubmit ? onSubmit : null,
             child: Text(s.submitConclusion),

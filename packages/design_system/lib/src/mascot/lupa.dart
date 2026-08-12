@@ -33,6 +33,7 @@ class Lupa extends StatefulWidget {
     this.mood = LupaMood.idle,
     this.size = 96,
     this.respondToTap = true,
+    this.semanticLabel,
   });
 
   final LupaMood mood;
@@ -41,6 +42,13 @@ class Lupa extends StatefulWidget {
   /// Tapping triggers a hop. Disable where the mascot sits inside another
   /// tappable surface, so the two gestures don't compete.
   final bool respondToTap;
+
+  /// Localized description of the current mood. The design system holds
+  /// no strings, so callers supply it. When null the mascot is treated
+  /// as decoration and hidden from assistive technology — silence is
+  /// better than announcing English to a Ukrainian screen-reader user,
+  /// which is what a hardcoded default did.
+  final String? semanticLabel;
 
   @override
   State<Lupa> createState() => _LupaState();
@@ -113,14 +121,6 @@ class _LupaState extends State<Lupa> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  String _label(LupaMood mood) => switch (mood) {
-        LupaMood.idle => 'Lupa, your coach',
-        LupaMood.thinking => 'Lupa is thinking',
-        LupaMood.asking => 'Lupa is asking a question',
-        LupaMood.encouraging => 'Lupa is pleased with how you investigated',
-        LupaMood.concerned => 'Lupa noticed something went wrong',
-      };
-
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
@@ -143,14 +143,15 @@ class _LupaState extends State<Lupa> with TickerProviderStateMixin {
       },
     );
 
-    return Semantics(
-      label: _label(widget.mood),
-      child: ExcludeSemantics(
-        child: widget.respondToTap
-            ? GestureDetector(onTap: _onTap, behavior: HitTestBehavior.opaque, child: art)
-            : art,
-      ),
+    final body = ExcludeSemantics(
+      child: widget.respondToTap
+          ? GestureDetector(onTap: _onTap, behavior: HitTestBehavior.opaque, child: art)
+          : art,
     );
+
+    return widget.semanticLabel == null
+        ? body
+        : Semantics(label: widget.semanticLabel, child: body);
   }
 
   Widget _paint(double t, EvidenceGymTokens tokens) => SizedBox(

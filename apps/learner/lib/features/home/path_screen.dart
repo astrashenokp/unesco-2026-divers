@@ -295,7 +295,7 @@ class _PathMap extends StatelessWidget {
         padding: EdgeInsets.all(tokens.space(4)),
         child: Column(
           children: [
-            const Lupa(mood: LupaMood.thinking, size: 110),
+            Lupa(mood: LupaMood.thinking, size: 110, semanticLabel: s.lupaLabel('thinking')),
             SizedBox(height: tokens.space(2)),
             Text(
               s.pathEmpty,
@@ -442,7 +442,12 @@ class _PathStop extends StatelessWidget {
         PathNode(
           // Position is spoken, so a screen-reader user knows where they
           // are on the map without seeing it.
-          title: '${node.title}, ${s.nodePosition(index + 1, total, chapterTitle)}',
+          // The lock reason is spoken here because the only other copy
+          // lives inside an ExcludeSemantics block below — a blind
+          // learner heard "locked" and never why.
+          title: locked
+              ? '${node.title}, ${s.nodePosition(index + 1, total, chapterTitle)}, ${s.lockedReason}'
+              : '${node.title}, ${s.nodePosition(index + 1, total, chapterTitle)}',
           state: state,
           stateLabel: switch (state) {
             PathNodeState.locked => s.stateLocked,

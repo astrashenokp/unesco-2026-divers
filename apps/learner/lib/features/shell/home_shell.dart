@@ -63,7 +63,7 @@ class _HomeShellState extends State<HomeShell> {
     // Keyed so switching tabs rebuilds the body but Flutter still reuses
     // each page's state where it can.
     final body = AnimatedSwitcher(
-      duration: context.tokens.motionFast,
+      duration: Motion.of(context, Motion.fast),
       child: KeyedSubtree(key: ValueKey(_index), child: pages[_index]),
     );
 

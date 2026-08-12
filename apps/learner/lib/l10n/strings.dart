@@ -255,6 +255,33 @@ class Strings {
 
   // ----------------------------------------------------------------- coach
   String get aiCoachLabel => _s('AI coach', 'ШІ-коуч');
+
+  /// Spoken description of the mascot. The design system holds no
+  /// strings, so every Lupa is labelled from here.
+  String lupaLabel(String mood) => switch (mood) {
+        'thinking' => _s('Lupa is thinking', 'Лупа думає'),
+        'asking' => _s('Lupa is asking a question', 'Лупа ставить питання'),
+        'encouraging' => _s(
+            'Lupa is pleased with how you investigated',
+            'Лупа рада тому, як ти перевіряла',
+          ),
+        'concerned' => _s(
+            'Lupa noticed something went wrong',
+            'Лупа помітила, що щось пішло не так',
+          ),
+        _ => _s('Lupa, your coach', 'Лупа, твій коуч'),
+      };
+
+  String get tapForMore => _s('Tap for more', 'Торкнись, щоб більше');
+
+  // Why a primary action is unavailable. A disabled button with no
+  // explanation is a dead end.
+  String get needReaction =>
+      _s('Choose a first reaction to begin.', 'Обери перше відчуття, щоб почати.');
+  String get needConclusion => _s(
+        'Answer all three axes and choose whether you would share.',
+        'Дай відповідь за трьома осями і обери, чи поширила б ти це.',
+      );
   String uncertaintySentence(String level) => switch (level) {
         'low' => _s(
             'The coach is fairly sure this hint is useful — check it yourself anyway.',

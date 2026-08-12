@@ -1,6 +1,8 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
+import '../../l10n/strings.dart';
+
 /// One number in the path header: XP, streak, or today's goal.
 ///
 /// Read-only by design. The streak in particular is never presented as
@@ -98,6 +100,13 @@ class LupaGreeting extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) =>
-      LupaSpeech(lines: lines, mascotSize: size);
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    return LupaSpeech(
+      lines: lines,
+      mascotSize: size,
+      mascotLabel: s.lupaLabel('idle'),
+      moreHint: lines.length > 1 ? s.tapForMore : null,
+    );
+  }
 }

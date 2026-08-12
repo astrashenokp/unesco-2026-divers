@@ -85,7 +85,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Lupa(mood: LupaMood.idle, size: 96),
+                    Lupa(mood: LupaMood.idle, size: 96, semanticLabel: s.lupaLabel('idle')),
                     SizedBox(height: tokens.space(2)),
                     Text(
                       s.authTitle,

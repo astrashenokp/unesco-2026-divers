@@ -60,15 +60,20 @@ class SettingsScreen extends StatelessWidget {
 
           // ----------------------------------------------------- text size
           Text(s.textSizeLabel, style: Theme.of(context).textTheme.bodyLarge),
-          Semantics(
-            slider: true,
-            label: '${s.textSizeLabel} ${s.textSizePercent((settings.textScale * 100).round())}',
-            child: Slider(
+          // The Slider carries its own slider semantics; an outer
+          // Semantics node produced two announcements, the inner one
+          // reporting 0% while sitting at 100%. The label now comes from
+          // semanticFormatterCallback on the Slider itself, which is the
+          // one node assistive technology reads.
+          Builder(
+            builder: (context) => Slider(
               value: settings.textScale,
               min: 1.0,
               max: 2.0,
               divisions: 4,
               label: s.textSizePercent((settings.textScale * 100).round()),
+              semanticFormatterCallback: (v) =>
+                  '${s.textSizeLabel} ${s.textSizePercent((v * 100).round())}',
               onChanged: (v) => settings.textScale = v,
             ),
           ),

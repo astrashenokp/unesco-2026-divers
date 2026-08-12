@@ -35,13 +35,17 @@ ThemeData buildEvidenceGymTheme() {
     //
     // iOS and macOS keep the platform back-swipe transition, because
     // overriding it breaks the edge-swipe gesture people expect there.
+    //
+    // Each is wrapped so reduce-motion is honoured. Flutter does *not*
+    // do this for routes on its own — measured: a pushed route is still
+    // mid-animation 100ms in with disableAnimations set.
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
-        TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
-        TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.android: _CalmPageTransitionsBuilder(FadeForwardsPageTransitionsBuilder()),
+        TargetPlatform.iOS: _CalmPageTransitionsBuilder(CupertinoPageTransitionsBuilder()),
+        TargetPlatform.macOS: _CalmPageTransitionsBuilder(CupertinoPageTransitionsBuilder()),
+        TargetPlatform.windows: _CalmPageTransitionsBuilder(FadeForwardsPageTransitionsBuilder()),
+        TargetPlatform.linux: _CalmPageTransitionsBuilder(FadeForwardsPageTransitionsBuilder()),
       },
     ),
   );
@@ -125,5 +129,32 @@ class SectionRule extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+
+/// Delegates to [inner], unless the learner has asked for less motion —
+/// then the new route simply appears.
+///
+/// Flutter honours `disableAnimations` for implicit animations but not
+/// for route transitions, so without this a reduce-motion user still
+/// gets every push and pop animated.
+class _CalmPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _CalmPageTransitionsBuilder(this.inner);
+
+  final PageTransitionsBuilder inner;
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T>? route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (MediaQuery.maybeOf(context)?.disableAnimations ?? false) return child;
+    if (route == null) return child;
+    return inner.buildTransitions<T>(
+        route, context, animation, secondaryAnimation, child);
   }
 }

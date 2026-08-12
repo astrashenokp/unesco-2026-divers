@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import '../../data/mission_repository.dart';
 import '../../data/models.dart';
 import '../../l10n/strings.dart';
+import '../common/failure_view.dart';
 import '../receipt/receipt_screen.dart';
 
 /// Who the learner is here, and what the app holds about them.
@@ -30,6 +31,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _future = _load();
   }
+
+  void _retry() => setState(() => _future = _load());
 
   Future<({Progress progress, List<Receipt> receipts})> _load() async {
     final progress = await widget.repository.getMyProgress();
@@ -79,8 +82,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         }
 
-        final progress = snapshot.data?.progress ?? const Progress(totalXp: 0, skills: []);
-        final receipts = snapshot.data?.receipts ?? const <Receipt>[];
+        // Without this a failed load rendered as "Guest, 0 XP, no
+        // receipts" — a network error presented as an empty account.
+        if (snapshot.hasError) {
+          return FailureView(
+            error: snapshot.error,
+            onRetry: _retry,
+            isDemo: widget.repository.isDemo,
+          );
+        }
+
+        final progress = snapshot.data!.progress;
+        final receipts = snapshot.data!.receipts;
 
         return ReadableWidth(
           child: ListView(
@@ -88,7 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Row(
                 children: [
-                  const Lupa(mood: LupaMood.idle, size: 72),
+                  Lupa(mood: LupaMood.idle, size: 72, semanticLabel: s.lupaLabel('idle')),
                   SizedBox(width: tokens.space(2)),
                   Expanded(
                     child: Column(
@@ -117,6 +130,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     delayIndex: index,
                     child: Card(
                       child: ListTile(
+                        // ListTile with onTap is tappable but not
+                        // announced as a button without this.
+                        onFocusChange: null,
                         leading: Icon(Icons.receipt_long_outlined,
                             color: tokens.evidencePrimary),
                         title: Text(receipt.id),

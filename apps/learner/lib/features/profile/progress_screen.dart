@@ -63,7 +63,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               const SectionRule(),
               Row(
                 children: [
-                  const Lupa(mood: LupaMood.idle, size: 64),
+                  Lupa(mood: LupaMood.idle, size: 64, semanticLabel: s.lupaLabel('idle')),
                   SizedBox(width: tokens.space(2)),
                   Expanded(
                     child: Text(

@@ -22,6 +22,8 @@ an eval gate for the two demo missions.
 - `content/p0-demo-pack/coach-policy.md`: P0 Socratic coach policy and fallback
   behavior.
 - `evals/coach/p0-eval-cases.json`: release thresholds and critical eval cases.
+- `evals/coach/run_gate.py`: executable threshold gate for coach/model run
+  results.
 - `services/api/tests/test_contract.py`, `test_mission_fixtures.py`, and
   `test_coach_evals.py`: contract/fixture/eval guard tests.
 
@@ -57,16 +59,18 @@ an eval gate for the two demo missions.
 - `python3 -m json.tool content/p0-demo-pack/missions/authentic-media-wrong-context.json`
 - `python3 -m json.tool content/p0-demo-pack/missions/ai-citation-integrity.json`
 - `python3 -m json.tool evals/coach/p0-eval-cases.json`
-- `python3 -m pytest services/api -q -p no:cacheprovider` - 83 passed.
+- `python3 -m pytest services/api -q -p no:cacheprovider` - 100 passed.
+- `python3 -m pytest services/api --collect-only -q` - 100 tests collected.
 
 ## Risks / assumptions
 
 - The two missions are draft deterministic training fixtures. Public release
   still needs independent fact/content/accessibility review and licensed media
   replacement or explicit approval of team-created demo assets.
-- The eval file is a gate definition, not yet a model-run harness.
-- Full JSON Schema validation is not wired because `jsonschema` is not currently
-  a project dependency; tests enforce the critical structural invariants.
+- The eval gate is executable against a result JSON file, but the model-run
+  harness that produces those results still needs to plug into it.
+- JSON Schema validation is now wired through the `services/api[test]`
+  dependency set and validates the manifest plus both P0 mission fixtures.
 - Ukrainian learner-facing mission localization is not yet authored; one
   Ukrainian hard-rule eval case is included for coach behavior.
 

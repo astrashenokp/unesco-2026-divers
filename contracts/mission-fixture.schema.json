@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://evidence-gym.example.invalid/schemas/mission-fixture.v1.json",
   "title": "Evidence Gym Mission Fixture",
-  "description": "Schema-first contract for reviewed P0 mission JSON used by catalog, learning policy, AI coaching, and deterministic demo evidence actions.",
+  "description": "Schema-first contract for versioned P0 mission JSON used by catalog, learning policy, AI coaching, and deterministic demo evidence actions.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -237,10 +237,30 @@
       "required": [
         "status",
         "authorIds",
-        "reviewerIds",
-        "reviewedAt",
+        "draftedAt",
         "expiresAt",
         "correctionPolicy"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": { "enum": ["approved", "restricted"] }
+            },
+            "required": ["status"]
+          },
+          "then": {
+            "required": ["reviewedAt", "reviewerIds"],
+            "properties": {
+              "reviewerIds": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
       ],
       "properties": {
         "status": {
@@ -256,6 +276,10 @@
           "type": "array",
           "uniqueItems": true,
           "items": { "type": "string", "minLength": 1 }
+        },
+        "draftedAt": {
+          "type": "string",
+          "format": "date-time"
         },
         "reviewedAt": {
           "type": "string",

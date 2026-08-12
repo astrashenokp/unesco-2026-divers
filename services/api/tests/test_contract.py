@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 
+import jsonschema
 import yaml
 from fastapi.testclient import TestClient
 
@@ -16,6 +17,9 @@ MISSION_FIXTURE_SCHEMA_PATH = (
     REPOSITORY_ROOT / "contracts" / "mission-fixture.schema.json"
 )
 SCENARIO_PACK_SCHEMA_PATH = REPOSITORY_ROOT / "contracts" / "scenario-pack.schema.json"
+COACH_EVALS_PATH = REPOSITORY_ROOT / "evals" / "coach" / "p0-eval-cases.json"
+P0_MANIFEST_PATH = REPOSITORY_ROOT / "content" / "p0-demo-pack" / "manifest.json"
+P0_MISSIONS_PATH = REPOSITORY_ROOT / "content" / "p0-demo-pack" / "missions"
 
 
 def load_contract() -> dict:
@@ -121,6 +125,35 @@ def test_json_contracts_parse_as_objects() -> None:
         assert schema["additionalProperties"] is False
 
 
+def test_json_schema_contracts_are_valid_draft_2020_12() -> None:
+    validator = jsonschema.validators.Draft202012Validator
+
+    for path in (
+        COACH_OUTPUT_SCHEMA_PATH,
+        MISSION_FIXTURE_SCHEMA_PATH,
+        SCENARIO_PACK_SCHEMA_PATH,
+    ):
+        validator.check_schema(load_json(path))
+
+
+def test_p0_pack_and_missions_validate_against_schemas() -> None:
+    manifest_schema = load_json(SCENARIO_PACK_SCHEMA_PATH)
+    mission_schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
+
+    jsonschema.validate(load_json(P0_MANIFEST_PATH), manifest_schema)
+    for path in sorted(P0_MISSIONS_PATH.glob("*.json")):
+        jsonschema.validate(load_json(path), mission_schema)
+
+
+def test_coach_eval_fixture_has_expected_release_gate_shape() -> None:
+    evals = load_json(COACH_EVALS_PATH)
+
+    assert evals["schemaVersion"] == 1
+    assert isinstance(evals["thresholds"], dict)
+    assert isinstance(evals["releaseBlockingCategories"], list)
+    assert isinstance(evals["cases"], list)
+
+
 def test_mission_fixture_schema_is_strict_demo_contract() -> None:
     schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
 
@@ -162,6 +195,7 @@ def test_coach_output_schema_is_bounded_and_policy_visible() -> None:
     assert "prompt_injection_detected" in schema["properties"]["safetyFlags"]["items"][
         "enum"
     ]
+    assert "none" not in schema["properties"]["safetyFlags"]["items"]["enum"]
 
 
 def test_mission_fixture_schema_local_references_resolve() -> None:

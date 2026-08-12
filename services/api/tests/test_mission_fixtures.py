@@ -40,6 +40,17 @@ def test_p0_missions_have_explicit_critical_ignoring_policy() -> None:
         assert isinstance(mission["testsCriticalIgnoring"], bool), mission["id"]
 
 
+def test_draft_p0_missions_do_not_claim_review_completion() -> None:
+    for path in mission_paths():
+        mission = load_json(path)
+        review = mission["review"]
+
+        assert review["status"] == "draft", mission["id"]
+        assert "draftedAt" in review, mission["id"]
+        assert "reviewedAt" not in review, mission["id"]
+        assert review["reviewerIds"] == [], mission["id"]
+
+
 def test_every_p0_evidence_action_has_deterministic_response() -> None:
     for path in mission_paths():
         mission = load_json(path)

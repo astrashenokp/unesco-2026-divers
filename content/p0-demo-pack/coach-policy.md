@@ -1,7 +1,7 @@
 # P0 Socratic coach policy
 
 Status: draft for Role 3 implementation and evals. This policy binds the P0 demo
-coach to reviewed mission fixtures and deterministic evidence. It does not grant
+coach to draft mission fixtures and deterministic evidence. It does not grant
 the model permission to score, publish, browse, mutate state, or decide truth.
 
 ## Inputs
@@ -59,3 +59,4 @@ mission fixture. P0 release requires fallback coverage for every P0 mission.
 The model output is validated against `contracts/coach-output.schema.json`.
 Unknown fields, unknown evidence IDs, unknown action IDs, level 5 before
 completion, and forbidden leakage terms are rejected before reaching the learner.
+When no safety flag applies, `safetyFlags` is an empty array.

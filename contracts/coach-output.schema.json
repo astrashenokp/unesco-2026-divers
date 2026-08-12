@@ -45,7 +45,6 @@
       "uniqueItems": true,
       "items": {
         "enum": [
-          "none",
           "needs_more_evidence",
           "possible_leakage",
           "unsupported_citation",

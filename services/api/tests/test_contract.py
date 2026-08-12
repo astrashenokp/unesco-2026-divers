@@ -284,6 +284,20 @@ def test_coach_output_schema_is_bounded_and_policy_visible() -> None:
     assert "none" not in schema["properties"]["safetyFlags"]["items"]["enum"]
 
 
+def test_public_hint_contract_exposes_safety_flags_and_nullable_action() -> None:
+    schemas = load_contract()["components"]["schemas"]
+    hint = schemas["Hint"]
+    coach_output = load_json(COACH_OUTPUT_SCHEMA_PATH)
+
+    assert hint["additionalProperties"] is False
+    assert "safetyFlags" in hint["required"]
+    assert hint["properties"]["safetyFlags"] == coach_output["properties"][
+        "safetyFlags"
+    ]
+    assert hint["properties"]["suggestedActionId"]["type"] == ["string", "null"]
+    assert hint["properties"]["evidenceRefs"]["uniqueItems"] is True
+
+
 def test_mission_fixture_schema_local_references_resolve() -> None:
     schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
 

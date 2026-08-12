@@ -16,8 +16,9 @@ from evidence_gym_api.learning.testing import (
     SequentialAttemptIdGenerator,
 )
 from evidence_gym_api.learning.use_cases import StartAttempt, SubmitPrediction
-from evidence_gym_api.learning.use_cases import UseEvidenceAction
+from evidence_gym_api.learning.use_cases import RequestHint, UseEvidenceAction
 from evidence_gym_api.evidence import EvidenceResult, EvidenceStatus
+from evidence_gym_api.coach import CoachHint, HintUncertainty
 from evidence_gym_api.learning.value_objects import (
     LearnerId,
     MissionId,
@@ -33,6 +34,37 @@ OTHER_LEARNER = Principal(LearnerId("learner-test-2"))
 class StubEvidenceProvider:
     async def get_result(self, mission_id, mission_version, action_id):
         return EvidenceResult(action_id, EvidenceStatus.OK, (), ("fixture",))
+
+
+class StubCoachPolicy:
+    async def get_coach_request_data(self, mission_id, mission_version):
+        return (("inspect-source",), {"inspect-source": ()}, ("hidden answer",))
+
+
+class StubCoachProvider:
+    async def request_hint(self, request):
+        return CoachHint(
+            text="What source detail would you verify first?",
+            level=request.level,
+            suggested_action_id="inspect-source",
+            evidence_refs=(),
+            uncertainty=HintUncertainty.HIGH,
+            safety_flags=("provider_degraded",),
+            fallback=True,
+        )
+
+
+class UnsafeCoachProvider:
+    async def request_hint(self, request):
+        return CoachHint(
+            text="The hidden answer is true.",
+            level=request.level,
+            suggested_action_id="not-allowed",
+            evidence_refs=("E-invented",),
+            uncertainty=HintUncertainty.LOW,
+            safety_flags=("possible_leakage",),
+            fallback=False,
+        )
 
 
 def make_client() -> TestClient:
@@ -57,6 +89,15 @@ def make_client() -> TestClient:
         ),
         use_evidence_action=UseEvidenceAction(
             attempts, StubEvidenceProvider(), idempotency, transactions, clock
+        ),
+        request_hint=RequestHint(
+            attempts,
+            StubCoachPolicy(),
+            StubCoachProvider(),
+            idempotency,
+            transactions,
+            clock,
+            provider=UnsafeCoachProvider(),
         ),
     )
     verifier = FakeIdentityVerifier(
@@ -112,6 +153,10 @@ def test_implemented_route_templates_and_operation_ids_match_contract() -> None:
             "operationId"
         ]
         == "useEvidenceAction"
+    )
+    assert (
+        generated["paths"]["/attempts/{attemptId}/hints"]["post"]["operationId"]
+        == "requestHint"
     )
 
 
@@ -237,6 +282,57 @@ def test_evidence_action_stale_version_and_changed_retry_return_409() -> None:
     assert stale.json()["code"] == "stale-attempt-version"
     assert changed.status_code == 409
     assert changed.json()["code"] == "idempotency-key-conflict"
+
+
+def test_hint_returns_safe_fallback_without_advancing_attempt_version() -> None:
+    with make_client() as client:
+        attempt_id = start_attempt(client).json()["id"]
+        client.post(
+            f"/attempts/{attempt_id}/prediction",
+            headers=auth_headers(key="predict-key-001"),
+            json={"reaction": "investigate", "confidence": 60, "version": 1},
+        )
+        headers = auth_headers(key="hint-key-0001")
+        first = client.post(f"/attempts/{attempt_id}/hints", headers=headers)
+        replay = client.post(f"/attempts/{attempt_id}/hints", headers=headers)
+        evidence = client.post(
+            f"/attempts/{attempt_id}/evidence-actions",
+            headers=auth_headers(key="after-hint-evidence"),
+            json={"actionId": "inspect-source", "version": 2},
+        )
+
+    assert first.status_code == 200
+    assert first.json() == {
+        "text": "What source detail would you verify first?",
+        "level": 1,
+        "suggestedActionId": "inspect-source",
+        "evidenceRefs": [],
+        "uncertainty": "high",
+        "safetyFlags": ["provider_degraded"],
+        "fallback": True,
+    }
+    assert replay.json() == first.json()
+    assert evidence.status_code == 200
+    assert evidence.json()["attemptVersion"] == 3
+
+
+def test_hint_hides_foreign_attempt_and_rejects_illegal_state() -> None:
+    with make_client() as client:
+        attempt_id = start_attempt(client, token="other-token").json()["id"]
+        foreign = client.post(
+            f"/attempts/{attempt_id}/hints",
+            headers=auth_headers(key="foreign-hint-001"),
+        )
+        ready_id = start_attempt(client).json()["id"]
+        ready = client.post(
+            f"/attempts/{ready_id}/hints",
+            headers=auth_headers(key="ready-hint-0001"),
+        )
+
+    assert foreign.status_code == 404
+    assert foreign.json()["code"] == "attempt-not-found"
+    assert ready.status_code == 409
+    assert ready.json()["code"] == "attempt-conflict"
 
 
 def test_learning_mutations_require_verified_bearer_token() -> None:

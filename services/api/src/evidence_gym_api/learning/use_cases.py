@@ -1,14 +1,23 @@
 """Learning application use cases with explicit authorization and retry semantics."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import timedelta
 from hashlib import sha256
 import json
 
 from evidence_gym_api.identity.model import Principal
+from evidence_gym_api.coach.errors import CoachProviderError
+from evidence_gym_api.coach.model import CoachHint
+from evidence_gym_api.coach.ports import CoachPolicyReader, CoachProvider, CoachRequest
 from evidence_gym_api.evidence.model import EvidenceResult
 from evidence_gym_api.evidence.ports import DeterministicEvidenceProvider
-from evidence_gym_api.learning.attempt import Attempt, Confidence, Prediction, Reaction
+from evidence_gym_api.learning.attempt import (
+    Attempt,
+    Confidence,
+    IllegalAttemptTransition,
+    Prediction,
+    Reaction,
+)
 from evidence_gym_api.learning.errors import (
     AttemptAccessDenied,
     AttemptNotFound,
@@ -22,11 +31,13 @@ from evidence_gym_api.learning.ports import (
     Clock,
     EvidenceActionResult,
     EvidenceIdempotencyRepository,
+    HintIdempotencyRepository,
     IdempotencyRepository,
     IdempotencyScope,
     MissionPolicyReader,
     StoredAttemptResult,
     StoredEvidenceResult,
+    StoredHintResult,
     TransactionManager,
 )
 from evidence_gym_api.learning.value_objects import (
@@ -259,3 +270,136 @@ class UseEvidenceAction:
                 ),
             )
             return response
+
+
+@dataclass(frozen=True, slots=True)
+class RequestHintCommand:
+    attempt_id: AttemptId
+    idempotency_key: IdempotencyKey
+
+
+class RequestHint:
+    """Return a bounded hint without changing the attempt or its version."""
+
+    def __init__(
+        self,
+        attempts: AttemptRepository,
+        policies: CoachPolicyReader,
+        fallback: CoachProvider,
+        idempotency: HintIdempotencyRepository,
+        transactions: TransactionManager,
+        clock: Clock,
+        provider: CoachProvider | None = None,
+    ) -> None:
+        self._attempts = attempts
+        self._policies = policies
+        self._provider = provider
+        self._fallback = fallback
+        self._idempotency = idempotency
+        self._transactions = transactions
+        self._clock = clock
+
+    async def execute(
+        self, principal: Principal, command: RequestHintCommand
+    ) -> CoachHint:
+        fingerprint = _fingerprint({"attemptId": command.attempt_id.value})
+        scope = IdempotencyScope(
+            principal.subject,
+            "/attempts/{attemptId}/hints",
+            command.idempotency_key,
+        )
+        async with self._transactions.transaction():
+            now = self._clock.now()
+            stored = await self._idempotency.get_hint(scope, at=now)
+            if stored is not None:
+                if stored.request_fingerprint != fingerprint:
+                    raise IdempotencyConflict(
+                        "idempotency key was reused with another request"
+                    )
+                return stored.result
+
+            attempt = await self._attempts.get(command.attempt_id)
+            if attempt is None:
+                raise AttemptNotFound("attempt does not exist")
+            if attempt.learner_id != principal.subject:
+                raise AttemptAccessDenied("attempt belongs to another learner")
+            if attempt.state.value not in {"predicted", "investigating"}:
+                raise IllegalAttemptTransition(
+                    "hints require a predicted or investigating attempt"
+                )
+
+            data = await self._policies.get_coach_request_data(
+                attempt.mission_id, attempt.mission_version
+            )
+            if data is None:
+                raise MissionNotFound("exact mission version is unavailable")
+
+            allowed_actions, evidence_by_action, forbidden_terms = data
+            available_refs = tuple(
+                evidence_id
+                for action_id in attempt.evidence_action_refs
+                for evidence_id in evidence_by_action.get(action_id, ())
+            )
+            level = min(1 + len(attempt.evidence_action_refs), 4)
+            request = CoachRequest(
+                mission_id=attempt.mission_id,
+                mission_version=attempt.mission_version,
+                attempt_state=attempt.state.value,
+                level=level,
+                allowed_action_ids=allowed_actions,
+                available_evidence_refs=available_refs,
+                forbidden_terms=forbidden_terms,
+            )
+            hint = await self._safe_hint(request)
+            await self._idempotency.put_hint(
+                scope,
+                StoredHintResult(fingerprint, hint, now + IDEMPOTENCY_RETENTION),
+            )
+            return hint
+
+    async def _safe_hint(self, request: CoachRequest) -> CoachHint:
+        if self._provider is not None:
+            try:
+                candidate = await self._provider.request_hint(request)
+                if self._is_safe(candidate, request):
+                    return candidate
+            except (
+                CoachProviderError,
+                TimeoutError,
+                ValueError,
+                TypeError,
+                AttributeError,
+            ):
+                pass
+
+        fallback = await self._fallback.request_hint(request)
+        if self._is_safe(fallback, request):
+            return fallback
+
+        for lower_level in range(request.level - 1, 0, -1):
+            lower_request = replace(request, level=lower_level)
+            fallback = await self._fallback.request_hint(lower_request)
+            if self._is_safe(fallback, lower_request):
+                return fallback
+
+        raise CoachProviderError("reviewed fallback violated coach policy")
+
+    @staticmethod
+    def _is_safe(hint: CoachHint, request: CoachRequest) -> bool:
+        forbidden_flags = {"possible_leakage", "prompt_injection_detected"}
+        normalized_text = hint.text.casefold()
+        forbidden_terms = tuple(term.casefold() for term in request.forbidden_terms)
+        return (
+            bool(hint.text.strip())
+            and len(hint.text) <= 600
+            and hint.level == request.level
+            and hint.level <= 4
+            and (
+                hint.suggested_action_id is None
+                or hint.suggested_action_id in request.allowed_action_ids
+            )
+            and set(hint.evidence_refs).issubset(request.available_evidence_refs)
+            and len(hint.evidence_refs) == len(set(hint.evidence_refs))
+            and forbidden_flags.isdisjoint(hint.safety_flags)
+            and not any(term in normalized_text for term in forbidden_terms)
+        )

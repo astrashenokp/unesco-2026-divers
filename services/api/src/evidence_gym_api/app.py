@@ -9,6 +9,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from evidence_gym_api.catalog.api import PublicCatalogReader, router as catalog_router
+from evidence_gym_api.coach.errors import CoachProviderError
 from evidence_gym_api.operational import ReadinessProbe, StaticReadinessProbe, router
 from evidence_gym_api.identity.ports import IdentityVerifier
 from evidence_gym_api.learning.api import LearningServices, router as learning_router
@@ -131,6 +132,18 @@ def create_app(
             code="evidence-action-not-found",
             title="Evidence action not found",
             detail="The evidence action was not found for this mission.",
+        )
+        return problem_response(problem, get_trace_id(request))
+
+    @app.exception_handler(CoachProviderError)
+    async def handle_coach_provider_error(
+        request: Request, exc: CoachProviderError
+    ) -> JSONResponse:
+        problem = ApiProblem(
+            status=503,
+            code="coach-service-unavailable",
+            title="Service not ready",
+            detail="A safe coach hint is unavailable.",
         )
         return problem_response(problem, get_trace_id(request))
 

@@ -245,6 +245,7 @@ Hint demoHintFor({
     suggestedActionId: (rung == 2 || rung == 3) ? nextActionId : null,
     evidenceRefs: const [],
     uncertainty: uncertainty,
+    safetyFlags: const ['provider_degraded'],
     fallback: true,
   );
 }

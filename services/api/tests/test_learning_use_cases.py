@@ -4,6 +4,7 @@ from datetime import timedelta
 import pytest
 from evidence_gym_api.evidence import EvidenceResult, EvidenceStatus
 from evidence_gym_api.evidence import EvidenceActionNotFound
+from evidence_gym_api.coach import CoachHint, HintUncertainty
 
 from evidence_gym_api.identity import Principal
 from evidence_gym_api.identity.ports import IdentityVerificationError
@@ -37,6 +38,8 @@ from evidence_gym_api.learning.testing import (
     SequentialAttemptIdGenerator,
 )
 from evidence_gym_api.learning.use_cases import (
+    RequestHint,
+    RequestHintCommand,
     StartAttempt,
     StartAttemptCommand,
     SubmitPrediction,
@@ -54,6 +57,38 @@ class StubEvidenceProvider:
 class MissingEvidenceProvider:
     async def get_result(self, mission_id, mission_version, action_id):
         raise EvidenceActionNotFound("action is not defined by the mission")
+
+
+class OrderedCoachPolicy:
+    async def get_coach_request_data(self, mission_id, mission_version):
+        return (
+            ("action-a", "action-b"),
+            {"action-a": ("E-A",), "action-b": ("E-B",)},
+            (),
+        )
+
+
+class LadderFallbackProvider:
+    async def request_hint(self, request):
+        if request.level == 3:
+            return CoachHint(
+                "This higher hint references evidence you have not opened.",
+                3,
+                None,
+                ("E-C",),
+                HintUncertainty.MEDIUM,
+                ("provider_degraded",),
+                True,
+            )
+        return CoachHint(
+            "Step back and decide which check would reduce uncertainty next.",
+            request.level,
+            "action-b",
+            (),
+            HintUncertainty.HIGH,
+            ("provider_degraded",),
+            True,
+        )
 
 
 def run(coroutine):
@@ -335,6 +370,63 @@ def test_evidence_provider_failure_does_not_mutate_attempt() -> None:
         run(use_evidence.execute(LEARNER, evidence_command(predicted.id)))
 
     assert run(attempts.get(predicted.id)) == predicted
+
+
+def test_hint_fallback_degrades_to_lower_safe_level_when_refs_are_unavailable() -> None:
+    attempts, start, submit = make_dependencies()
+    idempotency = InMemoryIdempotencyRepository()
+    transactions = InMemoryTransactionManager()
+    clock = FixedClock()
+    use_evidence = UseEvidenceAction(
+        attempts,
+        StubEvidenceProvider(),
+        idempotency,
+        transactions,
+        clock,
+    )
+    request_hint = RequestHint(
+        attempts,
+        OrderedCoachPolicy(),
+        LadderFallbackProvider(),
+        idempotency,
+        transactions,
+        clock,
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+    first = run(
+        use_evidence.execute(
+            LEARNER,
+            evidence_command(
+                predicted.id,
+                key="evidence-key-001",
+                version=2,
+                action_id="action-a",
+            ),
+        )
+    )
+    run(
+        use_evidence.execute(
+            LEARNER,
+            evidence_command(
+                predicted.id,
+                key="evidence-key-002",
+                version=first.attempt_version,
+                action_id="action-b",
+            ),
+        )
+    )
+
+    hint = run(
+        request_hint.execute(
+            LEARNER,
+            RequestHintCommand(predicted.id, IdempotencyKey("hint-key-0001")),
+        )
+    )
+
+    assert hint.level == 2
+    assert hint.evidence_refs == ()
+    assert hint.fallback is True
 
 
 def test_in_memory_repository_enforces_optimistic_version() -> None:

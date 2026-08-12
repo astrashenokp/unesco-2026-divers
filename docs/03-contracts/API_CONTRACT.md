@@ -42,6 +42,10 @@ The normative endpoint/shape subset is `contracts/openapi.yaml`. This document d
 - Evidence actions carry `version` like prediction and conclusion, and stale values return `409` (ADR-009).
 - Every mutation that advances `Attempt.version` returns the new value, so the client can construct its next call. `EvidenceResult` carries `attemptVersion` for this reason; there is no `GET /attempts/{id}` to fall back on.
 - `POST /attempts/{id}/hints` does not advance `Attempt.version` and does not take `version`. Asking for help must never fail on a concurrency race.
+- Hint responses expose `text`, `level`, optional nullable `suggestedActionId`,
+  `evidenceRefs`, `uncertainty`, `safetyFlags` and `fallback`. The model-side
+  contract may use Python/internal snake_case names, but public HTTP JSON stays
+  camelCase and must remain lockstep with `contracts/openapi.yaml`.
 - AI/provider failure never corrupts attempt; error is retryable or deterministic fallback is returned.
 
 ## Evidence response semantics

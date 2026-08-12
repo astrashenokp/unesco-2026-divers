@@ -60,3 +60,9 @@ The model output is validated against `contracts/coach-output.schema.json`.
 Unknown fields, unknown evidence IDs, unknown action IDs, level 5 before
 completion, and forbidden leakage terms are rejected before reaching the learner.
 When no safety flag applies, `safetyFlags` is an empty array.
+
+The public learner API maps this contract to the existing camelCase HTTP fields:
+`text`, `level`, `suggestedActionId`, `evidenceRefs`, `uncertainty`,
+`safetyFlags`, and `fallback`. Do not introduce parallel `hint_text` or
+`hint_level` HTTP fields without a schema-first contract migration and frontend
+review.

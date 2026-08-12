@@ -158,6 +158,31 @@ def test_start_attempt_pins_real_role3_minimum_completion_evidence() -> None:
     assert attempt.minimum_required_evidence_actions == 3
 
 
+def test_reader_exposes_coach_grounding_and_safe_fallback_hint() -> None:
+    reader = make_reader()
+
+    data = run(
+        reader.get_coach_request_data(
+            MissionId("authentic-media-wrong-context"), MissionVersion("0.1.0")
+        )
+    )
+    hint = run(
+        reader.get_fallback_hint(
+            MissionId("authentic-media-wrong-context"), MissionVersion("0.1.0"), 1
+        )
+    )
+
+    assert data is not None
+    allowed_actions, evidence_by_action, forbidden_terms = data
+    assert "action-primary-source" in allowed_actions
+    assert "action-primary-source" in evidence_by_action
+    assert "gold label" in forbidden_terms
+    assert hint is not None
+    assert hint.level == 1
+    assert hint.safety_flags == ("provider_degraded",)
+    assert hint.fallback is True
+
+
 def test_reader_maps_trusted_critical_ignoring_flag(tmp_path: Path) -> None:
     pack_root = copy_pack(tmp_path)
     relative_path = "missions/authentic-media-wrong-context.json"

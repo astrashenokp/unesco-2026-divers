@@ -138,7 +138,7 @@
       "cost": 2,
       "deterministicResponse": {
         "actionId": "action-journal-author-check",
-        "status": "ok",
+        "status": "not_found",
         "items": [
           {
             "evidenceId": "E-JOURNAL-MISMATCH",
@@ -149,7 +149,8 @@
           }
         ],
         "limitations": [
-          "Metadata mismatch weakens the citation but still does not by itself prove intent or fabrication."
+          "Not found in journal and author registry fixture does not prove fabrication.",
+          "Metadata absence supports caution but not a definitive statement about source intent."
         ]
       }
     },

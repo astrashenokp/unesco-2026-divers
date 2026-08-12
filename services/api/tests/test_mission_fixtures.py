@@ -175,6 +175,23 @@ def test_p0_mission_references_only_defined_evidence_and_actions() -> None:
                     mission["id"],
                     item["evidenceId"],
                 )
+                gold_evidence = next(
+                    evidence
+                    for evidence in mission["goldEvidenceGraph"]["evidence"]
+                    if evidence["evidenceId"] == item["evidenceId"]
+                )
+                assert item["type"] == gold_evidence["type"], (
+                    mission["id"],
+                    item["evidenceId"],
+                )
+                assert item["title"] == gold_evidence["title"], (
+                    mission["id"],
+                    item["evidenceId"],
+                )
+                assert item["retrievedAt"] == gold_evidence["source"]["retrievedAt"], (
+                    mission["id"],
+                    item["evidenceId"],
+                )
 
         for axis in mission["acceptedAssessments"].values():
             for evidence_ref in axis["rationaleEvidenceRefs"]:

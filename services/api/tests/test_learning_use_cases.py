@@ -19,6 +19,8 @@ from evidence_gym_api.learning import (
     MissionVersion,
     Prediction,
     Reaction,
+    AxisAssessment,
+    ShareDecision,
 )
 from evidence_gym_api.learning.errors import (
     AttemptAccessDenied,
@@ -34,6 +36,7 @@ from evidence_gym_api.learning.testing import (
     InMemoryIdempotencyRepository,
     InMemoryMissionPolicyReader,
     InMemoryTransactionManager,
+    InMemoryAtomicCompletionWriter,
     FixedClock,
     SequentialAttemptIdGenerator,
 )
@@ -46,6 +49,8 @@ from evidence_gym_api.learning.use_cases import (
     SubmitPredictionCommand,
     UseEvidenceAction,
     UseEvidenceActionCommand,
+    CompleteAttempt,
+    CompleteAttemptCommand,
 )
 
 
@@ -586,3 +591,102 @@ def test_fake_identity_verifier_never_accepts_unknown_token() -> None:
     assert run(verifier.verify("valid-token")) == LEARNER
     with pytest.raises(IdentityVerificationError):
         run(verifier.verify("unknown-token"))
+
+
+def completion_command(attempt_id: AttemptId, *, version: int = 3, key: str = "complete-key-001"):
+    return CompleteAttemptCommand(
+        attempt_id=attempt_id,
+        authenticity=AxisAssessment("authentic", Confidence.known(80)),
+        claim_veracity=AxisAssessment("insufficient_evidence", Confidence.known(65)),
+        context_integrity=AxisAssessment("misleading_context", Confidence.known(85)),
+        post_confidence=Confidence.known(75),
+        share_decision=ShareDecision.SHARE_WITH_CONTEXT,
+        version=version,
+        idempotency_key=IdempotencyKey(key),
+    )
+
+
+def test_complete_attempt_persists_all_effects_once_and_replays() -> None:
+    attempts, start, submit = make_dependencies()
+    idempotency = InMemoryIdempotencyRepository()
+    writer = InMemoryAtomicCompletionWriter(attempts)
+    complete = CompleteAttempt(
+        attempts, writer, idempotency, InMemoryTransactionManager(), FixedClock()
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+    predicted.record_evidence_action("inspect-source")
+    run(attempts.save(predicted, expected_version=2))
+    command = completion_command(predicted.id)
+
+    first = run(complete.execute(LEARNER, command))
+    replay = run(complete.execute(LEARNER, command))
+    stored = run(attempts.get(predicted.id))
+
+    assert first == replay
+    assert first.xp_awarded == 2
+    assert stored is not None and stored.state is AttemptState.COMPLETED
+    assert len(writer.receipts) == 1
+    assert len(writer.outbox) == 1
+
+
+def test_complete_attempt_checks_owner_version_and_changed_replay() -> None:
+    attempts, start, submit = make_dependencies()
+    idempotency = InMemoryIdempotencyRepository()
+    complete = CompleteAttempt(
+        attempts,
+        InMemoryAtomicCompletionWriter(attempts),
+        idempotency,
+        InMemoryTransactionManager(),
+        FixedClock(),
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+
+    with pytest.raises(AttemptAccessDenied):
+        run(complete.execute(OTHER_LEARNER, completion_command(predicted.id, version=2)))
+    with pytest.raises(StaleAttemptVersion):
+        run(complete.execute(LEARNER, completion_command(predicted.id, version=1)))
+
+    predicted.record_evidence_action("inspect-source")
+    run(attempts.save(predicted, expected_version=2))
+    run(complete.execute(LEARNER, completion_command(predicted.id)))
+    changed = completion_command(predicted.id)
+    changed = CompleteAttemptCommand(
+        attempt_id=changed.attempt_id,
+        authenticity=AxisAssessment("synthetic", Confidence.known(80)),
+        claim_veracity=changed.claim_veracity,
+        context_integrity=changed.context_integrity,
+        post_confidence=changed.post_confidence,
+        share_decision=changed.share_decision,
+        version=changed.version,
+        idempotency_key=changed.idempotency_key,
+    )
+    with pytest.raises(IdempotencyConflict):
+        run(complete.execute(LEARNER, changed))
+
+
+class FailingCompletionWriter:
+    async def complete(self, attempt, conclusion, *, expected_version, completed_at):
+        attempt.submit_conclusion(conclusion)
+        raise RuntimeError("simulated failure before commit")
+
+
+def test_completion_failure_does_not_mutate_stored_attempt() -> None:
+    attempts, start, submit = make_dependencies()
+    complete = CompleteAttempt(
+        attempts,
+        FailingCompletionWriter(),
+        InMemoryIdempotencyRepository(),
+        InMemoryTransactionManager(),
+        FixedClock(),
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+    predicted.record_evidence_action("inspect-source")
+    run(attempts.save(predicted, expected_version=2))
+
+    with pytest.raises(RuntimeError):
+        run(complete.execute(LEARNER, completion_command(predicted.id, version=3)))
+
+    assert run(attempts.get(predicted.id)) == predicted

@@ -11,6 +11,7 @@ from evidence_gym_api.learning.in_memory import (
     InMemoryAttemptRepository,
     InMemoryIdempotencyRepository,
     InMemoryTransactionManager,
+    InMemoryAtomicCompletionWriter,
     SequentialAttemptIdGenerator,
     SystemClock,
 )
@@ -19,6 +20,7 @@ from evidence_gym_api.learning.use_cases import (
     StartAttempt,
     SubmitPrediction,
     UseEvidenceAction,
+    CompleteAttempt,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
@@ -55,6 +57,13 @@ learning_services = LearningServices(
         attempts,
         fixture_reader,
         FixtureCoachProvider(fixture_reader),
+        idempotency,
+        transactions,
+        clock,
+    ),
+    complete_attempt=CompleteAttempt(
+        attempts,
+        InMemoryAtomicCompletionWriter(attempts),
         idempotency,
         transactions,
         clock,

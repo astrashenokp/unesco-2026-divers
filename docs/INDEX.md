@@ -6,7 +6,7 @@ This index is the stable entry point. Raw research is preserved, but implementat
 |---|---|---|
 | Understand the product | [Concept](01-product/CONCEPT.md) | [PRD](01-product/PRD.md), [MVP](01-product/MVP_SCOPE.md) |
 | Get a fast architecture briefing | [Architecture quick reference](02-architecture/ARCHITECTURE_QUICK_REFERENCE.md) | [canonical architecture](02-architecture/ARCHITECTURE.md), [ADRs](09-decisions/README.md) |
-| Build a screen | [User journeys](01-product/USER_JOURNEYS.md) | [Design system](06-design/DESIGN_SYSTEM.md), [API contract](03-contracts/API_CONTRACT.md) |
+| Build a screen | [User journeys](01-product/USER_JOURNEYS.md) | [Design system](06-design/DESIGN_SYSTEM.md), [screen reference](06-design/SCREEN_REFERENCE.md), [API contract](03-contracts/API_CONTRACT.md) |
 | Build backend/AI | [Architecture](02-architecture/ARCHITECTURE.md) | [Domain](02-architecture/DOMAIN_MODEL.md), [AI pipeline](02-architecture/AI_PIPELINE.md) |
 | Change an interface | [Contracts](03-contracts/README.md) | `contracts/openapi.yaml`, schemas, event catalog |
 | Ship safely | [Security](04-security/README.md) | [Testing](05-delivery/TEST_STRATEGY.md), [release](05-delivery/RELEASE_RUNBOOK.md) |

@@ -9,4 +9,5 @@ Status: proposed/accepted/superseded. Change lasting architecture through a new 
 - [ADR-005 Versioned scenario packs](ADR-005-SCENARIO-PACKS.md)
 - [ADR-006 Stitch is design-time only](ADR-006-STITCH-BOUNDARY.md)
 - [ADR-007 Curated MVP before open URL/upload](ADR-007-CURATED-FIRST.md)
-- [ADR-008 Attempt contract clarifications](ADR-008-ATTEMPT-CONTRACT-CLARIFICATIONS.md)
+- [ADR-008 Attempt contract clarifications](ADR-008-ATTEMPT-CONTRACT-CLARIFICATIONS.md) — decision 5 superseded by ADR-009
+- [ADR-009 Atomic completion and evidence version](ADR-009-ATOMIC-COMPLETION-AND-EVIDENCE-VERSION.md)

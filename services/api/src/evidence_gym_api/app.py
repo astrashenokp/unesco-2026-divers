@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from evidence_gym_api.catalog.api import PublicCatalogReader, router as catalog_router
 from evidence_gym_api.operational import ReadinessProbe, StaticReadinessProbe, router
 from evidence_gym_api.identity.ports import IdentityVerifier
 from evidence_gym_api.learning.api import LearningServices, router as learning_router
@@ -44,6 +45,7 @@ def create_app(
     *,
     identity_verifier: IdentityVerifier | None = None,
     learning_services: LearningServices | None = None,
+    catalog_reader: PublicCatalogReader | None = None,
 ) -> FastAPI:
     """Create an API instance with explicit runtime dependencies."""
 
@@ -55,8 +57,10 @@ def create_app(
     app.state.readiness_probe = readiness_probe or StaticReadinessProbe()
     app.state.identity_verifier = identity_verifier
     app.state.learning_services = learning_services
+    app.state.catalog_reader = catalog_reader
     app.add_middleware(TraceIdMiddleware)
     app.include_router(router)
+    app.include_router(catalog_router)
     app.include_router(learning_router)
 
     @app.exception_handler(ApiProblem)

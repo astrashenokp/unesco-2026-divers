@@ -18,6 +18,11 @@ through ADR-009 and the deterministic fixture reader/provider work.
 - `contracts/openapi.yaml`: public `Mission` projections now include required
   `accessibility` fields so Role 1 can render media-independent paths through
   the API contract.
+- `services/api/src/evidence_gym_api/catalog/api.py` and
+  `mission_fixture_reader.py`: public read-only catalog projections for
+  `GET /catalog/path` and `GET /missions/{missionId}`. These projections expose
+  only OpenAPI-safe mission fields and do not leak gold evidence, deterministic
+  responses, hints, rubric or eval hooks.
 - `content/p0-demo-pack/manifest.json`: draft P0 demo pack manifest with
   mission SHA-256 hashes and draft-only review metadata.
 - `content/p0-demo-pack/media/flood-context-card.jpg`: checked-in
@@ -34,9 +39,10 @@ through ADR-009 and the deterministic fixture reader/provider work.
 - `evals/coach/p0-eval-cases.json`: release thresholds and critical eval cases.
 - `evals/coach/run_gate.py`: executable threshold gate for coach/model run
   results.
-- `services/api/tests/test_contract.py`, `test_mission_fixtures.py`,
-  `test_mission_fixture_reader.py`, `test_deterministic_evidence_provider.py`
-  and `test_coach_evals.py`: contract/fixture/reader/provider/eval guard tests.
+- `services/api/tests/test_contract.py`, `test_catalog_api.py`,
+  `test_mission_fixtures.py`, `test_mission_fixture_reader.py`,
+  `test_deterministic_evidence_provider.py` and `test_coach_evals.py`:
+  contract/catalog/fixture/reader/provider/eval guard tests.
 
 ## Contracts and decisions
 
@@ -46,6 +52,9 @@ through ADR-009 and the deterministic fixture reader/provider work.
   accessibility alternatives and `rubric.evalHooks`.
 - Pack-local media URLs use `asset://<manifest-id>/...` and resolve to
   checked-in files under the reviewed pack directory.
+- Public catalog endpoints are wired to the hash-verifying
+  `FileMissionPolicyReader`; the default ASGI entry point serves the checked-in
+  P0 demo pack for local/demo integration.
 - Every P0 `evidenceActions[].deterministicResponse` is required. Demo evidence
   must not require live Crossref/OpenAlex/search/C2PA calls.
 - Coach output must validate against `contracts/coach-output.schema.json` before
@@ -79,8 +88,8 @@ through ADR-009 and the deterministic fixture reader/provider work.
 - `python3 -m json.tool content/p0-demo-pack/missions/authentic-media-wrong-context.json`
 - `python3 -m json.tool content/p0-demo-pack/missions/ai-citation-integrity.json`
 - `python3 -m json.tool evals/coach/p0-eval-cases.json`
-- `python3 -m pytest services/api -q -p no:cacheprovider` - 130 passed.
-- `python3 -m pytest services/api --collect-only -q` - 130 tests collected.
+- `python3 -m pytest services/api -q -p no:cacheprovider` - 135 passed.
+- `python3 -m pytest services/api --collect-only -q` - 135 tests collected.
 
 ## Risks / assumptions
 
@@ -95,6 +104,9 @@ through ADR-009 and the deterministic fixture reader/provider work.
   duplicate mission versions and paths outside the reviewed missions folder.
 - Semantic fixture tests enforce unique action/evidence IDs, ordered hint/rubric
   levels, non-inverted confidence ranges and duplicate-free coach eval results.
+- Public catalog tests enforce unauthenticated path/mission access, accessibility
+  projection, default ASGI pack wiring and no gold/rubric/hint/eval leakage in
+  mission responses.
 - Mission fixtures now expose explicit presentation accessibility fields and
   rubric eval hooks that reference known coach eval cases.
 - The coach gate runner enforces critical, release-blocking and category-specific
@@ -111,8 +123,9 @@ through ADR-009 and the deterministic fixture reader/provider work.
   case while preserving ADR-009 version checks. Acceptance: reads both fixtures,
   pins mission version, maps `testsCriticalIgnoring`, returns `attemptVersion`
   and never calls a live provider in demo mode.
-- Role 1: render mission claim/media/actions/hints from fixtures. Acceptance:
-  both missions are playable with accessible alt text and no binary truth cues.
+- Role 1: render mission claim/media/actions from the public catalog API and
+  hints from the coach boundary. Acceptance: both missions are playable with
+  accessible alt text and no binary truth cues.
 - Role 4: map rubric/skill tags into XP/progression rules without letting AI
   award XP. Acceptance: completion remains idempotent and process XP is
   server-side.

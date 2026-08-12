@@ -29,6 +29,17 @@ application ports, deterministic in-memory test adapters, and the `StartAttempt`
 and `SubmitPrediction` use cases. Persistence implementers should follow
 [`ROLE4_PERSISTENCE_HANDOFF.md`](ROLE4_PERSISTENCE_HANDOFF.md).
 
+Implemented public catalog endpoints:
+
+- `GET /catalog/path`
+- `GET /missions/{missionId}`
+
+The public mission projection exposes only the OpenAPI mission fields and
+accessibility alternatives. It deliberately omits deterministic evidence
+responses, accepted assessments, gold evidence graphs, hints, rubric/eval hooks,
+and licensing notes. The default ASGI entry point wires these endpoints to the
+checked-in P0 demo pack through the hash-verifying `FileMissionPolicyReader`.
+
 Implemented learner mutations:
 
 - `POST /attempts`

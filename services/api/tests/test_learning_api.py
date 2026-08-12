@@ -6,7 +6,7 @@ from evidence_gym_api.app import create_app
 from evidence_gym_api.identity import Principal
 from evidence_gym_api.identity.testing import FakeIdentityVerifier
 from evidence_gym_api.learning.api import LearningServices
-from evidence_gym_api.learning.ports import MissionPolicy
+from evidence_gym_api.learning.ports import MissionPolicy, XpAward
 from evidence_gym_api.learning.testing import (
     FixedClock,
     InMemoryAttemptRepository,
@@ -72,6 +72,11 @@ class UnsafeCoachProvider:
         )
 
 
+class StubCompletionScorer:
+    async def award(self, mission_id, mission_version, used_evidence_actions):
+        return XpAward("process-xp:1", 2, 1)
+
+
 def make_client() -> TestClient:
     attempts = InMemoryAttemptRepository()
     idempotency = InMemoryIdempotencyRepository()
@@ -106,7 +111,7 @@ def make_client() -> TestClient:
         ),
         complete_attempt=CompleteAttempt(
             attempts,
-            InMemoryAtomicCompletionWriter(attempts),
+            InMemoryAtomicCompletionWriter(attempts, StubCompletionScorer()),
             idempotency,
             transactions,
             clock,

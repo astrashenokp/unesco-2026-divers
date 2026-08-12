@@ -22,6 +22,7 @@ from evidence_gym_api.learning.use_cases import (
     UseEvidenceAction,
     CompleteAttempt,
 )
+from evidence_gym_api.learning.gameplay_adapter import GameplayCompletionScorer
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
 
@@ -63,7 +64,9 @@ learning_services = LearningServices(
     ),
     complete_attempt=CompleteAttempt(
         attempts,
-        InMemoryAtomicCompletionWriter(attempts),
+        InMemoryAtomicCompletionWriter(
+            attempts, GameplayCompletionScorer(fixture_reader)
+        ),
         idempotency,
         transactions,
         clock,

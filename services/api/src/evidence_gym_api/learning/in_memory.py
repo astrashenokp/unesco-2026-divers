@@ -24,6 +24,7 @@ from evidence_gym_api.learning.ports import (
     CompletionResult,
     ProgressResult,
     SkillProgress,
+    CompletionScorer,
 )
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
@@ -152,8 +153,11 @@ class InMemoryIdempotencyRepository:
 class InMemoryAtomicCompletionWriter:
     """Local reference for the Role 4 atomic completion adapter."""
 
-    def __init__(self, attempts: InMemoryAttemptRepository) -> None:
+    def __init__(
+        self, attempts: InMemoryAttemptRepository, scorer: CompletionScorer
+    ) -> None:
         self._attempts = attempts
+        self._scorer = scorer
         self.receipts: dict[str, dict[str, object]] = {}
         self.outbox: list[dict[str, object]] = []
         self.total_xp: dict[str, int] = {}
@@ -163,9 +167,12 @@ class InMemoryAtomicCompletionWriter:
     ) -> CompletionResult:
         attempt.submit_conclusion(conclusion)
         attempt.complete()
-        # P0 local composition mirrors Role 4's process-XP levels. Production
-        # obtains these amounts from the pinned mission rubric.
-        xp_awarded = (1, 2, 4, 6, 8)[min(len(attempt.evidence_action_refs), 4)]
+        xp_grant = await self._scorer.award(
+            attempt.mission_id,
+            attempt.mission_version,
+            len(attempt.evidence_action_refs),
+        )
+        xp_awarded = xp_grant.amount
         receipt_id = f"receipt-{attempt.id.value}"
         learner_key = attempt.learner_id.value
         total_xp = self.total_xp.get(learner_key, 0) + xp_awarded
@@ -190,7 +197,11 @@ class InMemoryAtomicCompletionWriter:
             "disclaimer": "This receipt records a learning process, not a universal truth verdict.",
         }
         self.outbox.append(
-            {"type": "attempt.completed", "attempt_id": attempt.id.value}
+            {
+                "type": "attempt.completed",
+                "attempt_id": attempt.id.value,
+                "xp_rule_code": xp_grant.rule_code,
+            }
         )
         return CompletionResult(
             receipt_id=receipt_id,

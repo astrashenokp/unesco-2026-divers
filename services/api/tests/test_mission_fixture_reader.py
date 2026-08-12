@@ -21,6 +21,7 @@ from evidence_gym_api.learning.testing import (
     SequentialAttemptIdGenerator,
 )
 from evidence_gym_api.learning.use_cases import StartAttempt, StartAttemptCommand
+from evidence_gym_api.learning.gameplay_adapter import GameplayCompletionScorer
 from evidence_gym_api.learning.value_objects import (
     IdempotencyKey,
     LearnerId,
@@ -64,6 +65,36 @@ def test_role3_fixture_supplies_safe_deterministic_coach_fallback() -> None:
     assert hint.suggested_action_id == "action-decompose-claim"
     assert hint.fallback is True
     assert hint.safety_flags == ("provider_degraded",)
+
+
+def test_gameplay_adapter_uses_pinned_role3_xp_guidance() -> None:
+    scorer = GameplayCompletionScorer(make_reader())
+
+    one_action = run(
+        scorer.award(
+            MissionId("authentic-media-wrong-context"),
+            MissionVersion("0.1.0"),
+            1,
+        )
+    )
+    four_actions = run(
+        scorer.award(
+            MissionId("authentic-media-wrong-context"),
+            MissionVersion("0.1.0"),
+            4,
+        )
+    )
+
+    assert (one_action.rule_code, one_action.amount, one_action.level) == (
+        "process-xp:1",
+        2,
+        1,
+    )
+    assert (four_actions.rule_code, four_actions.amount, four_actions.level) == (
+        "process-xp:4",
+        8,
+        4,
+    )
 
 
 def copy_pack(tmp_path: Path) -> Path:

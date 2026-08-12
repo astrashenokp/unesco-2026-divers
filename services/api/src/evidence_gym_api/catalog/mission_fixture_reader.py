@@ -12,7 +12,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import SchemaError, ValidationError
 
 from evidence_gym_api.coach.model import CoachHint, HintUncertainty
-from evidence_gym_api.learning.ports import MissionPolicy
+from evidence_gym_api.learning.ports import MissionPolicy, ProcessLevelPolicy
 from evidence_gym_api.learning.value_objects import MissionId, MissionVersion
 
 
@@ -128,6 +128,23 @@ class FileMissionPolicyReader:
             uncertainty=HintUncertainty(document["uncertainty"]),
             safety_flags=("provider_degraded",),
             fallback=True,
+        )
+
+    async def get_process_levels(
+        self, mission_id: MissionId, mission_version: MissionVersion
+    ) -> tuple[ProcessLevelPolicy, ...] | None:
+        """Return only the pinned, reviewed process-XP policy."""
+
+        mission = self._missions.get((mission_id, mission_version))
+        if mission is None:
+            return None
+        return tuple(
+            ProcessLevelPolicy(
+                level=entry["level"],
+                xp_guidance=entry["xpGuidance"],
+                skill_tags=tuple(entry["skillTags"]),
+            )
+            for entry in mission["rubric"]["processLevels"]
         )
 
     async def get_learning_path(self) -> dict[str, Any]:

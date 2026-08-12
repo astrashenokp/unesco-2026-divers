@@ -30,7 +30,7 @@ from evidence_gym_api.learning.errors import (
     RepositoryConflict,
     StaleAttemptVersion,
 )
-from evidence_gym_api.learning.ports import MissionPolicy
+from evidence_gym_api.learning.ports import MissionPolicy, XpAward
 from evidence_gym_api.learning.testing import (
     InMemoryAttemptRepository,
     InMemoryIdempotencyRepository,
@@ -142,6 +142,12 @@ class StaticCoach:
             self._safety_flags,
             False,
         )
+
+
+class StubCompletionScorer:
+    async def award(self, mission_id, mission_version, used_evidence_actions):
+        level = min(used_evidence_actions, 4)
+        return XpAward(f"process-xp:{level}", (1, 2, 4, 6, 8)[level], level)
 
 
 def run(coroutine):
@@ -609,7 +615,7 @@ def completion_command(attempt_id: AttemptId, *, version: int = 3, key: str = "c
 def test_complete_attempt_persists_all_effects_once_and_replays() -> None:
     attempts, start, submit = make_dependencies()
     idempotency = InMemoryIdempotencyRepository()
-    writer = InMemoryAtomicCompletionWriter(attempts)
+    writer = InMemoryAtomicCompletionWriter(attempts, StubCompletionScorer())
     complete = CompleteAttempt(
         attempts, writer, idempotency, InMemoryTransactionManager(), FixedClock()
     )
@@ -635,7 +641,7 @@ def test_complete_attempt_checks_owner_version_and_changed_replay() -> None:
     idempotency = InMemoryIdempotencyRepository()
     complete = CompleteAttempt(
         attempts,
-        InMemoryAtomicCompletionWriter(attempts),
+        InMemoryAtomicCompletionWriter(attempts, StubCompletionScorer()),
         idempotency,
         InMemoryTransactionManager(),
         FixedClock(),

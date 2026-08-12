@@ -9,6 +9,7 @@ Requires Python 3.12 or 3.13.
 
 ```bash
 python -m venv .venv
+python -m pip install -e "../../packages/gameplay"
 python -m pip install -e ".[test]"
 python -m uvicorn evidence_gym_api.main:app --reload
 python -m pytest

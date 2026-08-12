@@ -78,6 +78,20 @@ class ProgressResult:
 
 
 @dataclass(frozen=True, slots=True)
+class ProcessLevelPolicy:
+    level: int
+    xp_guidance: int
+    skill_tags: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class XpAward:
+    rule_code: str
+    amount: int
+    level: int
+
+
+@dataclass(frozen=True, slots=True)
 class CompletionResult:
     receipt_id: str
     xp_awarded: int
@@ -160,6 +174,21 @@ class AtomicCompletionWriter(Protocol):
         expected_version: int,
         completed_at: datetime,
     ) -> CompletionResult: ...
+
+
+class CompletionPolicyReader(Protocol):
+    async def get_process_levels(
+        self, mission_id: MissionId, mission_version: MissionVersion
+    ) -> tuple[ProcessLevelPolicy, ...] | None: ...
+
+
+class CompletionScorer(Protocol):
+    async def award(
+        self,
+        mission_id: MissionId,
+        mission_version: MissionVersion,
+        used_evidence_actions: int,
+    ) -> XpAward: ...
 
 
 class TransactionManager(Protocol):

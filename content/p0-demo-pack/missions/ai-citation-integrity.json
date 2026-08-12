@@ -305,7 +305,7 @@
       {
         "fromEvidenceId": "E-DOI-NOT-FOUND",
         "toEvidenceId": "E-JOURNAL-MISMATCH",
-        "relationship": "limits"
+        "relationship": "independent_corroboration"
       },
       {
         "fromEvidenceId": "E-JOURNAL-MISMATCH",

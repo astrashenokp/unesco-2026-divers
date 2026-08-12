@@ -97,6 +97,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       reactions: const ['trust', 'suspicious', 'investigate'],
       evidenceActions: [source, date, reverse, others],
       skillTags: const ['source_identity', 'context_time_place', 'provenance'],
+      contentWarnings: const ['natural-disaster'],
     ),
     'anonymous-claim': Mission(
       id: 'anonymous-claim',
@@ -116,6 +117,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       reactions: const ['trust', 'suspicious', 'investigate'],
       evidenceActions: [source, others, date],
       skillTags: const ['source_identity', 'corroboration', 'claim_decomposition'],
+      contentWarnings: const ['impersonation'],
     ),
     'citation-hunt': Mission(
       id: 'citation-hunt',
@@ -135,6 +137,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       reactions: const ['trust', 'suspicious', 'investigate'],
       evidenceActions: [citation, source, others],
       skillTags: const ['citation_integrity', 'primary_source', 'uncertainty'],
+      contentWarnings: const ['academic-integrity'],
       minimumCompletionEvidence: 3,
     ),
     'context-swap': Mission(
@@ -154,6 +157,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       reactions: const ['trust', 'suspicious', 'investigate'],
       evidenceActions: [date, reverse, others],
       skillTags: const ['context_time_place', 'provenance', 'corroboration'],
+      contentWarnings: const [],
     ),
     'old-protest-clip': Mission(
       id: 'old-protest-clip',
@@ -172,6 +176,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       reactions: const ['trust', 'suspicious', 'investigate'],
       evidenceActions: [reverse, date, source, others],
       skillTags: const ['context_time_place', 'provenance', 'responsible_sharing'],
+      contentWarnings: const ['civil-unrest'],
     ),
     'true-numbers-false-story': Mission(
       id: 'true-numbers-false-story',
@@ -191,6 +196,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       reactions: const ['trust', 'suspicious', 'investigate'],
       evidenceActions: [numbers, source, date],
       skillTags: const ['claim_decomposition', 'uncertainty', 'context_time_place'],
+      contentWarnings: const ['statistics-misuse'],
     ),
     'synthetic-but-real-topic': Mission(
       id: 'synthetic-but-real-topic',
@@ -212,6 +218,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       // The point of the pack: synthetic does not mean false, and the
       // three axes must be allowed to disagree with one another.
       skillTags: const ['provenance', 'corroboration', 'responsible_sharing'],
+      contentWarnings: const ['ai-generated-media'],
     ),
   };
 }

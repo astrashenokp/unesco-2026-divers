@@ -1,4 +1,6 @@
 import 'package:evidence_gym_learner/data/api_client.dart';
+import 'package:evidence_gym_learner/data/audience.dart';
+import 'package:evidence_gym_learner/data/demo_fixtures.dart';
 import 'package:evidence_gym_learner/data/mission_repository.dart';
 import 'package:evidence_gym_learner/data/models.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +14,11 @@ import 'package:flutter_test/flutter_test.dart';
 /// and the promises the product makes about it, which a UI test would
 /// only exercise incidentally.
 void main() {
-  DemoMissionRepository repo() => DemoMissionRepository(localeCode: () => 'en');
+  DemoMissionRepository repo({AudienceMode audience = AudienceMode.adult}) =>
+      DemoMissionRepository(
+        localeCode: () => 'en',
+        audience: () => audience,
+      );
 
   Future<Attempt> startFirst(DemoMissionRepository r) async {
     final path = await r.getLearningPath();
@@ -218,5 +224,119 @@ void main() {
       expect(error.isStaleVersion, isTrue, reason: '$code was not recognised');
       expect(error.needsMoreEvidence, isFalse);
     }
+  });
+
+  group('audience modes', () {
+    test('the younger mode hides the distressing missions and only those',
+        () async {
+      final adult = await repo().getLearningPath();
+      final child =
+          await repo(audience: AudienceMode.child).getLearningPath();
+
+      expect(child.nodes.length, lessThan(adult.nodes.length),
+          reason: 'nothing was filtered, so the mode does nothing');
+      expect(child.nodes, isNotEmpty,
+          reason: 'a younger learner with an empty path has no product');
+
+      // Named explicitly rather than counted, so a change of intent has
+      // to be a change of test rather than a number quietly moving.
+      final hidden = adult.nodes.map((n) => n.missionId).toSet()
+        ..removeAll(child.nodes.map((n) => n.missionId));
+      final missions = demoMissionsFor('en');
+      for (final id in hidden) {
+        expect(missions[id]!.contentWarnings, isNotEmpty,
+            reason: '$id was hidden but declares nothing to warn about');
+      }
+      for (final node in child.nodes) {
+        expect(
+          suitableFor(AudienceMode.child, missions[node.missionId]!.contentWarnings),
+          isTrue,
+          reason: '${node.missionId} reached the younger path unsuitable',
+        );
+      }
+    });
+
+    test('a hidden mission cannot be opened directly either', () async {
+      final r = repo(audience: AudienceMode.child);
+      final adultPath = await repo().getLearningPath();
+      final childIds =
+          (await r.getLearningPath()).nodes.map((n) => n.missionId).toSet();
+      final hidden = adultPath.nodes
+          .map((n) => n.missionId)
+          .firstWhere((id) => !childIds.contains(id));
+
+      // A path that omits a mission is not a guarantee nothing else
+      // opens it — a saved link, a resumed session, a deep link later.
+      await expectLater(
+        r.getMission(hidden),
+        throwsA(isA<EvidenceGymApiException>()
+            .having((e) => e.problem.status, 'status', 404)),
+      );
+    });
+
+    test('an unrecognised content warning fails closed', () {
+      // The rule that matters most. A blocklist would admit every tag
+      // nobody thought of, so the first warning from a new pack would
+      // reach a child precisely because it was unfamiliar.
+      expect(suitableFor(AudienceMode.child, ['something-nobody-added-yet']),
+          isFalse,
+          reason: 'an unknown warning was treated as safe for children');
+      expect(suitableFor(AudienceMode.child, []), isTrue,
+          reason: 'declaring nothing to warn about is not the same as '
+              'carrying an unknown warning');
+      expect(suitableFor(AudienceMode.adult, ['something-nobody-added-yet']),
+          isTrue,
+          reason: 'the adult mode filters nothing');
+    });
+
+    test('both modes score identically', () async {
+      // The younger mode must not become the easy mode. Same rubric,
+      // same XP, same skills — only the case material differs.
+      // The *same* mission in both modes. An earlier version of this
+      // took each mode's first mission, which are different missions
+      // with different numbers of checks — it compared two unlike
+      // things and failed while the rubric was in fact identical.
+      final shared = (await repo(audience: AudienceMode.child)
+              .getLearningPath())
+          .nodes
+          .first
+          .missionId;
+
+      Future<int> xpFor(AudienceMode mode) async {
+        final r = repo(audience: mode);
+        final mission = await r.getMission(shared);
+        final attempt = await r.startAttempt(mission.id, mission.version);
+        final predicted = await r.submitPrediction(
+          attempt.id,
+          PredictionInput(
+              reaction: 'investigate', confidence: 50, version: attempt.version),
+        );
+        var version = predicted.version;
+        for (final action in mission.evidenceActions) {
+          final result = await r.useEvidenceAction(
+              attempt.id, mission.id, action.id, version);
+          version = result.attemptVersion;
+        }
+        final done = await r.submitConclusion(
+          attempt.id,
+          ConclusionInput(
+            authenticity: const AxisAssessment(label: 'authentic', confidence: 60),
+            claimVeracity:
+                const AxisAssessment(label: 'insufficient_evidence', confidence: 40),
+            contextIntegrity:
+                const AxisAssessment(label: 'misleading', confidence: 55),
+            postConfidence: 45,
+            shareDecision: 'do_not_share',
+            version: version,
+          ),
+        );
+        return done.xpAwarded;
+      }
+
+      final adultXp = await xpFor(AudienceMode.adult);
+      final childXp = await xpFor(AudienceMode.child);
+      expect(childXp, adultXp,
+          reason: 'the younger mode paid differently for the same work');
+    });
   });
 }

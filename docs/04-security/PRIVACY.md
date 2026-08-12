@@ -28,7 +28,32 @@ Provide clear notice; account/data export; deletion status and deadline; revoke 
 
 ## Minors and education
 
-MVP defaults to 16+. Before younger or school deployment: jurisdiction mapping, age assurance proportional to risk, parental/school authority analysis, child DPIA, no targeted ads, no public profiles/contact, restricted notifications, facilitator controls, procurement/DPA and child-safety review.
+Children are in scope. The product is intended for younger learners as
+well as adults, and the client ships two content modes: the younger mode
+runs the same skills, the same three axes and the same scoring, with
+missions built on distressing case material left out.
+
+Suitability is decided from per-mission `contentWarnings` against an
+**allowlist** of tags a younger learner may meet. This fails closed: a
+warning tag the client does not recognise keeps the mission out of the
+younger mode, so content from a new pack or a later version is never
+shown to a child merely because its tag was unfamiliar. The allowlist is
+editorial and belongs to Role 3 — adding a tag to it is a content-review
+decision, not a code change.
+
+The mode is a **suitability choice, not an access control**, and the UI
+says so in both places it appears. It is a soft setting anyone can
+change. Nothing in the product should be described to a school or a
+parent as a safeguarding gate, because it is not one.
+
+Still required before a school deployment or any real-world use with
+children, none of which the current build provides: jurisdiction
+mapping, age assurance proportional to risk, parental/school authority
+analysis, child DPIA, no targeted ads, no public profiles or contact
+between learners, restricted notifications, facilitator controls,
+procurement/DPA and an independent child-safety review of the content
+pack itself. Two content modes address what is *shown*; they do not
+address consent, authority, or data handling for minors.
 
 ## Third parties
 

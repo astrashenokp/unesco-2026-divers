@@ -1,4 +1,5 @@
 import 'api_client.dart';
+import 'audience.dart';
 import 'demo_fixtures.dart';
 import 'models.dart';
 
@@ -51,9 +52,13 @@ class DemoMissionRepository implements MissionRepository {
   /// Reads the current language at call time rather than at construction,
   /// so switching language in settings re-localizes the demo content
   /// without rebuilding the repository.
-  DemoMissionRepository({required this.localeCode});
+  DemoMissionRepository({required this.localeCode, required this.audience});
 
   final String Function() localeCode;
+
+  /// Read at call time like [localeCode], so switching audience in
+  /// settings re-filters the path without rebuilding the repository.
+  final AudienceMode Function() audience;
 
   @override
   bool get isDemo => true;
@@ -80,18 +85,39 @@ class DemoMissionRepository implements MissionRepository {
   Future<LearningPath> getLearningPath() async {
     await _pause();
     final path = demoLearningPathFor(localeCode(), completed: _completed.length);
+    final missionsAll = demoMissionsFor(localeCode());
+
+    // Filtering happens here rather than in the widget tree on purpose.
+    // A mission a younger learner should not meet must not be in the
+    // path they are handed at all — hiding a node while leaving it
+    // reachable by any other route is the kind of gap that only shows up
+    // once it has already gone wrong.
+    final mode = audience();
+    final visible = [
+      for (final node in path.nodes)
+        if (suitableFor(
+            mode, missionsAll[node.missionId]?.contentWarnings ?? const []))
+          node,
+    ];
+
     final due = _dueSkills;
-    if (due.isEmpty) return path;
+    if (due.isEmpty) {
+      return LearningPath(
+        version: path.version,
+        locale: path.locale,
+        nodes: visible,
+      );
+    }
 
     // Joining due skills to nodes is only possible here because the demo
     // holds the fixtures. See LearningPathNode.boosterDue for why the
     // live repository cannot do the same.
-    final missions = demoMissionsFor(localeCode());
+    final missions = missionsAll;
     return LearningPath(
       version: path.version,
       locale: path.locale,
       nodes: [
-        for (final node in path.nodes)
+        for (final node in visible)
           LearningPathNode(
             missionId: node.missionId,
             title: node.title,
@@ -108,6 +134,22 @@ class DemoMissionRepository implements MissionRepository {
   Future<Mission> getMission(String missionId) async {
     await _pause();
     final mission = demoMissionsFor(localeCode())[missionId];
+    // The same rule at the second door. A path that omits a mission is
+    // not a guarantee nothing else opens it — a saved link, a resumed
+    // session, a future deep link — so the check that matters is here
+    // too, and a mission outside this audience reads as absent rather
+    // than as forbidden.
+    if (mission != null && !suitableFor(audience(), mission.contentWarnings)) {
+      throw EvidenceGymApiException(
+        const Problem(
+          type: 'about:blank',
+          title: 'Mission not in this pack',
+          status: 404,
+          code: 'demo_mission_not_found',
+          traceId: 'demo',
+        ),
+      );
+    }
     if (mission == null) {
       throw EvidenceGymApiException(
         const Problem(

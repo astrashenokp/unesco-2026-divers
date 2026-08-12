@@ -115,6 +115,76 @@ class Strings {
             "набір місій.",
       );
 
+  // --------------------------------------------------------- audience mode
+  //
+  // The wording avoids calling the younger mode easier, simpler or for
+  // beginners. It is none of those: the reasoning, the three axes and
+  // the scoring are identical, and only the case material differs. A
+  // learner told they are on the easy version will read every result
+  // through that.
+  String get audienceQuestion => _s('Who is playing?', 'Хто гратиме?');
+  String get audienceAdult => _s('Adult', 'Доросла людина');
+  String get audienceAdultBody => _s(
+        'Every mission, including cases built on disasters and unrest.',
+        "Усі місії, зокрема побудовані на катастрофах і заворушеннях.",
+      );
+  String get audienceChild => _s('Child or teen', 'Дитина або підліток');
+  String get audienceChildBody => _s(
+        'The same skills and the same scoring, with the distressing cases '
+            'left out.',
+        "Ті самі навички й те саме оцінювання, але без важких прикладів.",
+      );
+  String get audienceNotAGate => _s(
+        'You can change this later in settings. It chooses what is suitable '
+            'to show — it is not a lock.',
+        "Це можна змінити згодом у налаштуваннях. Вибір стосується того, що "
+            "доречно показувати, — це не замок.",
+      );
+  String get audienceLabel => _s('Content for', 'Контент для');
+  String audienceHiddenNote(int n) => _s(
+        n == 1
+            ? '1 mission is hidden in this mode.'
+            : '$n missions are hidden in this mode.',
+        n == 1
+            ? 'У цьому режимі приховано 1 місію.'
+            : 'У цьому режимі приховано місій: $n.',
+      );
+
+  /// Plain-language names for the content warning tags, so a warning
+  /// never appears to the learner as a raw slug.
+  String contentWarningLabel(String tag) => switch (tag) {
+        'natural-disaster' => _s('Natural disaster', 'Стихійне лихо'),
+        'civil-unrest' => _s('Crowds and unrest', 'Натовпи й заворушення'),
+        'academic-integrity' =>
+          _s('Academic dishonesty', 'Академічна недоброчесність'),
+        'ai-generated-media' =>
+          _s('AI-generated media', 'Згенеровані ШІ матеріали'),
+        'impersonation' => _s('Impersonation', 'Видавання себе за іншого'),
+        'statistics-misuse' =>
+          _s('Misused statistics', 'Маніпуляція статистикою'),
+        'advertising' => _s('Advertising', 'Реклама'),
+        'marketing-claim' => _s('Marketing claim', 'Рекламне твердження'),
+        'clickbait' => _s('Clickbait', 'Клікбейт'),
+        // An unknown tag is shown as itself rather than swallowed. A
+        // warning nobody sees is worse than an ugly one.
+        _ => tag,
+      };
+
+  String get contentWarningTitle =>
+      _s('Before you open this', 'Перш ніж відкрити');
+  String get contentWarningBody => _p(
+        'This mission is built on real case material that some people find '
+            'upsetting. You can open it when you are ready, or go back and '
+            'pick another.',
+        "Ця місія побудована на реальних матеріалах, які декого можуть "
+            "засмутити. Відкрий, коли будеш готова, або повернись і обери "
+            "іншу.",
+        'This mission shows something that can be upsetting. Open it when '
+            'you are ready.',
+        "У цій місії є те, що може засмутити. Відкрий, коли будеш готова.",
+      );
+  String get contentWarningReveal => _s('Show the mission', 'Показати місію');
+
   // ---------------------------------------------------------- data notice
   //
   // Every line below is read off the purpose matrix in `PRIVACY.md`.
@@ -160,11 +230,18 @@ class Strings {
           'No calls to any outside service.',
         ];
 
+  /// Replaces an earlier line that read "built for ages 16 and up".
+  ///
+  /// The product is for children too, and the younger mode is how that
+  /// is done. Saying 16+ while shipping a child mode would have been the
+  /// notice contradicting the app.
   String get noticeAgeDefault => _s(
-        'Built for ages 16 and up. Younger or school use needs safeguarding '
-            'review first.',
-        "Розраховано на 16+. Молодший або шкільний вжиток потребує окремої "
-            "перевірки безпеки.",
+        'Anyone can use this. Younger learners get the same skills with the '
+            'distressing cases left out — choose that on the first screen or '
+            'in settings.',
+        "Користуватися може будь-хто. Для молодших — ті самі навички, але без "
+            "важких прикладів; обрати це можна на першому екрані або в "
+            "налаштуваннях.",
       );
 
   // ------------------------------------------------------------------ path

@@ -498,14 +498,43 @@ class _Confidence extends StatelessWidget {
   }
 }
 
-class _MissionBrief extends StatelessWidget {
+class _MissionBrief extends StatefulWidget {
   const _MissionBrief({required this.mission});
 
   final Mission mission;
 
   @override
+  State<_MissionBrief> createState() => _MissionBriefState();
+}
+
+class _MissionBriefState extends State<_MissionBrief> {
+  /// A mission carrying a content warning stays covered until the
+  /// learner opens it.
+  ///
+  /// This is the second half of the audience work and it matters in the
+  /// adult mode, where the distressing cases are exactly the ones still
+  /// present. The warning names what is in there rather than being
+  /// vague, because "sensitive content" tells nobody whether they want
+  /// to look; and it opens only on a deliberate press, never on scroll
+  /// and never on a timer.
+  bool _revealed = false;
+
+  @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final s = Strings.of(context);
+    final mission = widget.mission;
+
+    if (mission.contentWarnings.isNotEmpty && !_revealed) {
+      return ContentWarning(
+        title: s.contentWarningTitle,
+        body: '${mission.contentWarnings.map(s.contentWarningLabel).join(', ')}.'
+            '\n\n${s.contentWarningBody}',
+        revealLabel: s.contentWarningReveal,
+        onReveal: () => setState(() => _revealed = true),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

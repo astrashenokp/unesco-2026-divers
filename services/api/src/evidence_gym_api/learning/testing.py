@@ -3,6 +3,7 @@
 from copy import deepcopy
 from contextlib import asynccontextmanager
 import asyncio
+from datetime import UTC, datetime
 from itertools import count
 from collections.abc import AsyncIterator
 
@@ -65,8 +66,13 @@ class InMemoryIdempotencyRepository:
     def __init__(self) -> None:
         self._results: dict[IdempotencyScope, StoredAttemptResult] = {}
 
-    async def get(self, scope: IdempotencyScope) -> StoredAttemptResult | None:
+    async def get(
+        self, scope: IdempotencyScope, *, at: datetime
+    ) -> StoredAttemptResult | None:
         result = self._results.get(scope)
+        if result is not None and result.expires_at <= at:
+            del self._results[scope]
+            return None
         return deepcopy(result) if result is not None else None
 
     async def put(
@@ -88,3 +94,11 @@ class InMemoryTransactionManager:
     async def transaction(self) -> AsyncIterator[None]:
         async with self._lock:
             yield
+
+
+class FixedClock:
+    def __init__(self, current: datetime | None = None) -> None:
+        self.current = current or datetime(2026, 8, 11, tzinfo=UTC)
+
+    def now(self) -> datetime:
+        return self.current

@@ -1,6 +1,7 @@
 """Learning application use cases with explicit authorization and retry semantics."""
 
 from dataclasses import dataclass
+from datetime import timedelta
 from hashlib import sha256
 import json
 
@@ -21,7 +22,10 @@ from evidence_gym_api.learning.ports import (
     MissionPolicyReader,
     StoredAttemptResult,
     TransactionManager,
+    Clock,
 )
+
+IDEMPOTENCY_RETENTION = timedelta(hours=24)
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
     IdempotencyKey,
@@ -60,12 +64,14 @@ class StartAttempt:
         idempotency: IdempotencyRepository,
         ids: AttemptIdGenerator,
         transactions: TransactionManager,
+        clock: Clock,
     ) -> None:
         self._attempts = attempts
         self._missions = missions
         self._idempotency = idempotency
         self._ids = ids
         self._transactions = transactions
+        self._clock = clock
 
     async def execute(self, principal: Principal, command: StartAttemptCommand) -> Attempt:
         fingerprint = _fingerprint(
@@ -75,11 +81,12 @@ class StartAttempt:
             }
         )
         scope = IdempotencyScope(
-            principal.subject, "start_attempt", command.idempotency_key
+            principal.subject, "/attempts", command.idempotency_key
         )
         async with self._transactions.transaction():
+            now = self._clock.now()
             replay = _replay_or_conflict(
-                await self._idempotency.get(scope), fingerprint
+                await self._idempotency.get(scope, at=now), fingerprint
             )
             if replay is not None:
                 return replay
@@ -99,7 +106,10 @@ class StartAttempt:
             )
             await self._attempts.add(attempt)
             await self._idempotency.put(
-                scope, StoredAttemptResult(fingerprint, attempt)
+                scope,
+                StoredAttemptResult(
+                    fingerprint, attempt, now + IDEMPOTENCY_RETENTION
+                ),
             )
             return attempt
 
@@ -119,10 +129,12 @@ class SubmitPrediction:
         attempts: AttemptRepository,
         idempotency: IdempotencyRepository,
         transactions: TransactionManager,
+        clock: Clock,
     ) -> None:
         self._attempts = attempts
         self._idempotency = idempotency
         self._transactions = transactions
+        self._clock = clock
 
     async def execute(
         self, principal: Principal, command: SubmitPredictionCommand
@@ -138,12 +150,13 @@ class SubmitPrediction:
         )
         scope = IdempotencyScope(
             principal.subject,
-            f"submit_prediction:{command.attempt_id.value}",
+            "/attempts/{attemptId}/prediction",
             command.idempotency_key,
         )
         async with self._transactions.transaction():
+            now = self._clock.now()
             replay = _replay_or_conflict(
-                await self._idempotency.get(scope), fingerprint
+                await self._idempotency.get(scope, at=now), fingerprint
             )
             if replay is not None:
                 return replay
@@ -160,6 +173,9 @@ class SubmitPrediction:
             attempt.submit_prediction(Prediction(command.reaction, command.confidence))
             await self._attempts.save(attempt, expected_version=expected_version)
             await self._idempotency.put(
-                scope, StoredAttemptResult(fingerprint, attempt)
+                scope,
+                StoredAttemptResult(
+                    fingerprint, attempt, now + IDEMPOTENCY_RETENTION
+                ),
             )
             return attempt

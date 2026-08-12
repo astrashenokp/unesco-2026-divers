@@ -28,3 +28,12 @@ The learning package currently provides pure attempt-domain behavior,
 application ports, deterministic in-memory test adapters, and the `StartAttempt`
 and `SubmitPrediction` use cases. Persistence implementers should follow
 [`ROLE4_PERSISTENCE_HANDOFF.md`](ROLE4_PERSISTENCE_HANDOFF.md).
+
+Implemented learner mutations:
+
+- `POST /attempts`
+- `POST /attempts/{attemptId}/prediction`
+
+Both require a verified Firebase bearer principal and `Idempotency-Key`. The
+repository contains only a fake verifier for tests; runtime Firebase verification
+must be injected through the application factory.

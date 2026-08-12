@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gameplay"
+version = "0.1.0"
+description = "Evidence Gym server-authoritative gameplay rules: XP, skills, streak, unlock (Role 4 owned)."
+requires-python = ">=3.12,<3.14"
+dependencies = []
+
+[project.optional-dependencies]
+test = [
+  "pytest>=8.4,<9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gameplay"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["src"]

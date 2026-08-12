@@ -14,9 +14,15 @@ export DATABASE_URL='postgresql+asyncpg://evidence_gym:evidence_gym@localhost:54
 alembic -c alembic.ini upgrade head
 ```
 
-The package stores authoritative attempts and learner-scoped idempotency
-snapshots. It does not store bearer tokens, request headers, prompts, or raw
-uploads. Redis is intentionally not part of this baseline.
+The package stores authoritative attempts, atomic completion projections, and
+learner-scoped idempotency snapshots. It does not store bearer tokens, request
+headers, prompts, or raw uploads. Redis is intentionally not part of this
+baseline.
+
+Migration `0003` adds conclusions, receipts, XP ledger, progress, skill state,
+and outbox tables. Migration `0004` normalizes skill mastery to a numeric
+projection. `SqlAlchemyAtomicCompletionWriter` must run in the same session
+transaction as the application completion use case.
 
 Run the 24-hour TTL cleanup with:
 

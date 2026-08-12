@@ -81,6 +81,10 @@ class Strings {
   String get orDivider => _s('— or —', '— або —');
   String get demoKeyLabel => _s('Demo access key', 'Демо-ключ доступу');
   String get enterDemo => _s('Enter demo', 'Увійти в демо');
+  String get demoKeyPrefilled => _s(
+        'Key pre-filled — debug build only.',
+        'Ключ підставлено — лише в debug-збірці.',
+      );
   String demoKeyWrong(String key) => _s(
         'That key doesn\'t match. Try $key for this demo.',
         'Ключ не збігається. Для цього демо спробуй $key.',

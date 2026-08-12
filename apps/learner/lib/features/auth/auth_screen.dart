@@ -1,4 +1,5 @@
 import 'package:design_system/design_system.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/api_client.dart';
@@ -30,7 +31,15 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  final _demoKeyController = TextEditingController();
+  /// Pre-filled in debug builds only.
+  ///
+  /// `SCREEN_INVENTORY.md` calls the demo route a *hidden* entry, and it
+  /// should stay hidden in anything shipped — pre-filling a release
+  /// build would put every visitor one tap from fixture data. `flutter
+  /// run` is debug by default, so development and rehearsal get the
+  /// convenience while `flutter build --release` keeps the gate.
+  final _demoKeyController =
+      TextEditingController(text: kDebugMode ? demoAccessKey : '');
   String? _error;
 
   @override
@@ -125,6 +134,17 @@ class _AuthScreenState extends State<AuthScreen> {
                         child: Text(s.enterDemo),
                       ),
                     ),
+                    if (kDebugMode) ...[
+                      SizedBox(height: tokens.space(1)),
+                      Text(
+                        s.demoKeyPrefilled,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: tokens.evidenceSecondary),
+                      ),
+                    ],
                     SizedBox(height: tokens.space(2)),
                     Text(
                       s.demoExplain,

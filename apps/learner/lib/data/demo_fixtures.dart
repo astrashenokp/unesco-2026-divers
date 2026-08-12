@@ -263,6 +263,8 @@ Map<String, EvidenceResult> demoEvidenceResultsFor(String code) {
       EvidenceResult(
         actionId: actionId,
         status: 'ok',
+        // Overwritten by the repository, which owns the real value.
+        attemptVersion: 1,
         items: [
           EvidenceItem(
             evidenceId: id,
@@ -288,6 +290,7 @@ Map<String, EvidenceResult> demoEvidenceResultsFor(String code) {
     'viral-flood-photo:check_corroboration': EvidenceResult(
       actionId: 'check_corroboration',
       status: 'not_found',
+      attemptVersion: 1,
       items: const [],
       limitations: [
         onlyDemo,

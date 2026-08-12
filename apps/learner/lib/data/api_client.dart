@@ -147,6 +147,7 @@ class EvidenceGymApiClient {
   Future<EvidenceResult> useEvidenceAction({
     required String attemptId,
     required String actionId,
+    required int version,
     Map<String, dynamic>? input,
     required String idempotencyKey,
   }) async {
@@ -154,7 +155,11 @@ class EvidenceGymApiClient {
     final res = await _send(() async => _client.post(
       _uri('/attempts/$attemptId/evidence-actions'),
       headers: headers,
-      body: jsonEncode({'actionId': actionId, if (input != null) 'input': input}),
+      body: jsonEncode({
+        'actionId': actionId,
+        'version': version,
+        if (input != null) 'input': input,
+      }),
     ));
     if (res.statusCode != 200) _throwProblem(res);
     return EvidenceResult.fromJson(jsonDecode(res.body) as Map<String, dynamic>);

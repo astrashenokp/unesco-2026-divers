@@ -16,10 +16,13 @@ abstract class MissionRepository {
   Future<Mission> getMission(String missionId);
   Future<Attempt> startAttempt(String missionId, String missionVersion);
   Future<Attempt> submitPrediction(String attemptId, PredictionInput input);
+  /// [version] is the attempt version the caller believes is current.
+  /// A stale value returns 409 (ADR-009).
   Future<EvidenceResult> useEvidenceAction(
     String attemptId,
     String missionId,
     String actionId,
+    int version,
   );
   Future<({String receiptId, int xpAwarded, Progress progress})> submitConclusion(
     String attemptId,
@@ -138,6 +141,7 @@ class DemoMissionRepository implements MissionRepository {
     String attemptId,
     String missionId,
     String actionId,
+    int version,
   ) async {
     await _pause();
     final current = _attemptState[attemptId];
@@ -151,14 +155,40 @@ class DemoMissionRepository implements MissionRepository {
       );
     }
     _usedActions.putIfAbsent(attemptId, () => {}).add(actionId);
+
+    // An evidence action advances the attempt, so the version moves and
+    // the response reports it — the demo has to model the same
+    // concurrency contract as the server, or the client's handling of it
+    // is never exercised before a live backend appears (ADR-009).
+    final after = _attemptState[attemptId];
+    final nextVersion = (after?.version ?? 1) + 1;
+    if (after != null) {
+      _attemptState[attemptId] = Attempt(
+        id: after.id,
+        missionId: after.missionId,
+        missionVersion: after.missionVersion,
+        state: 'investigating',
+        version: nextVersion,
+      );
+    }
+
     final key = '$missionId:$actionId';
-    final result = demoEvidenceResultsFor(localeCode())[key] ??
-        EvidenceResult(
-          actionId: actionId,
-          status: 'not_found',
-          items: const [],
-          limitations: const ['No demo fixture for this action.'],
-        );
+    final fixture = demoEvidenceResultsFor(localeCode())[key];
+    final result = fixture == null
+        ? EvidenceResult(
+            actionId: actionId,
+            status: 'not_found',
+            items: const [],
+            limitations: const ['No demo fixture for this action.'],
+            attemptVersion: nextVersion,
+          )
+        : EvidenceResult(
+            actionId: fixture.actionId,
+            status: fixture.status,
+            items: fixture.items,
+            limitations: fixture.limitations,
+            attemptVersion: nextVersion,
+          );
     // Remember what was actually looked at, so the receipt can cite it.
     _evidenceIds
         .putIfAbsent(attemptId, () => [])
@@ -354,6 +384,7 @@ class LiveMissionRepository implements MissionRepository {
     String attemptId,
     String missionId,
     String actionId,
+    int version,
   ) async {
     // Keyed by the action itself: running the same check twice is the
     // same operation and should not be billed or logged twice.
@@ -361,6 +392,7 @@ class LiveMissionRepository implements MissionRepository {
     final result = await _client.useEvidenceAction(
       attemptId: attemptId,
       actionId: actionId,
+      version: version,
       idempotencyKey: _key(action),
     );
     _clearKey(action);

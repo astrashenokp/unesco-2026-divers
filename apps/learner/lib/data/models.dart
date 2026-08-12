@@ -193,12 +193,20 @@ class EvidenceResult {
     required this.status,
     required this.items,
     required this.limitations,
+    required this.attemptVersion,
   });
 
   final String actionId;
   final String status; // ok|not_found|unavailable|blocked
   final List<EvidenceItem> items;
   final List<String> limitations;
+
+  /// The attempt's version after this action (ADR-009).
+  ///
+  /// There is no `GET /attempts/{id}`, so this is the only way the client
+  /// learns the current version between a prediction and a conclusion.
+  /// Without it, sending `version` at conclusion would be a guess.
+  final int attemptVersion;
 
   factory EvidenceResult.fromJson(Map<String, dynamic> json) => EvidenceResult(
         actionId: json['actionId'] as String,
@@ -207,6 +215,7 @@ class EvidenceResult {
             .map((e) => EvidenceItem.fromJson(e as Map<String, dynamic>))
             .toList(),
         limitations: (json['limitations'] as List).cast<String>(),
+        attemptVersion: (json['attemptVersion'] as num).toInt(),
       );
 }
 

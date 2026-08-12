@@ -111,6 +111,18 @@ class _MissionScreenState extends State<MissionScreen> {
         attempt.id,
         mission.id,
         action.id,
+        attempt.version,
+      );
+      // Adopt the version the server reports. Without this the
+      // conclusion would send the version last seen at prediction time,
+      // which every evidence action has since moved past — a guaranteed
+      // 409 with no way back (ADR-009).
+      _attempt = Attempt(
+        id: attempt.id,
+        missionId: attempt.missionId,
+        missionVersion: attempt.missionVersion,
+        state: 'investigating',
+        version: result.attemptVersion,
       );
       if (mounted) setState(() => _collected[action.id] = result);
     }, Strings.of(context).busyEvidence(action.label));

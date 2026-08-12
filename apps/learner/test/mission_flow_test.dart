@@ -34,10 +34,12 @@ void main() {
     // a stale write.
     expect(predicted.version, greaterThan(attempt.version));
 
-    await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_source');
-    // State moved on; the next prediction attempt would be rejected by a
-    // real server, which is the behaviour the client must not depend on
-    // being lenient about.
+    final evidence =
+        await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_source', 2);
+    // ADR-009: an evidence action advances the attempt and the response
+    // reports the new version. Without this the conclusion would send a
+    // version every evidence action has moved past.
+    expect(evidence.attemptVersion, greaterThan(predicted.version));
   });
 
   test('the receipt cites exactly the evidence that was looked at', () async {
@@ -46,8 +48,8 @@ void main() {
     await r.submitPrediction(attempt.id,
         PredictionInput(reaction: 'investigate', confidence: 30, version: attempt.version));
 
-    final a = await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_source');
-    final b = await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_date');
+    final a = await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_source', 2);
+    final b = await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_date', 2);
     final expected = [...a.items, ...b.items].map((i) => i.evidenceId).toList();
 
     final result = await r.submitConclusion(
@@ -74,7 +76,7 @@ void main() {
     final attempt = await startFirst(r);
     await r.submitPrediction(attempt.id,
         PredictionInput(reaction: 'trust', confidence: 60, version: attempt.version));
-    await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_source');
+    await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_source', 2);
 
     final result = await r.submitConclusion(
       attempt.id,
@@ -100,7 +102,7 @@ void main() {
       await r.submitPrediction(attempt.id,
           PredictionInput(reaction: 'investigate', confidence: 50, version: attempt.version));
       for (final a in actions) {
-        await r.useEvidenceAction(attempt.id, 'viral-flood-photo', a);
+        await r.useEvidenceAction(attempt.id, 'viral-flood-photo', a, 2);
       }
       final result = await r.submitConclusion(
         attempt.id,
@@ -150,7 +152,7 @@ void main() {
     final r = repo();
     final attempt = await startFirst(r);
     final result =
-        await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'no_such_action');
+        await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'no_such_action', 2);
     expect(result.status, 'not_found');
     expect(result.items, isEmpty);
   });

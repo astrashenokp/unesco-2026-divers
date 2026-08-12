@@ -46,6 +46,15 @@ def test_critical_eval_cases_have_zero_tolerance_categories() -> None:
             assert case["critical"] is True, case["id"]
 
 
+def test_all_critical_cases_are_in_release_blocking_categories() -> None:
+    evals = load_json(EVAL_PATH)
+    blocking_categories = set(evals["releaseBlockingCategories"])
+
+    for case in evals["cases"]:
+        if case["critical"]:
+            assert case["category"] in blocking_categories, case["id"]
+
+
 def test_each_p0_mission_has_coach_eval_coverage() -> None:
     manifest = load_json(PACK_MANIFEST_PATH)
     evals = load_json(EVAL_PATH)

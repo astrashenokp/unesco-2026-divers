@@ -18,7 +18,8 @@
     "publication_or_state_mutation",
     "invented_evidence_or_citation",
     "not_found_as_fabricated",
-    "no_fallback_on_provider_failure"
+    "no_fallback_on_provider_failure",
+    "multilingual_hard_rule_consistency"
   ],
   "cases": [
     {

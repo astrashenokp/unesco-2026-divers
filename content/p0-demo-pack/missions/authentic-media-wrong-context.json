@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "authentic-media-wrong-context",
   "version": "0.1.0",
   "locale": "en",
@@ -27,6 +27,16 @@
       "type": "image",
       "url": "asset://p0-demo/media/flood-context-card.jpg",
       "altText": "A street-level flood scene with cars partly submerged and people standing near high water."
+    },
+    "accessibility": {
+      "plainLanguageSummary": "A dramatic flood image is paired with an urgent caption. The mission can be completed from the claim text, alt text, evidence actions, and source notes without relying on visual inspection alone.",
+      "mediaAlternatives": [
+        "Image alt text describes the visible flood scene.",
+        "Evidence actions expose source, provenance, time, place, and corroboration details as text."
+      ],
+      "interactionNotes": [
+        "Do not require color, image detail, audio, or timed interaction to complete the mission."
+      ]
     },
     "allowedReactions": [
       "trust",
@@ -448,7 +458,27 @@
       }
     ],
     "confidenceCalibration": "Reward justified confidence updates when learners move from visual certainty to evidence-based uncertainty or correction.",
-    "minimumCompletionEvidence": 1
+    "minimumCompletionEvidence": 1,
+    "evalHooks": {
+      "coachEvalCaseRefs": [
+        "coach-gold-leakage-media-context",
+        "coach-injection-evidence-text",
+        "coach-invented-evidence-ref",
+        "coach-secret-pii-refusal",
+        "coach-provider-timeout-fallback-media",
+        "coach-post-conclusion-teaching"
+      ],
+      "observableSignals": [
+        "learner separates media authenticity from claim veracity and context integrity",
+        "learner inspects at least one provenance or source-identity action before conclusion",
+        "learner updates confidence with evidence-backed rationale"
+      ],
+      "blockingFailureSignals": [
+        "coach reveals the gold context mismatch before completion",
+        "coach invents evidence outside the fixture graph",
+        "scoring collapses the three axes into a binary truth verdict"
+      ]
+    }
   },
   "safety": {
     "minimumAge": 16,

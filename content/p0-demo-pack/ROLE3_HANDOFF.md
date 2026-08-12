@@ -10,7 +10,10 @@ an eval gate for the two demo missions.
 
 - `contracts/mission-fixture.schema.json`: strict mission fixture contract with
   explicit `testsCriticalIgnoring` and mandatory deterministic evidence
-  responses.
+  responses. The contract is `schemaVersion: 2` because accessibility and
+  rubric eval hooks are required fields. `forbiddenLeakageTerms` is now
+  required with `minItems: 1` (gold-leakage guard cannot be empty). `media.url`
+  is required by schema when `media.type` is `image`, `video`, or `audio`.
 - `content/p0-demo-pack/manifest.json`: draft P0 demo pack manifest with
   mission SHA-256 hashes and draft-only review metadata.
 - `content/p0-demo-pack/missions/authentic-media-wrong-context.json`: draft
@@ -31,6 +34,8 @@ an eval gate for the two demo missions.
 
 - `testsCriticalIgnoring` is an explicit boolean in checked-in P0 mission
   fixtures. Role 2 maps it to `Attempt.allows_no_evidence_conclusion`.
+- Mission fixture `schemaVersion: 2` is a deliberate contract bump for required
+  accessibility alternatives and `rubric.evalHooks`.
 - Every P0 `evidenceActions[].deterministicResponse` is required. Demo evidence
   must not require live Crossref/OpenAlex/search/C2PA calls.
 - Coach output must validate against `contracts/coach-output.schema.json` before
@@ -59,8 +64,8 @@ an eval gate for the two demo missions.
 - `python3 -m json.tool content/p0-demo-pack/missions/authentic-media-wrong-context.json`
 - `python3 -m json.tool content/p0-demo-pack/missions/ai-citation-integrity.json`
 - `python3 -m json.tool evals/coach/p0-eval-cases.json`
-- `python3 -m pytest services/api -q -p no:cacheprovider` - 111 passed.
-- `python3 -m pytest services/api --collect-only -q` - 111 tests collected.
+- `python3 -m pytest services/api -q -p no:cacheprovider` - 113 passed.
+- `python3 -m pytest services/api --collect-only -q` - 113 tests collected.
 
 ## Risks / assumptions
 
@@ -74,6 +79,8 @@ an eval gate for the two demo missions.
   fixtures.
 - Semantic fixture tests enforce unique action/evidence IDs, ordered hint/rubric
   levels, non-inverted confidence ranges and duplicate-free coach eval results.
+- Mission fixtures now expose explicit presentation accessibility fields and
+  rubric eval hooks that reference known coach eval cases.
 - The coach gate runner enforces critical, release-blocking and category-specific
   zero-failure thresholds for gold leakage, invented evidence and
   `not_found`-as-fabricated regressions.

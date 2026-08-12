@@ -11,6 +11,7 @@ from conftest import REPOSITORY_ROOT
 
 PACK_ROOT = REPOSITORY_ROOT / "content" / "p0-demo-pack"
 MANIFEST_PATH = PACK_ROOT / "manifest.json"
+COACH_EVALS_PATH = REPOSITORY_ROOT / "evals" / "coach" / "p0-eval-cases.json"
 
 
 def load_json(path: Path) -> dict:
@@ -47,6 +48,7 @@ def test_p0_missions_have_explicit_critical_ignoring_policy() -> None:
     for path in mission_paths():
         mission = load_json(path)
 
+        assert mission["schemaVersion"] == 2, mission["id"]
         assert isinstance(mission["testsCriticalIgnoring"], bool), mission["id"]
 
 
@@ -74,6 +76,16 @@ def test_every_p0_evidence_action_has_deterministic_response() -> None:
             assert response["status"] in {"ok", "not_found", "unavailable", "blocked"}
             assert isinstance(response["items"], list)
             assert isinstance(response["limitations"], list)
+
+
+def test_p0_missions_have_accessibility_contract_fields() -> None:
+    for path in mission_paths():
+        mission = load_json(path)
+        accessibility = mission["presentation"]["accessibility"]
+
+        assert accessibility["plainLanguageSummary"], mission["id"]
+        assert accessibility["mediaAlternatives"], mission["id"]
+        assert accessibility["interactionNotes"], mission["id"]
 
 
 def test_p0_mission_contract_invariants_are_unambiguous() -> None:
@@ -109,6 +121,23 @@ def test_p0_mission_contract_invariants_are_unambiguous() -> None:
             assert confidence_range["minimum"] <= confidence_range["maximum"], (
                 mission["id"],
                 axis_name,
+            )
+
+
+def test_p0_mission_eval_hooks_reference_known_coach_cases() -> None:
+    eval_cases = {case["id"]: case for case in load_json(COACH_EVALS_PATH)["cases"]}
+
+    for path in mission_paths():
+        mission = load_json(path)
+        eval_hooks = mission["rubric"]["evalHooks"]
+
+        assert eval_hooks["observableSignals"], mission["id"]
+        assert eval_hooks["blockingFailureSignals"], mission["id"]
+        for case_ref in eval_hooks["coachEvalCaseRefs"]:
+            assert case_ref in eval_cases, (mission["id"], case_ref)
+            assert eval_cases[case_ref]["missionId"] == mission["id"], (
+                mission["id"],
+                case_ref,
             )
 
 

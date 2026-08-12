@@ -188,8 +188,33 @@ def test_coach_eval_fixture_has_expected_release_gate_shape() -> None:
 def test_mission_fixture_schema_is_strict_demo_contract() -> None:
     schema = load_json(MISSION_FIXTURE_SCHEMA_PATH)
 
+    assert schema["$id"].endswith("mission-fixture.v2.json")
+    assert schema["properties"]["schemaVersion"] == {"const": 2}
+
     assert "testsCriticalIgnoring" in schema["required"]
     assert schema["properties"]["testsCriticalIgnoring"]["type"] == "boolean"
+    assert schema["properties"]["testsCriticalIgnoring"]["default"] is False
+
+    presentation = schema["properties"]["presentation"]
+    assert "accessibility" in presentation["required"]
+    assert presentation["properties"]["accessibility"] == {
+        "$ref": "#/$defs/accessibility"
+    }
+    assert schema["$defs"]["accessibility"]["properties"]["interactionNotes"][
+        "minItems"
+    ] == 1
+
+    rubric = schema["properties"]["rubric"]
+    assert "evalHooks" in rubric["required"]
+    assert rubric["properties"]["evalHooks"] == {"$ref": "#/$defs/evalHooks"}
+
+    assert "forbiddenLeakageTerms" in schema["required"]
+    assert schema["properties"]["forbiddenLeakageTerms"]["minItems"] == 1
+    assert "default" not in schema["properties"]["forbiddenLeakageTerms"]
+
+    media = schema["$defs"]["media"]
+    assert media["if"]["properties"]["type"]["enum"] == ["image", "video", "audio"]
+    assert media["then"] == {"required": ["url"]}
 
     evidence_action = schema["$defs"]["evidenceAction"]
     assert evidence_action["additionalProperties"] is False

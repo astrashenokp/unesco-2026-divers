@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://evidence-gym.example.invalid/schemas/mission-fixture.v1.json",
+  "$id": "https://evidence-gym.example.invalid/schemas/mission-fixture.v2.json",
   "title": "Evidence Gym Mission Fixture",
   "description": "Schema-first contract for versioned P0 mission JSON used by catalog, learning policy, AI coaching, and deterministic demo evidence actions.",
   "type": "object",
@@ -18,12 +18,13 @@
     "goldEvidenceGraph",
     "acceptedAssessments",
     "hintLadder",
+    "forbiddenLeakageTerms",
     "rubric",
     "safety",
     "review"
   ],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "const": 2 },
     "id": {
       "type": "string",
       "pattern": "^[a-z0-9][a-z0-9._-]{2,80}$"
@@ -40,6 +41,7 @@
     },
     "testsCriticalIgnoring": {
       "type": "boolean",
+      "default": false,
       "description": "Explicit fixture-level policy flag. When true, the pinned mission version may accept a conclusion without evidence actions under ADR-008."
     },
     "learning": {
@@ -87,6 +89,7 @@
         "claim",
         "context",
         "media",
+        "accessibility",
         "allowedReactions",
         "initialConfidencePrompt",
         "conclusionPrompt"
@@ -103,6 +106,7 @@
           "maxLength": 1500
         },
         "media": { "$ref": "#/$defs/media" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
         "allowedReactions": {
           "type": "array",
           "minItems": 3,
@@ -170,14 +174,14 @@
     },
     "forbiddenLeakageTerms": {
       "type": "array",
+      "minItems": 1,
       "uniqueItems": true,
-      "items": { "$ref": "#/$defs/shortText" },
-      "default": []
+      "items": { "$ref": "#/$defs/shortText" }
     },
     "rubric": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["processLevels", "confidenceCalibration", "minimumCompletionEvidence"],
+      "required": ["processLevels", "confidenceCalibration", "minimumCompletionEvidence", "evalHooks"],
       "properties": {
         "processLevels": {
           "type": "array",
@@ -194,7 +198,8 @@
           "type": "integer",
           "minimum": 0,
           "maximum": 6
-        }
+        },
+        "evalHooks": { "$ref": "#/$defs/evalHooks" }
       }
     },
     "safety": {
@@ -312,6 +317,30 @@
     }
   },
   "$defs": {
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plainLanguageSummary", "mediaAlternatives", "interactionNotes"],
+      "properties": {
+        "plainLanguageSummary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 700
+        },
+        "mediaAlternatives": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/shortText" }
+        },
+        "interactionNotes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/shortText" }
+        }
+      }
+    },
     "acceptedAxis": {
       "type": "object",
       "additionalProperties": false,
@@ -465,6 +494,34 @@
         }
       }
     },
+    "evalHooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["coachEvalCaseRefs", "observableSignals", "blockingFailureSignals"],
+      "properties": {
+        "coachEvalCaseRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^coach-[a-z0-9-]+$"
+          }
+        },
+        "observableSignals": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/shortText" }
+        },
+        "blockingFailureSignals": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/shortText" }
+        }
+      }
+    },
     "goldEvidence": {
       "type": "object",
       "additionalProperties": false,
@@ -560,6 +617,11 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["type", "altText"],
+      "if": {
+        "properties": { "type": { "enum": ["image", "video", "audio"] } },
+        "required": ["type"]
+      },
+      "then": { "required": ["url"] },
       "properties": {
         "type": {
           "enum": ["image", "video", "audio", "text"]

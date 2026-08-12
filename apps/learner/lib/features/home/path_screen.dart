@@ -118,43 +118,33 @@ class _PathScreenState extends State<PathScreen> {
         final map = _PathMap(nodes: path.nodes, onOpen: _openMission);
 
         if (formFactorOf(context).isWide) {
-          // The whole two-pane block is bounded and centred, rather than
-          // each pane stretching to its share of the window. On a wide
-          // screen the unbounded version pushed the side panel against
-          // the right edge while the map floated in the middle of its
-          // column, so the two read as unrelated rather than as one
-          // workspace.
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1180),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Map column. It scrolls on its own: a Row gives its
-                  // children a bounded height, so an unscrollable Column
-                  // here overflows once the path is taller than the
-                  // window.
-                  Expanded(
-                    flex: 3,
-                    child: SingleChildScrollView(
-                      child: ReadableWidth(maxWidth: 520, child: map),
-                    ),
+          // One scroll area, not two. Independent scrollables put a
+          // scrollbar down the middle of the workspace and split it in
+          // half visually; the whole thing moves together now.
+          //
+          // Fixed column widths rather than flex shares: with flex, the
+          // map floated in the middle of a column far wider than it
+          // needed while the panel drifted toward the window edge. Sized
+          // columns sit side by side with no dead space between them,
+          // and the pair is centred as one block.
+          return SingleChildScrollView(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.tokens.space(2),
+                    vertical: context.tokens.space(2),
                   ),
-                  // Side panel: the greeting and stats that would
-                  // otherwise push the map down on a phone.
-                  Expanded(
-                    flex: 2,
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.fromLTRB(
-                        context.tokens.space(2),
-                        context.tokens.space(3),
-                        context.tokens.space(3),
-                        context.tokens.space(3),
-                      ),
-                      child: header,
-                    ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(width: 520, child: map),
+                      SizedBox(width: context.tokens.space(3)),
+                      Expanded(child: header),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           );

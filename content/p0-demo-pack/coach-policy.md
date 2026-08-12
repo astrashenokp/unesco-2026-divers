@@ -57,8 +57,10 @@ mission fixture. P0 release requires fallback coverage for every P0 mission.
 ## Output
 
 The model output is validated against `contracts/coach-output.schema.json`.
-Unknown fields, unknown evidence IDs, unknown action IDs, level 5 before
-completion, and forbidden leakage terms are rejected before reaching the learner.
+The schema accepts only levels 1–4; the AI coach never outputs level 5. Unknown
+fields, unknown evidence IDs, unknown action IDs, and forbidden leakage terms are
+rejected before reaching the learner. Level 5 (post-conclusion teaching) is always
+served from the deterministic fixture hint ladder, not from AI output.
 When no safety flag applies, `safetyFlags` is an empty array.
 
 The public learner API maps this contract to the existing camelCase HTTP fields:

@@ -56,6 +56,7 @@ returns only the exact version requested by `StartAttempt`.
 `FixtureDeterministicEvidenceProvider` reads only the selected action's validated
 `deterministicResponse` from that exact mission version. It returns immutable,
 normalized evidence data, preserves `not_found` as uncertainty, exposes no gold
-assessment or rubric fields, and never calls a live provider. The state-changing
-evidence HTTP endpoint remains intentionally unwired until its optimistic-version
-request semantics are agreed in the shared API contract.
+assessment or rubric fields, and never calls a live provider. The
+`POST /attempts/{attemptId}/evidence-actions` endpoint validates ownership and
+optimistic versioning, records the action atomically, supports idempotent retries,
+and returns the updated `attemptVersion` required by the shared API contract.

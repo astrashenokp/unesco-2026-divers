@@ -33,11 +33,17 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def evaluate_gate(suite: dict[str, Any], results: dict[str, Any]) -> GateResult:
     messages: list[str] = []
+    suite_id = suite["suiteId"]
     thresholds = suite["thresholds"]
     blocking_categories = set(suite["releaseBlockingCategories"])
     cases_by_id = {case["id"]: case for case in suite["cases"]}
     result_items = results.get("caseResults", [])
     results_by_id: dict[str, dict[str, Any]] = {}
+    passed_by_id: dict[str, bool] = {}
+
+    result_suite_id = results.get("suiteId")
+    if result_suite_id != suite_id:
+        messages.append(f"Result suiteId must be {suite_id}")
 
     if not isinstance(result_items, list):
         messages.append("caseResults must be a list")
@@ -61,6 +67,12 @@ def evaluate_gate(suite: dict[str, Any], results: dict[str, Any]) -> GateResult:
 
         seen_result_ids.add(result_id)
         results_by_id[result_id] = item
+
+        passed_value = item.get("passed")
+        if not isinstance(passed_value, bool):
+            messages.append(f"caseResults[{index}].passed must be a boolean")
+            passed_value = False
+        passed_by_id[result_id] = passed_value
 
     if duplicate_result_ids:
         messages.append(
@@ -90,7 +102,7 @@ def evaluate_gate(suite: dict[str, Any], results: dict[str, Any]) -> GateResult:
     for case_id in comparable_ids:
         case = cases_by_id[case_id]
         result = results_by_id[case_id]
-        passed = bool(result.get("passed"))
+        passed = passed_by_id[case_id]
         category = case["category"]
 
         if passed:

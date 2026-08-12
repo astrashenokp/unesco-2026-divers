@@ -77,6 +77,8 @@ an eval gate for the two demo missions.
 - The coach gate runner enforces critical, release-blocking and category-specific
   zero-failure thresholds for gold leakage, invented evidence and
   `not_found`-as-fabricated regressions.
+- Eval result files must match the suite ID and use strict JSON booleans for
+  `caseResults[].passed`; string values such as `"false"` are rejected.
 - Ukrainian learner-facing mission localization is not yet authored; one
   Ukrainian hard-rule eval case is included for coach behavior.
 

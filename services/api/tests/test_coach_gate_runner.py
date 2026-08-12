@@ -20,14 +20,18 @@ def load_suite() -> dict:
 
 
 def write_results(path: Path, case_results: list[dict]) -> None:
+    write_results_document(
+        path,
+        {
+            "suiteId": "coach-p0-gate",
+            "caseResults": case_results,
+        },
+    )
+
+
+def write_results_document(path: Path, document: dict) -> None:
     path.write_text(
-        json.dumps(
-            {
-                "suiteId": "coach-p0-gate",
-                "caseResults": case_results,
-            },
-            indent=2,
-        ),
+        json.dumps(document, indent=2),
         encoding="utf-8",
     )
 
@@ -88,6 +92,50 @@ def test_coach_gate_runner_rejects_critical_failure(tmp_path: Path) -> None:
     assert "Critical eval failed" in result.stderr
     assert "Release-blocking eval failed" in result.stderr
     assert "gold_leakage failures 1 exceed 0" in result.stderr
+
+
+def test_coach_gate_runner_rejects_string_false_passed(tmp_path: Path) -> None:
+    results = passing_results()
+    results[0]["passed"] = "false"
+    results_path = tmp_path / "results.json"
+    write_results(results_path, results)
+
+    result = run_gate(results_path)
+
+    assert result.returncode == 1
+    assert "caseResults[0].passed must be a boolean" in result.stderr
+    assert "Critical eval failed" in result.stderr
+
+
+def test_coach_gate_runner_rejects_missing_suite_id(tmp_path: Path) -> None:
+    results_path = tmp_path / "results.json"
+    write_results_document(
+        results_path,
+        {
+            "caseResults": passing_results(),
+        },
+    )
+
+    result = run_gate(results_path)
+
+    assert result.returncode == 1
+    assert "Result suiteId must be coach-p0-gate" in result.stderr
+
+
+def test_coach_gate_runner_rejects_wrong_suite_id(tmp_path: Path) -> None:
+    results_path = tmp_path / "results.json"
+    write_results_document(
+        results_path,
+        {
+            "suiteId": "other-suite",
+            "caseResults": passing_results(),
+        },
+    )
+
+    result = run_gate(results_path)
+
+    assert result.returncode == 1
+    assert "Result suiteId must be coach-p0-gate" in result.stderr
 
 
 def test_coach_gate_runner_enforces_invented_evidence_threshold(

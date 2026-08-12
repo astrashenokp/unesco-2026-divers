@@ -33,7 +33,8 @@ python evals/coach/run_gate.py \
   --results /path/to/coach-results.json
 ```
 
-The result file must contain one `caseResults[]` item for every case ID in the
-suite. The runner fails on missing/unknown cases, critical failures, release
-blocking failures, insufficient grounded/policy pass rate, missing fallback
-coverage, or hard-rule inconsistency.
+The result file must contain the matching `suiteId` and one `caseResults[]` item
+for every case ID in the suite. Each `passed` value must be a JSON boolean, not a
+string. The runner fails on missing/unknown cases, malformed booleans, critical
+failures, release blocking failures, insufficient grounded/policy pass rate,
+missing fallback coverage, or hard-rule inconsistency.

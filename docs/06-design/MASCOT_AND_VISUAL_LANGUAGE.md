@@ -32,14 +32,14 @@ Grounded in the same UX color-psychology consensus behind Material Design's own 
 | Token (from `DESIGN_SYSTEM.md`) | Hex | Psychology rationale |
 |---|---|---|
 | `action` (primary/brand) | `#4A47A3` indigo-violet | trust + curiosity, distinct from any "correct answer" green |
-| `evidencePrimary` | `#1F8A85` teal | analytical, calm, reads as "tool," not "verdict" |
-| `evidenceSecondary` | `#D9A441` amber-gold | discovery/reward without success-green coding |
+| `evidencePrimary` | `#1D847F` teal | analytical, calm, reads as "tool," not "verdict" |
+| `evidenceSecondary` | `#BA8D37` amber-gold | discovery/reward without success-green coding |
 | `supported` | `#2E7D6B` deep teal | "current sources agree" — still not green |
 | `contradicted` | `#8E4585` plum | "current sources disagree" — not red; paired with an icon (✕-in-diamond), never color alone |
 | `misleading` | `#C97A2B` burnt orange | "technically true, wrong impression" — paired with a context/frame icon |
 | `unknown` | `#6B7280` slate | explicitly neutral; `insufficient evidence` is a first-class outcome, styled with the least visual weight, not the most |
-| `focus` | `#2D9CDB` cyan-blue | visible keyboard/a11y focus ring, AA against both surfaces |
-| `danger` | `#D64545` red-orange | reserved exclusively for report/safety/harm flows (`report action`, safeguarding banners) — never for a learning conclusion |
+| `focus` | `#2C98D6` cyan-blue | visible keyboard/a11y focus ring, AA against both surfaces |
+| `danger` | `#D14343` red-orange | reserved exclusively for report/safety/harm flows (`report action`, safeguarding banners) — never for a learning conclusion |
 | `surface` | `#FAFAF7` warm off-white | reduces glare vs pure white, softer for long reading sessions |
 | `surfaceRaised` | `#FFFFFF` | card/sheet elevation |
 | `textPrimary` | `#1E1B2E` | near-black with a warm indigo tint, AA on `surface`/`surfaceRaised` |
@@ -69,7 +69,7 @@ Demo key for judges/testers: **`EVIDENCE-GYM-DEMO`** (case-insensitive, checked 
 
 ## Accessibility commitments (concrete, not aspirational)
 
-- WCAG 2.2 AA contrast on every token pair above (verified by hex, re-verify after any token edit).
+- WCAG 2.2 AA contrast on every token pair that actually renders together, enforced by `packages/design_system/test/contrast_test.dart`. Four values were corrected after that test was written — the original palette had been eyeballed and missed by small margins. Do not hand-tune a colour without re-running it.
 - All tap targets ≥44×44dp; mascot and decorative motion are never the only way to trigger an action.
 - Every status is icon + shape + text, not color alone (see table above).
 - Full `Semantics` labels in Ukrainian and English on every interactive widget; screen-reader order matches visual order.

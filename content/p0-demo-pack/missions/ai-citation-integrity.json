@@ -419,7 +419,10 @@
     "this is fabricated",
     "the source is fake",
     "final verdict",
-    "gold label"
+    "gold label",
+    "this is not a real paper",
+    "the citation is unsupported",
+    "the DOI is made up"
   ],
   "rubric": {
     "processLevels": [

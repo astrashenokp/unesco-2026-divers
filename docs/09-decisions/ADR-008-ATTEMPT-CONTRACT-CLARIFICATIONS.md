@@ -1,6 +1,6 @@
 # ADR-008: Attempt contract clarifications
 
-Status: Accepted — 2026-08-11
+Status: Accepted — 2026-08-11. **Decision 5 superseded by [ADR-009](ADR-009-ATOMIC-COMPLETION-AND-EVIDENCE-VERSION.md) on 2026-08-12** — it described `reflected` as a resumable checkpoint, which a single transaction cannot provide.
 
 ## Context
 

@@ -1,11 +1,13 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
+import '../../data/demo_fixtures.dart';
 import '../../data/mission_repository.dart';
 import '../../data/models.dart';
 import '../../l10n/strings.dart';
 import '../common/failure_view.dart';
 import '../mission/mission_screen.dart';
+import 'mission_sheet.dart';
 import 'stat_tile.dart';
 
 /// The skill path — the winding map of missions, and the app's home.
@@ -41,6 +43,25 @@ class _PathScreenState extends State<PathScreen> {
   void _retry() => setState(() => _future = _load());
 
   Future<void> _openMission(LearningPathNode node) async {
+    // Show what the mission is before committing to it. If the mission
+    // cannot be fetched, fall through and let the mission screen show
+    // the failure rather than swallowing it here.
+    try {
+      final mission = await widget.repository.getMission(node.missionId);
+      if (!mounted) return;
+      final chapter = demoChapterOf[node.missionId];
+      final start = await showMissionSheet(
+        context: context,
+        mission: mission,
+        chapterTitle: chapter == null
+            ? ''
+            : demoChapterTitle(chapter, Strings.of(context).locale.languageCode),
+      );
+      if (!start || !mounted) return;
+    } catch (_) {
+      // Fall through to the mission screen, which reports properly.
+    }
+    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => MissionScreen(
@@ -77,10 +98,21 @@ class _PathScreenState extends State<PathScreen> {
         final progress = snapshot.data!.progress;
         final completed = path.nodes.where((n) => n.state == 'completed').length;
 
+        LearningPathNode? next;
+        for (final n in path.nodes) {
+          if (n.state == 'available') {
+            next = n;
+            break;
+          }
+        }
+        final resume = next;
+
         final header = _PathHeader(
           completed: completed,
           total: path.nodes.length,
           totalXp: progress.totalXp,
+          next: resume,
+          onContinue: resume == null ? null : () => _openMission(resume),
         );
 
         final map = _PathMap(nodes: path.nodes, onOpen: _openMission);
@@ -140,11 +172,17 @@ class _PathHeader extends StatelessWidget {
     required this.completed,
     required this.total,
     required this.totalXp,
+    required this.next,
+    required this.onContinue,
   });
 
   final int completed;
   final int total;
   final int totalXp;
+
+  /// The first mission still open, if any.
+  final LearningPathNode? next;
+  final VoidCallback? onContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -190,6 +228,47 @@ class _PathHeader extends StatelessWidget {
           s.pathProgress(completed, total),
           style: Theme.of(context).textTheme.bodySmall,
         ),
+        if (next != null) ...[
+          SizedBox(height: tokens.space(2)),
+          // One tap back into the thread, rather than hunting the map
+          // for where you stopped.
+          Card(
+            child: InkWell(
+              onTap: onContinue,
+              borderRadius: BorderRadius.circular(tokens.space(2)),
+              child: Padding(
+                padding: EdgeInsets.all(tokens.space(2)),
+                child: Row(
+                  children: [
+                    Icon(Icons.play_circle_outline, color: tokens.action),
+                    SizedBox(width: tokens.space(1.5)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(s.continueTitle,
+                              style: Theme.of(context).textTheme.bodySmall),
+                          Text(
+                            next!.title,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(s.continueAction,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: tokens.action, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -207,24 +286,41 @@ class _PathMap extends StatelessWidget {
     final tokens = context.tokens;
 
     if (nodes.isEmpty) {
+      // An empty path is a real state, not a mistake — say so with the
+      // same warmth as the rest of the screen rather than a bare line.
       return Padding(
         padding: EdgeInsets.all(tokens.space(4)),
         child: Column(
           children: [
-            const Lupa(mood: LupaMood.thinking, size: 96),
+            const Lupa(mood: LupaMood.thinking, size: 110),
             SizedBox(height: tokens.space(2)),
-            Text(s.pathEmpty, textAlign: TextAlign.center),
+            Text(
+              s.pathEmpty,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            SizedBox(height: tokens.space(1)),
+            Text(
+              s.profileEmpty,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ],
         ),
       );
     }
+
+    final code = s.locale.languageCode;
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: tokens.space(3)),
       child: Column(
         children: [
           for (var i = 0; i < nodes.length; i++) ...[
-            if (i > 0)
+            // A chapter heading appears wherever the chapter changes, so
+            // the map reads as sections rather than one long ribbon.
+            if (_chapterStartsAt(i)) _ChapterHeading(nodes: nodes, index: i, code: code),
+            if (i > 0 && !_chapterStartsAt(i))
               PathTrail(
                 fromLeft: (i - 1).isEven,
                 reached: nodes[i - 1].state == 'completed',
@@ -233,7 +329,13 @@ class _PathMap extends StatelessWidget {
               delayIndex: i,
               child: Align(
                 alignment: Alignment((i.isEven ? -1.0 : 1.0) * 0.45, 0),
-                child: _PathStop(node: nodes[i], onOpen: onOpen),
+                child: _PathStop(
+                  node: nodes[i],
+                  index: i,
+                  total: nodes.length,
+                  chapterTitle: _titleFor(nodes[i].missionId, code),
+                  onOpen: onOpen,
+                ),
               ),
             ),
           ],
@@ -241,12 +343,82 @@ class _PathMap extends StatelessWidget {
       ),
     );
   }
+
+  bool _chapterStartsAt(int i) {
+    if (i == 0) return true;
+    return demoChapterOf[nodes[i].missionId] != demoChapterOf[nodes[i - 1].missionId];
+  }
+
+  static String _titleFor(String missionId, String code) {
+    final chapter = demoChapterOf[missionId];
+    return chapter == null ? '' : demoChapterTitle(chapter, code);
+  }
+}
+
+class _ChapterHeading extends StatelessWidget {
+  const _ChapterHeading({
+    required this.nodes,
+    required this.index,
+    required this.code,
+  });
+
+  final List<LearningPathNode> nodes;
+  final int index;
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final tokens = context.tokens;
+    final chapter = demoChapterOf[nodes[index].missionId];
+    if (chapter == null) return const SizedBox.shrink();
+
+    final inChapter =
+        nodes.where((n) => demoChapterOf[n.missionId] == chapter).toList();
+    final done = inChapter.where((n) => n.state == 'completed').length;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        top: index == 0 ? 0 : tokens.space(4),
+        bottom: tokens.space(2),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  demoChapterTitle(chapter, code),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                Text(
+                  s.chapterProgress(done, inChapter.length),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          Slid(width: 72, height: 22, steps: inChapter.length, reached: done),
+        ],
+      ),
+    );
+  }
 }
 
 class _PathStop extends StatelessWidget {
-  const _PathStop({required this.node, required this.onOpen});
+  const _PathStop({
+    required this.node,
+    required this.index,
+    required this.total,
+    required this.chapterTitle,
+    required this.onOpen,
+  });
 
   final LearningPathNode node;
+  final int index;
+  final int total;
+  final String chapterTitle;
   final ValueChanged<LearningPathNode> onOpen;
 
   @override
@@ -265,7 +437,9 @@ class _PathStop extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         PathNode(
-          title: node.title,
+          // Position is spoken, so a screen-reader user knows where they
+          // are on the map without seeing it.
+          title: '${node.title}, ${s.nodePosition(index + 1, total, chapterTitle)}',
           state: state,
           stateLabel: switch (state) {
             PathNodeState.locked => s.stateLocked,

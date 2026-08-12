@@ -114,6 +114,22 @@ class Strings {
   String pathProgress(int done, int total) =>
       _s('$done of $total missions done', 'Пройдено $done з $total місій');
 
+  // Chapters and the continue card
+  String get continueTitle => _s('Pick up where you left off', 'Продовжити з місця зупинки');
+  String get continueAction => _s('Continue', 'Продовжити');
+  String chapterProgress(int done, int total) => _s('$done of $total', '$done з $total');
+  String nodePosition(int index, int total, String chapter) =>
+      _s('mission $index of $total, chapter $chapter',
+         'місія $index з $total, розділ $chapter');
+
+  // Mission detail sheet
+  String get missionSkills => _s('What this trains', 'Що це тренує');
+  String get missionChecks => _s('Checks available', 'Доступні перевірки');
+  String missionEstimate(int minutes) =>
+      _s('about $minutes minutes', 'близько $minutes хв');
+  String get startMission => _s('Start this mission', 'Почати місію');
+  String get missionLockedTitle => _s('Not open yet', 'Ще не відкрито');
+
   /// Lupa's lines on the path screen, shown in sequence. Everything she
   /// says is also visible elsewhere on the screen, so missing a line
   /// costs the learner nothing.

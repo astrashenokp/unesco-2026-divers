@@ -53,6 +53,7 @@ class DemoMissionRepository implements MissionRepository {
   final _evidenceIds = <String, List<String>>{};
   final _receipts = <String, Receipt>{};
   var _receiptCounter = 0;
+  final _completed = <String>{};
   var _earnedXp = 0;
   final _skillHits = <String, int>{};
 
@@ -61,7 +62,7 @@ class DemoMissionRepository implements MissionRepository {
   @override
   Future<LearningPath> getLearningPath() async {
     await _pause();
-    return demoLearningPathFor(localeCode());
+    return demoLearningPathFor(localeCode(), completed: _completed.length);
   }
 
   @override
@@ -174,6 +175,8 @@ class DemoMissionRepository implements MissionRepository {
     for (final tag in demoMissionsFor(localeCode())[missionId]?.skillTags ?? const <String>[]) {
       _skillHits[tag] = (_skillHits[tag] ?? 0) + usedCount;
     }
+
+    if (missionId != null) _completed.add(missionId);
 
     final receiptId = 'demo-receipt-$_receiptCounter';
     _receipts[receiptId] = Receipt(

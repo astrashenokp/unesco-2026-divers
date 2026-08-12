@@ -73,6 +73,25 @@ void main() {
     expect(find.text('The flood photo'), findsWidgets);
   });
 
+  test('the demo pack advances the path as missions are completed', () {
+    // The path must actually move: exactly one mission open at a time,
+    // everything before it done, everything after it locked.
+    for (var done = 0; done <= 3; done++) {
+      final path = demoLearningPathFor('uk', completed: done);
+      expect(path.nodes.where((n) => n.state == 'completed').length, done);
+      expect(path.nodes.where((n) => n.state == 'available').length, 1,
+          reason: 'exactly one mission should be open at $done completed');
+    }
+  });
+
+  test('every mission belongs to a chapter', () {
+    // A mission with no chapter would render without a heading and
+    // silently break the grouping.
+    for (final id in demoMissionsFor('uk').keys) {
+      expect(demoChapterOf[id], isNotNull, reason: '$id has no chapter');
+    }
+  });
+
   test('every axis offers an explicit uncertainty answer', () {
     // A product invariant, not a nicety: CONCEPT.md treats "insufficient
     // evidence" as a first-class outcome, so no axis may force the

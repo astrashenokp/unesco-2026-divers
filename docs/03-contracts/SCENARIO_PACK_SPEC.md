@@ -32,6 +32,8 @@ pack/
 
 - one learning objective and skill tags;
 - presented claim/context/media with accessibility alternatives;
+- media assets referenced by `asset://<manifest-id>/...` resolve to checked-in
+  files inside the reviewed pack directory;
 - allowed initial reactions;
 - evidence actions and stable evidence IDs;
 - deterministic response for every P0 evidence action, so demo mode never depends on live third-party APIs;

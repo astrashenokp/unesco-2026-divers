@@ -12,8 +12,8 @@
     "primary": "student"
   },
   "license": {
-    "identifier": "EGYM-DEMO-0.1",
-    "attribution": "Evidence Gym team-created P0 demo fixtures"
+    "identifier": "EGYM-DEMO-0.1 + Public Domain",
+    "attribution": "Evidence Gym team-created P0 demo fixtures; Mission 1 flood photo from U.S. Geological Survey, courtesy of Metro Transit Authority, listed as Public Domain."
   },
   "review": {
     "status": "draft",
@@ -32,7 +32,7 @@
     {
       "id": "authentic-media-wrong-context",
       "file": "missions/authentic-media-wrong-context.json",
-      "sha256": "0e6ab6ba181420c44d0e893ff4e759e12b4522972c646665a0d01585d3384e98"
+      "sha256": "9eb72572a4d4d8badfb72fb57481c458bd0427c4eb5f420bfa0fa60d710c2936"
     },
     {
       "id": "ai-citation-integrity",

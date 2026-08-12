@@ -11,6 +11,8 @@ The normative endpoint/shape subset is `contracts/openapi.yaml`. This document d
 - Any `attempts/{attemptId}/...` route returns `404` (never `403`) when the attempt does not exist or is not owned by the caller, matching `GET /receipts/{receiptId}`. This avoids an existence oracle for IDs the caller does not own (ADR-008).
 - Cursor pagination: `limit` and opaque `nextCursor`.
 - Locale uses `Accept-Language`; content response states effective locale.
+- Public mission projections expose accessibility alternatives from reviewed
+  mission fixtures so the client can render media-independent completion paths.
 - Errors: `type`, `title`, `status`, `code`, `detail`, `traceId`, optional field errors.
 
 ## MVP resources

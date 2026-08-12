@@ -226,7 +226,7 @@ components:
     Mission:
       type: object
       additionalProperties: false
-      required: [id, version, title, claim, media, reactions, evidenceActions, skillTags]
+      required: [id, version, title, claim, media, accessibility, reactions, evidenceActions, skillTags]
       properties:
         id: { type: string }
         version: { type: string }
@@ -240,6 +240,7 @@ components:
             url: { type: string, format: uri }
             altText: { type: string }
             transcript: { type: string }
+        accessibility: { $ref: '#/components/schemas/Accessibility' }
         reactions:
           type: array
           items: { enum: [trust, suspicious, investigate] }
@@ -254,6 +255,20 @@ components:
               label: { type: string }
         skillTags: { type: array, items: { type: string } }
         testsCriticalIgnoring: { type: boolean, default: false }
+    Accessibility:
+      type: object
+      additionalProperties: false
+      required: [plainLanguageSummary, mediaAlternatives, interactionNotes]
+      properties:
+        plainLanguageSummary: { type: string, minLength: 1 }
+        mediaAlternatives:
+          type: array
+          minItems: 1
+          items: { type: string, minLength: 1 }
+        interactionNotes:
+          type: array
+          minItems: 1
+          items: { type: string, minLength: 1 }
     Attempt:
       type: object
       required: [id, missionId, missionVersion, state, version]

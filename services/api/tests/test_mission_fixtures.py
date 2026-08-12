@@ -88,6 +88,25 @@ def test_p0_missions_have_accessibility_contract_fields() -> None:
         assert accessibility["interactionNotes"], mission["id"]
 
 
+def test_p0_mission_media_asset_urls_resolve_to_checked_in_files() -> None:
+    manifest = load_json(MANIFEST_PATH)
+    asset_prefix = f"asset://{manifest['id']}/"
+    pack_root = PACK_ROOT.resolve()
+
+    for path in mission_paths():
+        mission = load_json(path)
+        media = mission["presentation"]["media"]
+        if media["type"] not in {"image", "video", "audio"}:
+            continue
+
+        media_url = media["url"]
+        assert media_url.startswith(asset_prefix), mission["id"]
+        asset_path = (PACK_ROOT / media_url.removeprefix(asset_prefix)).resolve()
+        assert asset_path.is_relative_to(pack_root), mission["id"]
+        assert asset_path.is_file(), (mission["id"], media_url)
+        assert asset_path.stat().st_size > 0, (mission["id"], media_url)
+
+
 def test_p0_mission_contract_invariants_are_unambiguous() -> None:
     for path in mission_paths():
         mission = load_json(path)

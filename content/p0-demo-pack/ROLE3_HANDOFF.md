@@ -15,8 +15,14 @@ through ADR-009 and the deterministic fixture reader/provider work.
   rubric eval hooks are required fields. `forbiddenLeakageTerms` is now
   required with `minItems: 1` (gold-leakage guard cannot be empty). `media.url`
   is required by schema when `media.type` is `image`, `video`, or `audio`.
+- `contracts/openapi.yaml`: public `Mission` projections now include required
+  `accessibility` fields so Role 1 can render media-independent paths through
+  the API contract.
 - `content/p0-demo-pack/manifest.json`: draft P0 demo pack manifest with
   mission SHA-256 hashes and draft-only review metadata.
+- `content/p0-demo-pack/media/flood-context-card.jpg`: checked-in
+  public-domain flood photo from USGS, courtesy of Metro Transit Authority, used
+  by Mission 1.
 - `content/p0-demo-pack/missions/authentic-media-wrong-context.json`: draft
   mission for authentic media used in misleading context.
 - `content/p0-demo-pack/missions/ai-citation-integrity.json`: draft mission for
@@ -38,6 +44,8 @@ through ADR-009 and the deterministic fixture reader/provider work.
   fixtures. Role 2 maps it to `Attempt.allows_no_evidence_conclusion`.
 - Mission fixture `schemaVersion: 2` is a deliberate contract bump for required
   accessibility alternatives and `rubric.evalHooks`.
+- Pack-local media URLs use `asset://<manifest-id>/...` and resolve to
+  checked-in files under the reviewed pack directory.
 - Every P0 `evidenceActions[].deterministicResponse` is required. Demo evidence
   must not require live Crossref/OpenAlex/search/C2PA calls.
 - Coach output must validate against `contracts/coach-output.schema.json` before
@@ -53,8 +61,10 @@ through ADR-009 and the deterministic fixture reader/provider work.
 
 - Fixtures are `draft`; they are stable for integration but not public
   publication approval.
-- Demo source packets are team-created deterministic content, not live emergency
-  or live registry claims.
+- Mission 1 uses a real public-domain USGS flood photo as checked-in media, but
+  the Munich claim and supporting demo context are not live emergency claims.
+  Mission 2 remains a team-created deterministic citation fixture, not a live
+  registry claim.
 - No raw user uploads, personal data, secrets or live learner prompts are stored.
 - Mission 2 preserves the hard rule: `not_found` means not found in queried
   sources, not fabricated.
@@ -69,18 +79,14 @@ through ADR-009 and the deterministic fixture reader/provider work.
 - `python3 -m json.tool content/p0-demo-pack/missions/authentic-media-wrong-context.json`
 - `python3 -m json.tool content/p0-demo-pack/missions/ai-citation-integrity.json`
 - `python3 -m json.tool evals/coach/p0-eval-cases.json`
-- `python3 -m pytest services/api -q -p no:cacheprovider` - 128 passed.
-- `python3 -m pytest services/api --collect-only -q` - 128 tests collected.
+- `python3 -m pytest services/api -q -p no:cacheprovider` - 130 passed.
+- `python3 -m pytest services/api --collect-only -q` - 130 tests collected.
 
 ## Risks / assumptions
 
-- The two missions are draft deterministic training fixtures. Public release
-  still needs independent fact/content/accessibility review and licensed media
-  replacement or explicit approval of team-created demo assets.
-- Mission 1 currently references `asset://p0-demo/media/flood-context-card.jpg`,
-  but no checked-in media asset file is included in this pack yet. Keep the
-  text/alt-only path for integration, and add a reviewed licensed asset before
-  visual demo or publication.
+- The two missions are draft training fixtures. Public release still needs
+  independent fact/content/accessibility/license review, including a re-check of
+  the USGS public-domain source page and attribution for Mission 1.
 - The eval gate is executable against a result JSON file, but the model-run
   harness that produces those results still needs to plug into it.
 - JSON Schema validation is wired through the `services/api[test]` dependency

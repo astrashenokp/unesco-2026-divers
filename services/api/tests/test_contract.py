@@ -230,6 +230,26 @@ def test_mission_fixture_schema_is_strict_demo_contract() -> None:
     ]
 
 
+def test_public_mission_projection_exposes_accessibility_contract() -> None:
+    schemas = load_contract()["components"]["schemas"]
+    mission = schemas["Mission"]
+    accessibility = schemas["Accessibility"]
+
+    assert "accessibility" in mission["required"]
+    assert mission["properties"]["accessibility"] == {
+        "$ref": "#/components/schemas/Accessibility"
+    }
+    assert accessibility["additionalProperties"] is False
+    assert accessibility["required"] == [
+        "plainLanguageSummary",
+        "mediaAlternatives",
+        "interactionNotes",
+    ]
+    assert accessibility["properties"]["plainLanguageSummary"]["minLength"] == 1
+    assert accessibility["properties"]["mediaAlternatives"]["minItems"] == 1
+    assert accessibility["properties"]["interactionNotes"]["minItems"] == 1
+
+
 def test_coach_output_schema_is_bounded_and_policy_visible() -> None:
     schema = load_json(COACH_OUTPUT_SCHEMA_PATH)
 

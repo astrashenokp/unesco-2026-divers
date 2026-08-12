@@ -125,6 +125,22 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       onSubmitted: (_) => _enterDemoKey(),
                     ),
+                    // `errorText` above draws the error and is only read
+                    // aloud while the field has focus — but the error is
+                    // produced by pressing the button below it, so a
+                    // learner who cannot see the field is told nothing
+                    // and simply appears unable to get in.
+                    //
+                    // This node carries no visible text of its own: the
+                    // decoration already shows the message, and a second
+                    // copy on screen would be a duplicate for everyone
+                    // else. It exists only to speak.
+                    if (_error != null)
+                      Semantics(
+                        liveRegion: true,
+                        label: _error,
+                        child: const SizedBox.shrink(),
+                      ),
                     SizedBox(height: tokens.space(1)),
                     SizedBox(
                       width: double.infinity,

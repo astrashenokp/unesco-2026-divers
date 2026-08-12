@@ -93,6 +93,30 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                   ),
                 SizedBox(height: tokens.space(3)),
 
+                // The sequence, not just the summary: this product scores
+                // process, so the receipt has to render process. The order
+                // also shows whether a conclusion came before or after the
+                // evidence meant to support it.
+                Text(s.receiptHowYouGotThere,
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SectionRule(),
+                ReceiptTimeline(
+                  steps: [
+                    ReceiptStep(
+                      kind: ReceiptStepKind.checked,
+                      label: s.stepChecked(receipt.evidenceRefs.length),
+                    ),
+                    ReceiptStep(
+                      kind: ReceiptStepKind.concluded,
+                      label: s.stepConcluded,
+                      detail: receipt.assessments
+                          .map((a) => s.axisOptionLabel(a.label))
+                          .join(' · '),
+                    ),
+                  ],
+                ),
+                SizedBox(height: tokens.space(2)),
+
                 Row(
                   children: [
                     Text(s.receiptEvidence, style: Theme.of(context).textTheme.titleLarge),
@@ -132,7 +156,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                     children: [
                       Text(s.receiptMissionVersion(receipt.missionVersion),
                           style: Theme.of(context).textTheme.bodySmall),
-                      Text(s.receiptCreated(receipt.createdAt.toLocal().toString()),
+                      Text(s.receiptCreated(s.formatDateTime(receipt.createdAt)),
                           style: Theme.of(context).textTheme.bodySmall),
                       Text(
                         receipt.hash == 'demo-unsigned'

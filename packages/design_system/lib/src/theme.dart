@@ -16,14 +16,23 @@ import 'tokens.dart';
 /// Both were chosen for their Cyrillic, not adapted to it. A system font
 /// stack treats Ukrainian as a fallback, and it showed: headings read as
 /// body text scaled up. See MASCOT_AND_VISUAL_LANGUAGE.md.
-ThemeData buildEvidenceGymTheme() {
-  const tokens = EvidenceGymTokens.standard;
+///
+/// [brightness] picks the token set. Both themes are built by this one
+/// function on purpose: a second builder for dark is how a dark theme
+/// drifts, gets a control the light one lacks, and quietly stops being
+/// tested. Everything below reads from tokens, so the two stay in step.
+ThemeData buildEvidenceGymTheme({Brightness brightness = Brightness.light}) {
+  final tokens = brightness == Brightness.dark
+      ? EvidenceGymTokens.dark
+      : EvidenceGymTokens.standard;
 
   final colorScheme = ColorScheme.fromSeed(
     seedColor: tokens.action,
-    brightness: Brightness.light,
+    brightness: brightness,
     primary: tokens.action,
+    onPrimary: tokens.onAction,
     surface: tokens.surface,
+    onSurface: tokens.textPrimary,
     error: tokens.danger,
   );
 
@@ -60,7 +69,7 @@ ThemeData buildEvidenceGymTheme() {
   );
 
   return base.copyWith(
-    extensions: const [tokens],
+    extensions: [tokens],
     textTheme: base.textTheme.copyWith(
       // Unbounded for display: wide, geometric, and confident enough to
       // carry a heading on its own. The point of a display face here is
@@ -107,7 +116,7 @@ ThemeData buildEvidenceGymTheme() {
       style: ElevatedButton.styleFrom(
         minimumSize: const Size(44, 44),
         backgroundColor: tokens.action,
-        foregroundColor: Colors.white,
+        foregroundColor: tokens.onAction,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(tokens.space(1.5)),
         ),
@@ -127,9 +136,20 @@ ThemeData buildEvidenceGymTheme() {
     focusColor: tokens.focus,
     cardTheme: CardThemeData(
       color: tokens.surfaceRaised,
-      elevation: 1,
+      // Enough lift to separate a card from the textured ground without
+      // the heavy drop-shadow look Material defaults to.
+      elevation: 0,
+      // The light theme's ink, in both themes. This read
+      // `tokens.textPrimary`, which is near-white on dark — every card
+      // would have cast a white glow the moment anything raised its
+      // elevation above zero. A shadow darkens; it is not a themed
+      // colour. Same reasoning as Lupa's contact shadow.
+      shadowColor:
+          EvidenceGymTokens.standard.textPrimary.withValues(alpha: 0.18),
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(tokens.space(2)),
+        borderRadius: BorderRadius.circular(tokens.space(2.25)),
+        side: BorderSide(color: tokens.textMuted.withValues(alpha: 0.16)),
       ),
     ),
   );

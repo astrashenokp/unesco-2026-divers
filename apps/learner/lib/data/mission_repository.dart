@@ -66,6 +66,12 @@ class DemoMissionRepository implements MissionRepository {
   final _completed = <String>{};
   var _earnedXp = 0;
   final _skillHits = <String, int>{};
+
+  /// Which completion a skill was last practised on, so the demo can
+  /// show a skill going stale. Spaced repetition is Role 4's to design;
+  /// this is only enough to make the state visible in a demo, and it is
+  /// labelled as such rather than pretending to be a real schedule.
+  final _skillLastPractised = <String, int>{};
   final _hintLevel = <String, int>{};
 
   Future<void> _pause() => Future<void>.delayed(const Duration(milliseconds: 300));
@@ -73,7 +79,29 @@ class DemoMissionRepository implements MissionRepository {
   @override
   Future<LearningPath> getLearningPath() async {
     await _pause();
-    return demoLearningPathFor(localeCode(), completed: _completed.length);
+    final path = demoLearningPathFor(localeCode(), completed: _completed.length);
+    final due = _dueSkills;
+    if (due.isEmpty) return path;
+
+    // Joining due skills to nodes is only possible here because the demo
+    // holds the fixtures. See LearningPathNode.boosterDue for why the
+    // live repository cannot do the same.
+    final missions = demoMissionsFor(localeCode());
+    return LearningPath(
+      version: path.version,
+      locale: path.locale,
+      nodes: [
+        for (final node in path.nodes)
+          LearningPathNode(
+            missionId: node.missionId,
+            title: node.title,
+            state: node.state,
+            boosterDue: node.state == 'completed' &&
+                (missions[node.missionId]?.skillTags ?? const <String>[])
+                    .any(due.contains),
+          ),
+      ],
+    );
   }
 
   @override
@@ -225,6 +253,7 @@ class DemoMissionRepository implements MissionRepository {
     // progress screen reflects what the learner just did.
     for (final tag in mission?.skillTags ?? const <String>[]) {
       _skillHits[tag] = (_skillHits[tag] ?? 0) + usedCount;
+      _skillLastPractised[tag] = _completed.length;
     }
 
     if (missionId != null) _completed.add(missionId);
@@ -277,6 +306,16 @@ class DemoMissionRepository implements MissionRepository {
     );
   }
 
+  /// Skills that have gone two completions without being practised.
+  ///
+  /// A stand-in for a real review schedule, not a model of one. It exists
+  /// so the "practice due" state is reachable in a demo instead of being
+  /// a code path nobody ever sees.
+  Set<String> get _dueSkills => {
+        for (final entry in _skillLastPractised.entries)
+          if (_completed.length - entry.value >= 2) entry.key,
+      };
+
   Progress _buildProgress() => Progress(
         totalXp: _earnedXp,
         skills: [
@@ -286,6 +325,10 @@ class DemoMissionRepository implements MissionRepository {
               // Four solid evidence checks on a skill reads as mastery in
               // the demo; the real curve is Role 4's to own.
               mastery: (entry.value / 4).clamp(0.0, 1.0),
+              // The contract types this as a date; the demo has no
+              // schedule to draw one from, so a due skill is simply due
+              // now. The screen only asks whether it is set.
+              dueAt: _dueSkills.contains(entry.key) ? DateTime.now() : null,
             ),
         ],
       );

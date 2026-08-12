@@ -39,6 +39,40 @@ class SettingsScreen extends StatelessWidget {
           ),
           SizedBox(height: tokens.space(3)),
 
+          // ------------------------------------------------------ appearance
+          Text(s.appearanceLabel, style: Theme.of(context).textTheme.titleLarge),
+          SizedBox(height: tokens.space(1)),
+          // Three options, not a switch. A two-state switch forces a
+          // choice the learner may not have: "follow my device" is the
+          // honest default and has to stay reachable after they try the
+          // others. Icons sit beside the labels rather than replacing
+          // them, so the control does not depend on recognising a glyph.
+          SegmentedButton<ThemeMode>(
+            segments: [
+              ButtonSegment(
+                value: ThemeMode.system,
+                icon: const Icon(Icons.brightness_auto_outlined),
+                label: Text(s.themeSystem),
+              ),
+              ButtonSegment(
+                value: ThemeMode.light,
+                icon: const Icon(Icons.light_mode_outlined),
+                label: Text(s.themeLight),
+              ),
+              ButtonSegment(
+                value: ThemeMode.dark,
+                icon: const Icon(Icons.dark_mode_outlined),
+                label: Text(s.themeDark),
+              ),
+            ],
+            selected: {settings.themeMode},
+            onSelectionChanged: (selection) =>
+                settings.themeMode = selection.first,
+          ),
+          SizedBox(height: tokens.space(0.5)),
+          Text(s.themeHint, style: Theme.of(context).textTheme.bodySmall),
+          SizedBox(height: tokens.space(3)),
+
           // --------------------------------------------- reading and motion
           Text(s.readingLabel, style: Theme.of(context).textTheme.titleLarge),
           SizedBox(height: tokens.space(1)),

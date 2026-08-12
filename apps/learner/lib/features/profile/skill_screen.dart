@@ -63,10 +63,15 @@ class SkillScreen extends StatelessWidget {
                       child: ListTile(
                         leading: Icon(Icons.explore_outlined, color: tokens.action),
                         title: Text(mission.title),
+                        // The claim is the thing under investigation, so
+                        // it wraps rather than truncating. Two lines plus
+                        // an ellipsis is already thin at 100% and cuts
+                        // most claims mid-sentence at 200% text scale —
+                        // exactly the setting used by the people least
+                        // able to guess the rest.
+                        isThreeLine: true,
                         subtitle: Text(
                           mission.claim,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),

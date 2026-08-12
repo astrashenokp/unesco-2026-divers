@@ -7,10 +7,12 @@ Role 1 (Frontend & Experience) owned. Design rationale: `docs/06-design/DESIGN_S
 Verified on **Flutter 3.44.9 / Dart 3.12.2**:
 
 - `flutter analyze` — no issues, in both `apps/learner` and `packages/design_system`
-- `flutter test` — 6/6 passing
+- `flutter test` — 41 passing (21 here, 20 in `design_system`)
 - `flutter build web --release` — succeeds
 
-Not yet checked by hand: real-device behaviour, 200% text on a physical screen, and a screen-reader pass. Those are in the checklist at the end of [`SCREEN_REFERENCE.md`](../../docs/06-design/SCREEN_REFERENCE.md).
+Those tests include a WCAG contrast audit over every token pair that renders together, text-scale checks at 100% and 200% in both languages on phone and laptop widths, and semantics tests that activate controls the way assistive technology does rather than by tapping pixels.
+
+Still unchecked by hand: real-device behaviour and a pass with a live screen reader (TalkBack/VoiceOver). Those are the unticked rows at the end of [`SCREEN_REFERENCE.md`](../../docs/06-design/SCREEN_REFERENCE.md).
 
 ## Run it
 
@@ -26,7 +28,7 @@ Not yet checked by hand: real-device behaviour, 200% text on a physical screen, 
      EVIDENCE-GYM-DEMO
      ```
    - **Continue as guest** — talks to a live API at `http://localhost:8000/` (override with `flutter run --dart-define=API_BASE_URL=https://your-api/`). Guest auth is **not** wired to Firebase yet; see the TODO in `lib/features/auth/auth_screen.dart`.
-5. `flutter test` — six widget/invariant tests in `test/smoke_test.dart`.
+5. `flutter test` — smoke, accessibility and mission-flow suites.
 
 ### Talking to a local API from the web build
 
@@ -56,25 +58,27 @@ Settings tab → text size to 200%, "Simpler wording" on, "Reduce animation" on.
 ## What's implemented
 
 - **Onboarding carousel** (3 slides, never auto-advances) → **auth / demo-key** → **shell**.
-- **Shell** with three destinations: Path, Progress, Settings. `NavigationBar` on phones, `NavigationRail` on laptops, same order and labels in both.
+- **Shell** with four destinations: Path, Progress, You, Settings. `NavigationBar` on phones, `NavigationRail` on laptops, same order and labels in both.
 - **Path** — the winding skill map, each node revealing with a spring as it scrolls in.
 - **Mission** — the full flow: predict → investigate (tactile evidence props + opt-in Socratic coach) → three-axis conclusion → receipt.
 - **Evidence receipt** — the full document: three-axis conclusion, evidence actually looked at, pinned mission version, integrity marker, disclaimer.
 - **Report** — wired to `POST /v1/reports`; a failed send is never confirmed as sent, and demo mode says plainly that nothing left the device.
 - **Progress** — segmented skill meters and process XP, with XP explicitly framed as "how you investigate", not a measure of the person.
-- **Settings** — language (укр/eng), simpler wording, reduce animation, text size.
+- **Profile** — guest identity explained, receipt history, and a data export that copies everything held as readable text.
+- **Skill detail** — what each evidence skill is, why it matters, which missions train it.
+- **Settings** — language (укр/eng), simpler wording, reduce animation, text size. All persisted.
 - **Report dialog** on every mission.
-- **Mascots** — `Lupa` (the coach; idle / thinking / asking / encouraging) and `Slid` (the provenance trail). Both hand-drawn with `CustomPainter`, so there is no art asset to go missing.
+- **Mascots** — `Lupa` (idle / thinking / asking / encouraging / concerned, tappable, with a particle celebration) and `Slid` (the provenance trail, tracking real progress). Both hand-drawn with `CustomPainter`, so there is no art asset to go missing.
 - **Ukrainian and English** throughout, Ukrainian by default.
 
 ## Known gaps (flagged, not hidden)
 
-- **Settings don't persist** across restarts — needs `shared_preferences`.
 - **Guest auth isn't real** — `_placeholderGuestTokenProvider` returns null. Needs `flutterfire configure` + `signInAnonymously()` (ADR-008). The demo key is the working path until then.
 - **No `.arb` codegen** — `lib/l10n/strings.dart` is hand-written with the same shape a generated class would have. Swapping it later touches no call sites.
-- **No offline/degraded banner** yet, no offline pack download, no booster/spaced-repetition UI, no teacher views (the last three are P1/P2 anyway).
+- **No offline pack download**, no booster/spaced-repetition UI, no teacher views (all P1/P2).
+- **No receipt list endpoint** in the contract, so live receipt history returns empty rather than inventing one. Role 2 would need `GET /v1/receipts`.
+- **`Attempt.version` cannot be refreshed** — the contract has no `GET /attempts/{id}` and evidence responses carry no version, so if the server bumps it on `predicted → investigating` the conclusion would 409 with no recovery. Needs a decision from Role 2.
 - **Difficulty levels**: the contract has no difficulty field, so per-mission levels would need Role 2/3 to add one. What's here instead is the reading-level work — "Simpler wording" — which is genuinely Role 1's boundary.
-- **Nothing has been run.** See Status above.
 
 ## Layout
 
@@ -91,14 +95,17 @@ apps/learner/lib/
     mission_repository.dart  Demo vs Live; screens depend only on this
     demo_fixtures.dart       offline pack, demo key, deterministic coach
   features/
-    onboarding/ auth/ shell/ home/ mission/ profile/ settings/ report/
+    onboarding/ auth/ shell/ home/ mission/ receipt/ profile/ settings/
+    report/ common/
 
 packages/design_system/lib/src/
   tokens.dart theme.dart breakpoints.dart
   mascot/lupa.dart mascot/slid.dart
+  motion.dart                one place for every duration and curve
   components/  axis picker+chip, confidence slider, evidence chip,
-               path node, mission card, coach bubble, skill meter,
-               reveal-on-scroll, pressable
+               prop tile, path node, path trail, mission card,
+               coach bubble, skill meter, rolling number,
+               living background, reveal-on-scroll, pressable
 ```
 
 ## Rules this code follows
@@ -111,3 +118,6 @@ From `ROLE_1_FRONTEND_EXPERIENCE.md` and the design docs — worth knowing befor
 - Every status is icon + shape + text, never colour alone.
 - Animation is decoration. Every animated thing has a reduced-motion path that lands in the same end state.
 - Stable API codes and localized display text are separate. `AxisOption.code` goes to the server, `AxisOption.label` goes on screen.
+- A control that declares a role must carry the action on the same `Semantics` node. `Semantics(button: true, child: ExcludeSemantics(InkWell))` announces a button that does nothing — this shipped three times before tests caught it.
+- Interactive widgets must be focusable. A `GestureDetector` is not, so it is unreachable by keyboard.
+- Idempotency keys belong to a logical action, not to a call. Minting one per request defeats the mechanism entirely.

@@ -2,6 +2,8 @@ import asyncio
 from datetime import timedelta
 
 import pytest
+from evidence_gym_api.evidence import EvidenceResult, EvidenceStatus
+from evidence_gym_api.evidence import EvidenceActionNotFound
 
 from evidence_gym_api.identity import Principal
 from evidence_gym_api.identity.ports import IdentityVerificationError
@@ -39,7 +41,19 @@ from evidence_gym_api.learning.use_cases import (
     StartAttemptCommand,
     SubmitPrediction,
     SubmitPredictionCommand,
+    UseEvidenceAction,
+    UseEvidenceActionCommand,
 )
+
+
+class StubEvidenceProvider:
+    async def get_result(self, mission_id, mission_version, action_id):
+        return EvidenceResult(action_id, EvidenceStatus.OK, (), ("fixture",))
+
+
+class MissingEvidenceProvider:
+    async def get_result(self, mission_id, mission_version, action_id):
+        raise EvidenceActionNotFound("action is not defined by the mission")
 
 
 def run(coroutine):
@@ -89,6 +103,22 @@ def prediction_command(
         attempt_id=attempt_id,
         reaction=Reaction.INVESTIGATE,
         confidence=Confidence.known(confidence),
+        version=version,
+        idempotency_key=IdempotencyKey(key),
+    )
+
+
+def evidence_command(
+    attempt_id: AttemptId,
+    *,
+    key: str = "evidence-key-001",
+    version: int = 2,
+    action_id: str = "inspect-source",
+) -> UseEvidenceActionCommand:
+    return UseEvidenceActionCommand(
+        attempt_id=attempt_id,
+        action_id=action_id,
+        input={},
         version=version,
         idempotency_key=IdempotencyKey(key),
     )
@@ -204,6 +234,79 @@ def test_submit_prediction_rejects_unknown_attempt() -> None:
     _, _, submit = make_dependencies()
     with pytest.raises(AttemptNotFound):
         run(submit.execute(LEARNER, prediction_command(AttemptId("missing-attempt"))))
+
+
+def test_use_evidence_action_updates_attempt_and_replays_original_result() -> None:
+    attempts, start, submit = make_dependencies()
+    idempotency = InMemoryIdempotencyRepository()
+    use_evidence = UseEvidenceAction(
+        attempts,
+        StubEvidenceProvider(),
+        idempotency,
+        InMemoryTransactionManager(),
+        FixedClock(),
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+    command = evidence_command(predicted.id)
+
+    first = run(use_evidence.execute(LEARNER, command))
+    replay = run(use_evidence.execute(LEARNER, command))
+    stored = run(attempts.get(predicted.id))
+
+    assert first == replay
+    assert first.evidence.action_id == "inspect-source"
+    assert first.attempt_version == 3
+    assert stored is not None
+    assert stored.state is AttemptState.INVESTIGATING
+    assert stored.evidence_action_refs == ("inspect-source",)
+
+
+def test_use_evidence_action_checks_owner_version_and_idempotency_payload() -> None:
+    attempts, start, submit = make_dependencies()
+    idempotency = InMemoryIdempotencyRepository()
+    use_evidence = UseEvidenceAction(
+        attempts,
+        StubEvidenceProvider(),
+        idempotency,
+        InMemoryTransactionManager(),
+        FixedClock(),
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+
+    with pytest.raises(AttemptAccessDenied):
+        run(use_evidence.execute(OTHER_LEARNER, evidence_command(predicted.id)))
+    with pytest.raises(StaleAttemptVersion):
+        run(use_evidence.execute(LEARNER, evidence_command(predicted.id, version=1)))
+
+    command = evidence_command(predicted.id)
+    run(use_evidence.execute(LEARNER, command))
+    with pytest.raises(IdempotencyConflict):
+        run(
+            use_evidence.execute(
+                LEARNER,
+                evidence_command(predicted.id, action_id="different-action"),
+            )
+        )
+
+
+def test_evidence_provider_failure_does_not_mutate_attempt() -> None:
+    attempts, start, submit = make_dependencies()
+    use_evidence = UseEvidenceAction(
+        attempts,
+        MissingEvidenceProvider(),
+        InMemoryIdempotencyRepository(),
+        InMemoryTransactionManager(),
+        FixedClock(),
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+
+    with pytest.raises(EvidenceActionNotFound):
+        run(use_evidence.execute(LEARNER, evidence_command(predicted.id)))
+
+    assert run(attempts.get(predicted.id)) == predicted
 
 
 def test_in_memory_repository_enforces_optimistic_version() -> None:

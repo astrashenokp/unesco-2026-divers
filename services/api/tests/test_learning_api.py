@@ -16,6 +16,8 @@ from evidence_gym_api.learning.testing import (
     SequentialAttemptIdGenerator,
 )
 from evidence_gym_api.learning.use_cases import StartAttempt, SubmitPrediction
+from evidence_gym_api.learning.use_cases import UseEvidenceAction
+from evidence_gym_api.evidence import EvidenceResult, EvidenceStatus
 from evidence_gym_api.learning.value_objects import (
     LearnerId,
     MissionId,
@@ -26,6 +28,11 @@ MISSION_ID = MissionId("mission-test-1")
 MISSION_VERSION = MissionVersion("1.2.3")
 LEARNER = Principal(LearnerId("learner-test-1"))
 OTHER_LEARNER = Principal(LearnerId("learner-test-2"))
+
+
+class StubEvidenceProvider:
+    async def get_result(self, mission_id, mission_version, action_id):
+        return EvidenceResult(action_id, EvidenceStatus.OK, (), ("fixture",))
 
 
 def make_client() -> TestClient:
@@ -47,6 +54,9 @@ def make_client() -> TestClient:
         ),
         submit_prediction=SubmitPrediction(
             attempts, idempotency, transactions, clock
+        ),
+        use_evidence_action=UseEvidenceAction(
+            attempts, StubEvidenceProvider(), idempotency, transactions, clock
         ),
     )
     verifier = FakeIdentityVerifier(
@@ -96,6 +106,12 @@ def test_implemented_route_templates_and_operation_ids_match_contract() -> None:
             "operationId"
         ]
         == "submitPrediction"
+    )
+    assert (
+        generated["paths"]["/attempts/{attemptId}/evidence-actions"]["post"][
+            "operationId"
+        ]
+        == "useEvidenceAction"
     )
 
 
@@ -161,6 +177,66 @@ def test_prediction_stale_version_returns_contract_conflict() -> None:
 
     assert response.status_code == 409
     assert response.json()["code"] == "stale-attempt-version"
+
+
+def test_evidence_action_returns_new_version_and_replays() -> None:
+    with make_client() as client:
+        attempt_id = start_attempt(client).json()["id"]
+        predicted = client.post(
+            f"/attempts/{attempt_id}/prediction",
+            headers=auth_headers(key="predict-key-001"),
+            json={"reaction": "investigate", "confidence": 60, "version": 1},
+        )
+        body = {"actionId": "inspect-source", "input": {}, "version": 2}
+        headers = auth_headers(key="evidence-key-001")
+        first = client.post(
+            f"/attempts/{attempt_id}/evidence-actions", headers=headers, json=body
+        )
+        replay = client.post(
+            f"/attempts/{attempt_id}/evidence-actions", headers=headers, json=body
+        )
+
+    assert predicted.status_code == 200
+    assert first.status_code == 200
+    assert first.json() == {
+        "actionId": "inspect-source",
+        "status": "ok",
+        "items": [],
+        "limitations": ["fixture"],
+        "attemptVersion": 3,
+    }
+    assert replay.json() == first.json()
+
+
+def test_evidence_action_stale_version_and_changed_retry_return_409() -> None:
+    with make_client() as client:
+        attempt_id = start_attempt(client).json()["id"]
+        client.post(
+            f"/attempts/{attempt_id}/prediction",
+            headers=auth_headers(key="predict-key-001"),
+            json={"reaction": "investigate", "confidence": 60, "version": 1},
+        )
+        stale = client.post(
+            f"/attempts/{attempt_id}/evidence-actions",
+            headers=auth_headers(key="stale-evidence-001"),
+            json={"actionId": "inspect-source", "version": 1},
+        )
+        headers = auth_headers(key="evidence-key-001")
+        client.post(
+            f"/attempts/{attempt_id}/evidence-actions",
+            headers=headers,
+            json={"actionId": "inspect-source", "version": 2},
+        )
+        changed = client.post(
+            f"/attempts/{attempt_id}/evidence-actions",
+            headers=headers,
+            json={"actionId": "different-action", "version": 2},
+        )
+
+    assert stale.status_code == 409
+    assert stale.json()["code"] == "stale-attempt-version"
+    assert changed.status_code == 409
+    assert changed.json()["code"] == "idempotency-key-conflict"
 
 
 def test_learning_mutations_require_verified_bearer_token() -> None:

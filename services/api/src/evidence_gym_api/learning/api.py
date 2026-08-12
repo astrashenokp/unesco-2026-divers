@@ -1,6 +1,7 @@
 """Thin HTTP boundary for learning use cases."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Header, Request, status
@@ -14,7 +15,10 @@ from evidence_gym_api.learning.use_cases import (
     StartAttemptCommand,
     SubmitPrediction,
     SubmitPredictionCommand,
+    UseEvidenceAction,
+    UseEvidenceActionCommand,
 )
+from evidence_gym_api.learning.ports import EvidenceActionResult
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
     IdempotencyKey,
@@ -30,6 +34,7 @@ router = APIRouter(tags=["learning"])
 class LearningServices:
     start_attempt: StartAttempt
     submit_prediction: SubmitPrediction
+    use_evidence_action: UseEvidenceAction | None = None
 
 
 class StartAttemptBody(BaseModel):
@@ -45,6 +50,52 @@ class PredictionBody(BaseModel):
     reaction: Reaction
     confidence: int = Field(ge=0, le=100)
     version: int = Field(ge=1)
+
+
+class EvidenceActionBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    actionId: str = Field(min_length=1)
+    input: dict[str, object] = Field(default_factory=dict, max_length=10)
+    version: int = Field(ge=1)
+
+
+class EvidenceItemResponse(BaseModel):
+    evidenceId: str
+    type: str
+    title: str
+    sourceUrl: str | None = None
+    retrievedAt: datetime
+    verificationStatus: str
+
+
+class EvidenceResultResponse(BaseModel):
+    actionId: str
+    status: str
+    items: list[EvidenceItemResponse]
+    limitations: list[str]
+    attemptVersion: int = Field(ge=1)
+
+    @classmethod
+    def from_domain(cls, result: EvidenceActionResult) -> "EvidenceResultResponse":
+        evidence = result.evidence
+        return cls(
+            actionId=evidence.action_id,
+            status=evidence.status.value,
+            items=[
+                EvidenceItemResponse(
+                    evidenceId=item.evidence_id,
+                    type=item.type,
+                    title=item.title,
+                    sourceUrl=item.source_url,
+                    retrievedAt=item.retrieved_at,
+                    verificationStatus=item.verification_status.value,
+                )
+                for item in evidence.items
+            ],
+            limitations=list(evidence.limitations),
+            attemptVersion=result.attempt_version,
+        )
 
 
 class AttemptResponse(BaseModel):
@@ -135,3 +186,35 @@ async def submit_prediction(
         ),
     )
     return AttemptResponse.from_domain(attempt)
+
+
+@router.post(
+    "/attempts/{attemptId}/evidence-actions",
+    operation_id="useEvidenceAction",
+    response_model=EvidenceResultResponse,
+)
+async def use_evidence_action(
+    attemptId: str,
+    body: EvidenceActionBody,
+    idempotency_key: IdempotencyHeader,
+    principal: PrincipalDependency,
+    services: ServicesDependency,
+) -> EvidenceResultResponse:
+    if services.use_evidence_action is None:
+        raise ApiProblem(
+            status=503,
+            code="evidence-service-unavailable",
+            title="Service not ready",
+            detail="Evidence services are unavailable.",
+        )
+    result = await services.use_evidence_action.execute(
+        principal,
+        UseEvidenceActionCommand(
+            attempt_id=AttemptId(attemptId),
+            action_id=body.actionId,
+            input=body.input,
+            version=body.version,
+            idempotency_key=IdempotencyKey(idempotency_key),
+        ),
+    )
+    return EvidenceResultResponse.from_domain(result)

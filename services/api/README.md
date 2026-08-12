@@ -37,3 +37,7 @@ Implemented learner mutations:
 Both require a verified Firebase bearer principal and `Idempotency-Key`. The
 repository contains only a fake verifier for tests; runtime Firebase verification
 must be injected through the application factory.
+
+`FileMissionPolicyReader` validates Role 3's checked-in pack manifest and mission
+schema, verifies each SHA-256, rejects unsafe paths or duplicate versions, and
+returns only the exact version requested by `StartAttempt`.

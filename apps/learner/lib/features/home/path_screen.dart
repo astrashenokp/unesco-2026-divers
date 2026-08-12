@@ -168,6 +168,8 @@ class _PathHeader extends StatelessWidget {
               value: s.statXp(totalXp),
               label: s.statXpLabel,
               tint: tokens.evidenceSecondary,
+              count: totalXp,
+              format: s.statXp,
             ),
             StatTile(
               icon: Icons.local_fire_department_outlined,

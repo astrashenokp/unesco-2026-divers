@@ -14,12 +14,19 @@ class StatTile extends StatelessWidget {
     required this.value,
     required this.label,
     required this.tint,
+    this.count,
+    this.format,
   });
 
   final IconData icon;
   final String value;
   final String label;
   final Color tint;
+
+  /// When supplied, the value counts up to [count] instead of snapping.
+  /// [format] turns the interpolated number into localized display text.
+  final int? count;
+  final String Function(int)? format;
 
   @override
   Widget build(BuildContext context) {
@@ -46,13 +53,24 @@ class StatTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    value,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w800),
-                  ),
+                  if (count != null && format != null)
+                    RollingNumber(
+                      value: count!,
+                      format: format!,
+                      semanticsLabel: '$value $label',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    )
+                  else
+                    Text(
+                      value,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
                   Text(label, style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),

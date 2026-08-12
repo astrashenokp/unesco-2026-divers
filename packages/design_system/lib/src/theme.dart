@@ -28,16 +28,20 @@ ThemeData buildEvidenceGymTheme() {
     // Ukrainian on every target, and bundling a webfont would add a
     // network dependency and a missing-glyph risk for exactly the
     // characters this product cannot afford to lose.
-    // Zoom is the standing Material 3 default; kept explicit (rather
-    // than a newer builder we cannot compiler-check in this
-    // environment) so transitions are guaranteed to build.
+    // Fade-forwards is Material 3's shared-axis transition: content
+    // slides a short distance along the travel direction while it
+    // crossfades. It reads as "forward into a detail" far better than
+    // Zoom, which reads as a window opening from nowhere.
+    //
+    // iOS and macOS keep the platform back-swipe transition, because
+    // overriding it breaks the edge-swipe gesture people expect there.
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
-        TargetPlatform.android: ZoomPageTransitionsBuilder(),
+        TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
         TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
         TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.windows: ZoomPageTransitionsBuilder(),
-        TargetPlatform.linux: ZoomPageTransitionsBuilder(),
+        TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
+        TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
       },
     ),
   );

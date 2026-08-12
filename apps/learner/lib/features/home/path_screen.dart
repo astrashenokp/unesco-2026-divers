@@ -272,6 +272,7 @@ class _PathStop extends StatelessWidget {
             PathNodeState.available => s.stateAvailable,
             PathNodeState.completed => s.stateCompleted,
           },
+          heroTag: 'mission-${node.missionId}',
           onTap: locked ? null : () => onOpen(node),
         ),
         SizedBox(height: tokens.space(1)),

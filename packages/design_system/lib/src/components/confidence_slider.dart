@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion.dart';
 import '../tokens.dart';
 
 /// Confidence input, 0–100.
@@ -58,7 +59,7 @@ class ConfidenceSlider extends StatelessWidget {
           ),
         ),
         AnimatedSwitcher(
-          duration: tokens.motionFast,
+          duration: Motion.of(context, Motion.fast),
           child: Text(
             '$value% · $bandLabel',
             key: ValueKey('$value$bandLabel'),

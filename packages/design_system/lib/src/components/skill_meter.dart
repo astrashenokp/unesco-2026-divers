@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion.dart';
 import '../tokens.dart';
 
 /// Mastery for one evidence skill, 0..1.
@@ -32,7 +33,6 @@ class SkillMeter extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final clamped = mastery.clamp(0.0, 1.0);
-    final filled = (clamped * segments).round();
 
     return Semantics(
       label: dueLabel == null ? '$label, $masteryLabel' : '$label, $masteryLabel, $dueLabel',
@@ -56,27 +56,39 @@ class SkillMeter extends StatelessWidget {
               ],
             ),
             SizedBox(height: tokens.space(0.5)),
+            // Segments fill one after another rather than appearing
+            // already full, so opening the screen shows the shape of the
+            // progress instead of a static bar. Purely decorative: the
+            // percentage is printed above and announced by the semantics
+            // node, and reduced motion lands on the final state at once.
             ExcludeSemantics(
-              child: Row(
-                children: [
-                  for (var i = 0; i < segments; i++)
-                    Expanded(
-                      child: AnimatedContainer(
-                        duration: tokens.motionSlow,
-                        curve: Curves.easeOut,
-                        height: 10,
-                        margin: EdgeInsets.only(
-                          right: i == segments - 1 ? 0 : tokens.space(0.5),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: clamped),
+                duration: Motion.of(context, Motion.celebrate),
+                curve: Motion.curveStandard,
+                builder: (context, shown, _) {
+                  final grown = (shown * segments).round();
+                  return Row(
+                    children: [
+                      for (var i = 0; i < segments; i++)
+                        Expanded(
+                          child: AnimatedContainer(
+                            duration: Motion.of(context, Motion.fast),
+                            height: 10,
+                            margin: EdgeInsets.only(
+                              right: i == segments - 1 ? 0 : tokens.space(0.5),
+                            ),
+                            decoration: BoxDecoration(
+                              color: i < grown
+                                  ? tokens.evidencePrimary
+                                  : tokens.evidencePrimary.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
                         ),
-                        decoration: BoxDecoration(
-                          color: i < filled
-                              ? tokens.evidencePrimary
-                              : tokens.evidencePrimary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
-                    ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
             if (dueLabel != null) ...[

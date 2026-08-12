@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../motion.dart';
 import '../tokens.dart';
 
 /// A tappable evidence action ("Check source", "Check date", ...).
@@ -24,7 +25,7 @@ class EvidenceActionChip extends StatelessWidget {
       button: true,
       label: used ? '$label, already used' : label,
       child: AnimatedOpacity(
-        duration: tokens.motionFast,
+        duration: Motion.of(context, Motion.fast),
         opacity: used ? 0.55 : 1,
         child: ActionChip(
           avatar: used

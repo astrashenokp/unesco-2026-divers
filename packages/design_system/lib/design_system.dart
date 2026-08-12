@@ -5,6 +5,7 @@ library design_system;
 export 'src/tokens.dart';
 export 'src/theme.dart';
 export 'src/breakpoints.dart';
+export 'src/motion.dart';
 export 'src/mascot/lupa.dart';
 export 'src/mascot/slid.dart';
 export 'src/mascot/lupa_speech.dart';

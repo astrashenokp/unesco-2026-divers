@@ -182,7 +182,35 @@ class _MissionScreenState extends State<MissionScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_mission?.title ?? s.appName),
+        // The tapped node lands as a small badge beside the title, so
+        // the circle travels here rather than the screen appearing from
+        // nowhere. It must not go in `leading` — that slot holds the
+        // back button, and taking it over strands the learner.
+        title: Row(
+          children: [
+            Hero(
+              tag: 'mission-${widget.missionId}',
+              createRectTween: (begin, end) =>
+                  MaterialRectCenterArcTween(begin: begin, end: end),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: tokens.action,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.explore_outlined, size: 16, color: Colors.white),
+              ),
+            ),
+            SizedBox(width: tokens.space(1)),
+            Expanded(
+              child: Text(
+                _mission?.title ?? s.appName,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             onPressed: _openReport,
@@ -256,7 +284,25 @@ class _MissionScreenState extends State<MissionScreen> {
   Widget _buildStep(Mission mission, Strings s) {
     final wide = formFactorOf(context).isWide;
     return AnimatedSwitcher(
-      duration: context.tokens.motionSlow,
+      duration: Motion.of(context, Motion.standard),
+      switchInCurve: Motion.curveStandard,
+      switchOutCurve: Motion.curveExit,
+      // The step leaving slides left, the one arriving comes from the
+      // right — the same forward-travel language as the page
+      // transition, so moving through a mission feels continuous.
+      transitionBuilder: (child, animation) {
+        final entering = child.key == ValueKey(_step.name);
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: Offset(entering ? 0.06 : -0.06, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
+        );
+      },
       child: switch (_step) {
         _Step.prediction => _PredictionStep(
             key: const ValueKey('prediction'),

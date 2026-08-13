@@ -17,7 +17,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
   "aiosqlite>=0.20,<1",
-  "pytest>=8.4,<9",
+  "pytest>=9.0.3,<10",
 ]
 
 [tool.hatch.build.targets.wheel]

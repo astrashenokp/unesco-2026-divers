@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     services:
       postgres:
-        image: postgres:16.4
+        image: postgres:16.4@sha256:e62fbf9d3e2b49816a32c400ed2dba83e3b361e6833e624024309c35d334b412
         env:
           POSTGRES_DB: evidence_gym
           POSTGRES_USER: evidence_gym
@@ -58,6 +58,8 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://evidence_gym:evidence_gym@127.0.0.1:5432/evidence_gym
         working-directory: packages/data_access
         run: |
+          python -m alembic -c alembic.ini upgrade head
+          python -m alembic -c alembic.ini downgrade base
           python -m alembic -c alembic.ini upgrade head
           python -m alembic -c alembic.ini upgrade head
           python -m pytest -q -p no:cacheprovider

@@ -3,9 +3,10 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy import insert
+from sqlalchemy import select
 
 from data_access.completion import SqlAlchemyAtomicCompletionWriter
-from data_access.schema import attempts, metadata
+from data_access.schema import attempts, metadata, receipts
 from evidence_gym_api.learning.attempt import (
     Attempt,
     AxisAssessment,
@@ -78,6 +79,12 @@ def test_completion_writer_persists_final_snapshot_and_effects() -> None:
                 )
             assert result.receipt_id == "receipt-attempt-complete"
             assert result.xp_awarded == 2
+            receipt = (
+                await session.execute(
+                    select(receipts.c.payload_json).where(receipts.c.id == result.receipt_id)
+                )
+            ).scalar_one()
+            assert "rationaleRef" not in receipt["assessments"][0]
         await engine.dispose()
 
     asyncio.run(scenario())

@@ -255,7 +255,6 @@ class SqlAlchemyAtomicCompletionWriter:
         return {
             "label": axis.label,
             "confidence": axis.confidence.value,
-            "rationaleRef": axis.rationale_ref,
         }
 
     @classmethod

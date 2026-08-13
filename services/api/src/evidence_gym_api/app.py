@@ -29,6 +29,8 @@ from evidence_gym_api.evidence.errors import (
 )
 from evidence_gym_api.coach.errors import CoachProviderError
 from evidence_gym_api.trace import TRACE_ID_HEADER, get_trace_id, normalize_trace_id
+from evidence_gym_api.receipt.api import ReceiptServices, router as receipt_router
+from evidence_gym_api.receipt.use_cases import ReceiptNotFound
 
 
 class TraceIdMiddleware(BaseHTTPMiddleware):
@@ -54,6 +56,7 @@ def create_app(
     catalog_reader: PublicCatalogReader | None = None,
     cors_allowed_origins: tuple[str, ...] = (),
     path_prefix: str = "",
+    receipt_services: ReceiptServices | None = None,
 ) -> FastAPI:
     """Create an API instance with explicit runtime dependencies.
 
@@ -76,6 +79,7 @@ def create_app(
     app.state.identity_verifier = identity_verifier
     app.state.learning_services = learning_services
     app.state.catalog_reader = catalog_reader
+    app.state.receipt_services = receipt_services
     app.add_middleware(TraceIdMiddleware)
     if cors_allowed_origins:
         app.add_middleware(
@@ -90,6 +94,7 @@ def create_app(
     app.include_router(router)
     app.include_router(catalog_router, prefix=path_prefix)
     app.include_router(learning_router, prefix=path_prefix)
+    app.include_router(receipt_router, prefix=path_prefix)
 
     @app.exception_handler(ApiProblem)
     async def handle_api_problem(request: Request, exc: ApiProblem) -> JSONResponse:
@@ -142,6 +147,18 @@ def create_app(
             code="mission-version-unavailable",
             title="Mission version unavailable",
             detail="The exact mission version cannot be started.",
+        )
+        return problem_response(problem, get_trace_id(request))
+
+    @app.exception_handler(ReceiptNotFound)
+    async def handle_receipt_not_found(
+        request: Request, exc: ReceiptNotFound
+    ) -> JSONResponse:
+        problem = ApiProblem(
+            status=404,
+            code="receipt-not-found",
+            title="Receipt not found",
+            detail="The receipt was not found.",
         )
         return problem_response(problem, get_trace_id(request))
 

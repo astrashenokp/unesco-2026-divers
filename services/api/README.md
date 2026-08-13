@@ -65,6 +65,15 @@ Implemented learner mutations:
 - `POST /attempts/{attemptId}/prediction`
 - `POST /attempts/{attemptId}/evidence-actions`
 - `POST /attempts/{attemptId}/hints`
+- `POST /attempts/{attemptId}/conclusion`
+
+Implemented authenticated learner queries:
+
+- `GET /receipts/{receiptId}`
+
+Receipt lookup is ownership-filtered. A missing receipt and a receipt owned by
+another learner both return the same `404 receipt-not-found` response so IDs do
+not become an existence oracle.
 
 All require a verified Firebase bearer principal and `Idempotency-Key`. The
 repository contains only a fake verifier for tests/local composition checks;

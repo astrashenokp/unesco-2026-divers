@@ -25,6 +25,8 @@ from evidence_gym_api.learning.use_cases import (
 )
 from evidence_gym_api.learning.gameplay_adapter import GameplayCompletionScorer
 from evidence_gym_api.runtime import cors_allowed_origins, identity_verifier
+from evidence_gym_api.receipt.api import ReceiptServices
+from evidence_gym_api.receipt.use_cases import GetReceipt
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
 
@@ -38,6 +40,9 @@ attempts = InMemoryAttemptRepository()
 idempotency = InMemoryIdempotencyRepository()
 transactions = InMemoryTransactionManager()
 clock = SystemClock()
+completion_writer = InMemoryAtomicCompletionWriter(
+    attempts, GameplayCompletionScorer(fixture_reader)
+)
 
 learning_services = LearningServices(
     start_attempt=StartAttempt(
@@ -66,9 +71,7 @@ learning_services = LearningServices(
     ),
     complete_attempt=CompleteAttempt(
         attempts,
-        InMemoryAtomicCompletionWriter(
-            attempts, GameplayCompletionScorer(fixture_reader)
-        ),
+        completion_writer,
         idempotency,
         transactions,
         clock,
@@ -81,6 +84,7 @@ learning_services = LearningServices(
 app = create_app(
     catalog_reader=fixture_reader,
     learning_services=learning_services,
+    receipt_services=ReceiptServices(get_receipt=GetReceipt(completion_writer)),
     identity_verifier=identity_verifier(os.environ),
     cors_allowed_origins=cors_allowed_origins(os.environ),
     path_prefix=os.environ.get("EVIDENCE_GYM_PATH_PREFIX", "/v1"),

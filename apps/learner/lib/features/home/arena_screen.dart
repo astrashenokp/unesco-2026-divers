@@ -22,12 +22,18 @@ class ArenaGrid extends StatelessWidget {
     super.key,
     required this.nodes,
     required this.onSelect,
+    this.hiddenCount = 0,
   });
+
+  /// How many missions the younger mode is leaving out. Zero in the
+  /// adult mode, where nothing is filtered.
 
   /// The full path, unfiltered. Counts are computed per arena from this,
   /// so an arena emptied by the younger content mode shows as empty
   /// rather than disappearing — a missing room is confusing, a room with
   /// nothing in it is honest.
+  final int hiddenCount;
+
   final List<LearningPathNode> nodes;
 
   /// Null means "everything".
@@ -94,7 +100,28 @@ class ArenaGrid extends StatelessWidget {
             Text(s.arenasTitle, style: Theme.of(context).textTheme.headlineMedium),
             const SectionRule(),
             LupaGreeting(lines: [s.arenasIntro]),
-            SizedBox(height: tokens.space(2)),
+            SizedBox(height: tokens.space(1)),
+            // Said once, here, where the counts on the cards would
+            // otherwise look like the whole pack. A learner comparing
+            // "2 of 3" against a friend's "2 of 5" deserves to know why
+            // the totals differ.
+            if (hiddenCount > 0)
+              Padding(
+                padding: EdgeInsets.only(bottom: tokens.space(1)),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.child_care_outlined,
+                        size: 18, color: tokens.evidencePrimary),
+                    SizedBox(width: tokens.space(1)),
+                    Expanded(
+                      child: Text(s.audienceHiddenNote(hiddenCount),
+                          style: Theme.of(context).textTheme.bodySmall),
+                    ),
+                  ],
+                ),
+              ),
+            SizedBox(height: tokens.space(1)),
             // A Wrap rather than a GridView: the cards size to their own
             // content, so an arena with a longer example does not force
             // every other card to the same height or clip its own text

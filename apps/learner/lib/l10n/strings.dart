@@ -244,6 +244,22 @@ class Strings {
             "налаштуваннях.",
       );
 
+  // ------------------------------------------------------------ correction
+  String get correctionTitle =>
+      _s('This mission was corrected', 'Цю місію виправили');
+  String correctionBody(String was, String now) => _p(
+        'You worked on version $was. It is now version $now. Your record '
+            'stands exactly as you made it — nothing here has been rewritten '
+            '— but the material behind it has been corrected since.',
+        "Ти працювала з версією $was. Тепер це версія $now. Твій запис "
+            "лишається таким, яким ти його зробила — тут нічого не "
+            "переписано, — але матеріал за ним відтоді виправили.",
+        'You worked on an older version of this mission. Your record is '
+            'unchanged, but the material was corrected since.',
+        "Ти працювала зі старішою версією. Твій запис не змінено, але "
+            "матеріал відтоді виправили.",
+      );
+
   // ------------------------------------------------------- streak and XP
   //
   // The streak is a profile signal and never gates a reward, so the copy

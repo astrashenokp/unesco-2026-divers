@@ -118,6 +118,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SectionRule(),
               Text(s.guestExplained, style: Theme.of(context).textTheme.bodyMedium),
+              SizedBox(height: tokens.space(2)),
+
+              // The streak belongs here as much as on the path —
+              // `packages/gameplay` calls it "a profile signal only",
+              // and the profile is where someone looks to see how they
+              // are doing rather than what to do next.
+              Builder(builder: (context) {
+                final streak = widget.repository.streak;
+                final paused = streak.isPaused(DateTime.now());
+                return Container(
+                  padding: EdgeInsets.all(tokens.space(1.75)),
+                  decoration: BoxDecoration(
+                    color: tokens.surfaceRaised,
+                    borderRadius: BorderRadius.circular(tokens.space(2)),
+                    border: Border.all(
+                      color: tokens.textMuted.withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        paused
+                            ? Icons.pause_circle_outline
+                            : Icons.local_fire_department_outlined,
+                        color: paused
+                            ? tokens.textMuted
+                            : tokens.evidenceSecondary,
+                      ),
+                      SizedBox(width: tokens.space(1.5)),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              paused
+                                  ? s.streakPaused
+                                  : (streak.current == 0
+                                      ? s.streakNone
+                                      : '${s.streakDays(streak.current)} ${s.streakLabel}'),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge,
+                            ),
+                            Text(
+                              paused ? s.streakPausedExplain : s.streakExplain,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
               SizedBox(height: tokens.space(3)),
 
               Text(s.historyTitle, style: Theme.of(context).textTheme.titleLarge),

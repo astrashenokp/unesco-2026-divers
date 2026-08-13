@@ -390,6 +390,7 @@ class Receipt {
     required this.id,
     required this.attemptId,
     required this.missionVersion,
+    this.missionId,
     required this.assessments,
     required this.evidenceRefs,
     required this.createdAt,
@@ -400,6 +401,22 @@ class Receipt {
   final String id;
   final String attemptId;
   final String missionVersion;
+
+  /// Which mission this receipt is about.
+  ///
+  /// Not on the wire. `Receipt` in the contract carries `missionVersion`
+  /// but no `missionId`, and there is no `GET /attempts/{id}` to resolve
+  /// one from `attemptId` — so a receipt cannot be traced back to what
+  /// it is about. That blocks two things: naming the mission in the
+  /// learner's own history, and the ADR-005 correction flow, which has
+  /// to compare this receipt's version against the mission's current
+  /// one.
+  ///
+  /// The demo repository can fill it because it holds the attempt state.
+  /// Against a real server it stays null and the correction banner
+  /// simply never appears, which is the honest failure: no claim is made
+  /// either way about whether the mission changed.
+  final String? missionId;
   final List<AxisAssessment> assessments;
   final List<String> evidenceRefs;
   final DateTime createdAt;

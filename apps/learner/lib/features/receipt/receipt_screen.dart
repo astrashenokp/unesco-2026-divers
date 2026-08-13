@@ -29,16 +29,42 @@ class ReceiptScreen extends StatefulWidget {
 }
 
 class _ReceiptScreenState extends State<ReceiptScreen> {
-  late Future<Receipt> _future;
+  late Future<({Receipt receipt, String? currentVersion})> _future;
 
   @override
   void initState() {
     super.initState();
-    _future = widget.repository.getReceipt(widget.receiptId);
+    _future = _load();
   }
 
-  void _retry() =>
-      setState(() => _future = widget.repository.getReceipt(widget.receiptId));
+  /// Fetches the receipt, and the mission's *current* version alongside
+  /// it when that is knowable.
+  ///
+  /// ADR-005 makes published content immutable: a correction creates a
+  /// new version rather than editing the old one. So a receipt issued
+  /// against version 1.0.0 of a mission that is now at 1.1.0 describes
+  /// work done on material that has since been corrected, and the
+  /// learner is entitled to know that — their record stands, and the
+  /// ground under it moved.
+  ///
+  /// The version lookup is allowed to fail quietly. A correction notice
+  /// is worth showing when we are sure; the absence of one must never be
+  /// mistaken for a promise that nothing changed, and blocking the whole
+  /// receipt because a second request failed would trade something the
+  /// learner asked for against something extra.
+  Future<({Receipt receipt, String? currentVersion})> _load() async {
+    final receipt = await widget.repository.getReceipt(widget.receiptId);
+    final missionId = receipt.missionId;
+    if (missionId == null) return (receipt: receipt, currentVersion: null);
+    try {
+      final mission = await widget.repository.getMission(missionId);
+      return (receipt: receipt, currentVersion: mission.version);
+    } catch (_) {
+      return (receipt: receipt, currentVersion: null);
+    }
+  }
+
+  void _retry() => setState(() => _future = _load());
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +75,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
       appBar: AppBar(title: Text(s.receiptScreenTitle)),
       body: LivingBackground(
         variant: GroundVariant.grid,
-        child: FutureBuilder<Receipt>(
+        child: FutureBuilder<({Receipt receipt, String? currentVersion})>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -65,7 +91,10 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             );
           }
 
-          final receipt = snapshot.data!;
+          final receipt = snapshot.data!.receipt;
+          final currentVersion = snapshot.data!.currentVersion;
+          final corrected = currentVersion != null &&
+              currentVersion != receipt.missionVersion;
           // The contract guarantees exactly three assessments, in axis
           // order. Read defensively anyway: a malformed receipt should
           // render what it has rather than crash the screen.
@@ -79,6 +108,17 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             child: ListView(
               padding: EdgeInsets.all(tokens.space(2)),
               children: [
+                // First on the page when it applies. A learner who reads
+                // their whole conclusion before being told the material
+                // changed has read it under a false impression.
+                if (corrected) ...[
+                  CorrectionBanner(
+                    title: s.correctionTitle,
+                    body: s.correctionBody(
+                        receipt.missionVersion, currentVersion),
+                  ),
+                  SizedBox(height: tokens.space(2)),
+                ],
                 Text(s.receiptConclusions, style: Theme.of(context).textTheme.titleLarge),
                 const SectionRule(),
                 for (var i = 0; i < receipt.assessments.length && i < axes.length; i++)

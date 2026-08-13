@@ -337,6 +337,7 @@ class DemoMissionRepository implements MissionRepository {
     _receipts[receiptId] = Receipt(
       id: receiptId,
       attemptId: attemptId,
+      missionId: missionId,
       missionVersion: _attemptState[attemptId]?.missionVersion ?? '1.0.0',
       assessments: [input.authenticity, input.claimVeracity, input.contextIntegrity],
       evidenceRefs: List<String>.from(_evidenceIds[attemptId] ?? const []),

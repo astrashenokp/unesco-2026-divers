@@ -381,4 +381,41 @@ void main() {
       );
     }
   });
+
+  test('a receipt can be traced back to its mission, in demo mode', () async {
+    // Without this the ADR-005 correction flow can never reach a
+    // learner: telling them the material was corrected means comparing
+    // the receipt's version against the mission's current one, and a
+    // receipt that does not know its mission cannot be compared to
+    // anything.
+    final r = repo();
+    final attempt = await startFirst(r);
+    await r.submitPrediction(
+      attempt.id,
+      PredictionInput(reaction: 'trust', confidence: 60, version: attempt.version),
+    );
+    final evidence = await r.useEvidenceAction(
+        attempt.id, 'viral-flood-photo', 'check_source', 2);
+    final done = await r.submitConclusion(
+      attempt.id,
+      ConclusionInput(
+        authenticity: const AxisAssessment(label: 'authentic', confidence: 60),
+        claimVeracity:
+            const AxisAssessment(label: 'insufficient_evidence', confidence: 40),
+        contextIntegrity: const AxisAssessment(label: 'accurate', confidence: 60),
+        postConfidence: 50,
+        shareDecision: 'do_not_share',
+        version: evidence.attemptVersion,
+      ),
+    );
+
+    final receipt = await r.getReceipt(done.receiptId);
+    expect(receipt.missionId, 'viral-flood-photo');
+
+    // And the mission it points at must actually exist, or the lookup
+    // that drives the banner throws instead of resolving.
+    final mission = await r.getMission(receipt.missionId!);
+    expect(mission.version, receipt.missionVersion,
+        reason: 'an unchanged mission must not look corrected');
+  });
 }

@@ -114,3 +114,13 @@ Role 2 now supplies `GameplayCompletionScorer`, which reads the pinned Role 3
 and delegates the award to `gameplay.award_xp()`. The PostgreSQL writer must
 persist the returned stable `rule_code`, amount and level; it must not introduce
 another XP table or scoring formula.
+
+### Receipt query follow-up
+
+`GET /receipts/{receiptId}` now depends on `ReceiptReader.get_for_learner`.
+The production adapter must query the immutable receipt and its owning attempt
+in one authorization-filtered read using both `receipt_id` and `learner_id`.
+Missing and foreign receipts must both return `None`; the adapter must never
+expose a receipt-owner existence oracle. It maps the stored public payload to
+`EvidenceReceipt` without recalculating its hash or returning internal learner,
+XP, outbox, or persistence fields.

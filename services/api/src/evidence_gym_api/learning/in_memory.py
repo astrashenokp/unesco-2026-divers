@@ -184,6 +184,7 @@ class InMemoryAtomicCompletionWriter:
         self.total_xp[learner_key] = total_xp
         self.receipts[receipt_id] = {
             "id": receipt_id,
+            "learner_id": attempt.learner_id.value,
             "attempt_id": attempt.id.value,
             "mission_version": attempt.mission_version.value,
             "assessments": (
@@ -207,6 +208,25 @@ class InMemoryAtomicCompletionWriter:
             receipt_id=receipt_id,
             xp_awarded=xp_awarded,
             progress=ProgressResult(total_xp=total_xp, skills=()),
+        )
+
+    async def get_for_learner(self, receipt_id: str, learner_id):
+        """Return an owned receipt without exposing whether another learner has it."""
+
+        receipt = self.receipts.get(receipt_id)
+        if receipt is None or receipt["learner_id"] != learner_id.value:
+            return None
+        from evidence_gym_api.receipt.model import EvidenceReceipt
+
+        return EvidenceReceipt(
+            id=receipt["id"],
+            attempt_id=receipt["attempt_id"],
+            mission_version=receipt["mission_version"],
+            assessments=receipt["assessments"],
+            evidence_refs=receipt["evidence_refs"],
+            created_at=receipt["created_at"],
+            hash=receipt["hash"],
+            disclaimer=receipt["disclaimer"],
         )
 
 

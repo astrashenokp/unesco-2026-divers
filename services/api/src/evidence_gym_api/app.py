@@ -4,8 +4,8 @@ from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -52,30 +52,20 @@ def create_app(
     identity_verifier: IdentityVerifier | None = None,
     learning_services: LearningServices | None = None,
     catalog_reader: PublicCatalogReader | None = None,
-    allowed_origins: tuple[str, ...] = (),
+    cors_allowed_origins: tuple[str, ...] = (),
     path_prefix: str = "",
 ) -> FastAPI:
     """Create an API instance with explicit runtime dependencies.
 
-    ``allowed_origins`` enables CORS for exactly those origins. It
-    defaults to none, so no deployment gains cross-origin access by
-    accident and existing behaviour is unchanged.
-
-    It exists because the learner client ships as a Flutter **web**
-    build. A browser sends a preflight before any request carrying an
-    ``Authorization`` header, and with no CORS middleware that preflight
-    answers 405 — so every call from the web client fails before it
-    reaches a route, including routes that work perfectly. The failure
-    is invisible from this side: ``curl`` succeeds, the service tests
-    pass, and only a browser fails.
-
     ``path_prefix`` mounts the API under a base path. The contract
     declares ``servers: https://…/v1``, so a conforming client asks for
-    ``/v1/catalog/path`` while this app serves ``/catalog/path`` — every
-    request 404s. It defaults to empty so the existing tests, which call
-    the routes directly, keep passing unchanged; ``main.py`` sets it to
-    the value the contract promises.
-    """
+    ``/v1/catalog/path`` while an unprefixed app serves
+    ``/catalog/path`` — both sides internally correct, every request a
+    404. Only a real client finds this; no unit test on either side can.
+
+    Defaults to empty so the existing tests, which call the routes
+    directly, keep passing unchanged. ``main.py`` sets the value the
+    contract promises."""
 
     app = FastAPI(
         title="Evidence Gym API",
@@ -86,25 +76,15 @@ def create_app(
     app.state.identity_verifier = identity_verifier
     app.state.learning_services = learning_services
     app.state.catalog_reader = catalog_reader
-    if allowed_origins:
-        # Explicit origins, never a wildcard: credentials and `*` cannot
-        # be combined, and the client sends an Authorization header.
-        # Headers are listed rather than opened, because Idempotency-Key
-        # is ours and the browser must be told it is allowed.
+    app.add_middleware(TraceIdMiddleware)
+    if cors_allowed_origins:
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=list(allowed_origins),
-            allow_credentials=True,
+            allow_origins=list(cors_allowed_origins),
+            allow_credentials=False,
             allow_methods=["GET", "POST", "OPTIONS"],
-            allow_headers=[
-                "Authorization",
-                "Content-Type",
-                "Idempotency-Key",
-                TRACE_ID_HEADER,
-            ],
-            expose_headers=[TRACE_ID_HEADER],
+            allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
         )
-    app.add_middleware(TraceIdMiddleware)
     # Operational probes stay at the root: a load balancer checking
     # /health should not need to know the API's version prefix.
     app.include_router(router)

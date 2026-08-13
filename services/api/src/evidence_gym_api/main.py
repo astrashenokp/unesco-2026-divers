@@ -1,5 +1,6 @@
 """Default ASGI entry point."""
 
+import os
 from pathlib import Path
 
 from evidence_gym_api.app import create_app
@@ -20,6 +21,7 @@ from evidence_gym_api.learning.use_cases import (
     SubmitPrediction,
     UseEvidenceAction,
 )
+from evidence_gym_api.runtime import cors_allowed_origins, identity_verifier
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
 
@@ -64,4 +66,6 @@ learning_services = LearningServices(
 app = create_app(
     catalog_reader=fixture_reader,
     learning_services=learning_services,
+    identity_verifier=identity_verifier(os.environ),
+    cors_allowed_origins=cors_allowed_origins(os.environ),
 )

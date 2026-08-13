@@ -5,6 +5,7 @@ from collections.abc import Awaitable, Callable
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -51,6 +52,7 @@ def create_app(
     identity_verifier: IdentityVerifier | None = None,
     learning_services: LearningServices | None = None,
     catalog_reader: PublicCatalogReader | None = None,
+    cors_allowed_origins: tuple[str, ...] = (),
 ) -> FastAPI:
     """Create an API instance with explicit runtime dependencies."""
 
@@ -64,6 +66,14 @@ def create_app(
     app.state.learning_services = learning_services
     app.state.catalog_reader = catalog_reader
     app.add_middleware(TraceIdMiddleware)
+    if cors_allowed_origins:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(cors_allowed_origins),
+            allow_credentials=False,
+            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
+        )
     app.include_router(router)
     app.include_router(catalog_router)
     app.include_router(learning_router)

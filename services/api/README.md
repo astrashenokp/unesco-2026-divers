@@ -14,6 +14,23 @@ python -m uvicorn evidence_gym_api.main:app --reload
 python -m pytest
 ```
 
+The runtime denies cross-origin browser access and has no identity verifier by
+default. For local Flutter Web development, choose an explicit browser port and
+enable the deterministic verifier only in the development environment:
+
+```powershell
+$env:EVIDENCE_GYM_ENV = "development"
+$env:EVIDENCE_GYM_CORS_ORIGINS = "http://localhost:8080"
+$env:EVIDENCE_GYM_DEV_IDENTITY_ENABLED = "true"
+$env:EVIDENCE_GYM_DEV_IDENTITY_TOKEN = "replace-with-a-local-token"
+$env:EVIDENCE_GYM_DEV_LEARNER_ID = "local-learner"
+python -m uvicorn evidence_gym_api.main:app --reload
+```
+
+Only explicit HTTP(S) origins are accepted; wildcards are rejected. The local
+verifier refuses to start outside `EVIDENCE_GYM_ENV=development`, accepts only
+the configured token, and is not a replacement for Firebase verification.
+
 Operational endpoints are deliberately outside the contract's `/v1` learner
 surface:
 

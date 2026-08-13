@@ -124,3 +124,13 @@ Missing and foreign receipts must both return `None`; the adapter must never
 expose a receipt-owner existence oracle. It maps the stored public payload to
 `EvidenceReceipt` without recalculating its hash or returning internal learner,
 XP, outbox, or persistence fields.
+
+### Progress query follow-up
+
+`GET /me/progress` now depends on `ProgressReader.get_for_learner`. The
+production PostgreSQL adapter must read `learner_progress` and all matching
+`skill_states` for the server-derived learner ID. A learner with no projection
+row returns `ProgressResult(total_xp=0, skills=())`, not `404`. Skill mastery
+and due dates must be returned from the stored Role 4 gameplay projection; the
+query must not recalculate XP, mastery, scheduling, or accept a learner ID from
+the client.

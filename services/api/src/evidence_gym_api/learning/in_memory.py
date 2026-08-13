@@ -229,6 +229,24 @@ class InMemoryAtomicCompletionWriter:
             disclaimer=receipt["disclaimer"],
         )
 
+    async def get_progress_for_learner(self, learner_id):
+        """Return a zero projection for new learners and accumulated local XP."""
+
+        return ProgressResult(
+            total_xp=self.total_xp.get(learner_id.value, 0),
+            skills=(),
+        )
+
+
+class InMemoryProgressReader:
+    """Adapt the local atomic writer's projections to the progress query port."""
+
+    def __init__(self, completion_writer: InMemoryAtomicCompletionWriter) -> None:
+        self._completion_writer = completion_writer
+
+    async def get_for_learner(self, learner_id):
+        return await self._completion_writer.get_progress_for_learner(learner_id)
+
 
 class InMemoryTransactionManager:
     """Serialize mutations to model one application transaction boundary."""

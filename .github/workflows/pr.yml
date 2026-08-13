@@ -1,0 +1,104 @@
+name: Pull request quality
+
+on:
+  pull_request:
+    branches: [main]
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python, contracts and migrations
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16.4
+        env:
+          POSTGRES_DB: evidence_gym
+          POSTGRES_USER: evidence_gym
+          POSTGRES_PASSWORD: evidence_gym
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U evidence_gym -d evidence_gym"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Python
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install local packages
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e 'packages/gameplay[test]'
+          python -m pip install -e 'services/api[test]'
+          python -m pip install -e 'packages/data_access[test]'
+
+      - name: Run gameplay tests
+        run: python -m pytest packages/gameplay -q -p no:cacheprovider
+
+      - name: Run API tests
+        run: python -m pytest services/api -q -p no:cacheprovider
+
+      - name: Run PostgreSQL data-access tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://evidence_gym:evidence_gym@127.0.0.1:5432/evidence_gym
+        working-directory: packages/data_access
+        run: |
+          python -m alembic -c alembic.ini upgrade head
+          python -m alembic -c alembic.ini upgrade head
+          python -m pytest -q -p no:cacheprovider
+
+      - name: Validate JSON contracts
+        run: |
+          python -c "import yaml; yaml.safe_load(open('contracts/openapi.yaml'))"
+          python -m json.tool contracts/mission-fixture.schema.json >/dev/null
+          python -m json.tool contracts/scenario-pack.schema.json >/dev/null
+          python -m json.tool contracts/coach-output.schema.json >/dev/null
+
+      - name: Validate migration SQL generation
+        working-directory: packages/data_access
+        env:
+          PYTHONPATH: src:../../services/api/src:../gameplay/src
+        run: python -m alembic -c alembic.ini upgrade head --sql >/dev/null
+
+  flutter:
+    name: Flutter learner and design system
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2
+        with:
+          flutter-version: '3.32.8'
+          channel: stable
+          cache: true
+
+      - name: Analyze and test learner app
+        working-directory: apps/learner
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: Test design system
+        working-directory: packages/design_system
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test

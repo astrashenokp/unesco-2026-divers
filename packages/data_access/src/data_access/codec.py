@@ -50,7 +50,6 @@ def _axis(value: AxisAssessment) -> dict[str, Any]:
     return {
         "label": value.label,
         "confidence": _confidence(value.confidence),
-        "rationale_ref": value.rationale_ref,
     }
 
 

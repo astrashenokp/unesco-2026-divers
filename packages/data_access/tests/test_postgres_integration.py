@@ -4,12 +4,16 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import insert
+from sqlalchemy import func, insert, select
 
 from data_access.attempts import SqlAlchemyAttemptRepository
 from data_access.completion import SqlAlchemyAtomicCompletionWriter
 from data_access.db import Database
-from data_access.idempotency import SqlAlchemyIdempotencyRepository
+from data_access.db import SqlAlchemyTransactionManager
+from data_access.idempotency import (
+    SqlAlchemyCompletionIdempotencyRepository,
+    SqlAlchemyIdempotencyRepository,
+)
 from evidence_gym_api.learning.attempt import (
     Attempt,
     AxisAssessment,
@@ -19,8 +23,18 @@ from evidence_gym_api.learning.attempt import (
     Reaction,
     ShareDecision,
 )
+from evidence_gym_api.identity.model import Principal
 from evidence_gym_api.learning.errors import RepositoryConflict
-from evidence_gym_api.learning.ports import IdempotencyScope, StoredAttemptResult, XpAward
+from evidence_gym_api.learning.ports import (
+    CompletionResult,
+    IdempotencyScope,
+    ProgressResult,
+    StoredAttemptResult,
+    StoredCompletionResult,
+    XpAward,
+)
+from evidence_gym_api.learning.testing import FixedClock
+from evidence_gym_api.learning.use_cases import CompleteAttempt, CompleteAttemptCommand
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
     IdempotencyKey,
@@ -28,12 +42,68 @@ from evidence_gym_api.learning.value_objects import (
     MissionId,
     MissionVersion,
 )
-from data_access.schema import attempts
+from data_access.schema import (
+    attempts,
+    conclusions,
+    idempotency_results,
+    learner_progress,
+    outbox,
+    receipts,
+    xp_ledger,
+)
 
 pytestmark = pytest.mark.skipif(
     not os.getenv("DATABASE_URL"),
     reason="set DATABASE_URL to run PostgreSQL integration tests",
 )
+
+
+class IntegrationScorer:
+    async def award(self, mission_id, mission_version, used_evidence_actions):
+        return XpAward("process-xp:1", 2, 1)
+
+
+def conclusion_for(attempt: Attempt) -> CompleteAttemptCommand:
+    return CompleteAttemptCommand(
+        attempt_id=attempt.id,
+        authenticity=AxisAssessment("authentic", Confidence.known(60)),
+        claim_veracity=AxisAssessment("supported", Confidence.known(60)),
+        context_integrity=AxisAssessment("accurate", Confidence.known(60)),
+        post_confidence=Confidence.known(55),
+        share_decision=ShareDecision.DO_NOT_SHARE,
+        version=attempt.version,
+        idempotency_key=IdempotencyKey("completion-key"),
+    )
+
+
+async def seed_completion_attempt(database: Database, run_id: str) -> Attempt:
+    attempt = Attempt(
+        AttemptId(f"seed-attempt-{run_id}"),
+        LearnerId(f"seed-learner-{run_id}"),
+        MissionId(f"seed-mission-{run_id}"),
+        MissionVersion("v1"),
+    )
+    async with database.session() as session:
+        repository = SqlAlchemyAttemptRepository(session)
+        async with session.begin():
+            await repository.add(attempt)
+        attempt.submit_prediction(Prediction(Reaction.INVESTIGATE, Confidence.known(50)))
+        async with session.begin():
+            await repository.save(attempt, expected_version=1)
+        attempt.record_evidence_action("check-source")
+        async with session.begin():
+            await repository.save(attempt, expected_version=2)
+    return attempt
+
+
+async def count_rows(session, table, column, value) -> int:
+    return int(
+        (
+            await session.execute(
+                select(func.count()).select_from(table).where(column == value)
+            )
+        ).scalar_one()
+    )
 
 
 def test_postgres_repositories_round_trip_after_migration() -> None:
@@ -164,6 +234,100 @@ def test_postgres_completion_writer_commits_receipt_xp_progress_and_outbox() -> 
                 )
             assert result.xp_awarded == 2
             assert result.receipt_id.startswith("receipt-")
+        await database.dispose()
+
+    asyncio.run(scenario())
+
+
+def test_postgres_completion_rolls_back_all_effects() -> None:
+    async def scenario() -> None:
+        database = Database(os.environ["DATABASE_URL"])
+        run_id = uuid4().hex
+        attempt = await seed_completion_attempt(database, run_id)
+        command = conclusion_for(attempt)
+        try:
+            async with database.session() as session:
+                writer = SqlAlchemyAtomicCompletionWriter(session, IntegrationScorer())
+                completion_idempotency = SqlAlchemyCompletionIdempotencyRepository(session)
+                async with session.begin():
+                    result = await writer.complete(
+                        attempt,
+                        Conclusion(
+                            command.authenticity,
+                            command.claim_veracity,
+                            command.context_integrity,
+                            command.post_confidence,
+                            command.share_decision,
+                        ),
+                        expected_version=command.version,
+                        completed_at=datetime.now(UTC),
+                    )
+                    await completion_idempotency.put_completion(
+                        IdempotencyScope(
+                            attempt.learner_id,
+                            "/attempts/{attemptId}/conclusion",
+                            command.idempotency_key,
+                        ),
+                        StoredCompletionResult(
+                            "rollback-fingerprint",
+                            result,
+                            datetime.now(UTC) + timedelta(hours=24),
+                        ),
+                    )
+                    raise RuntimeError("forced completion rollback")
+        except RuntimeError:
+            pass
+
+        async with database.session() as session:
+            stored = await SqlAlchemyAttemptRepository(session).get(attempt.id)
+            assert stored is not None
+            assert stored.state.value == "investigating"
+            assert stored.version == command.version
+            assert await count_rows(session, conclusions, conclusions.c.attempt_id, str(attempt.id)) == 0
+            assert await count_rows(session, xp_ledger, xp_ledger.c.attempt_id, str(attempt.id)) == 0
+            assert await count_rows(session, receipts, receipts.c.attempt_id, str(attempt.id)) == 0
+            assert await count_rows(session, outbox, outbox.c.subject_id, str(attempt.id)) == 0
+            assert await count_rows(
+                session, learner_progress, learner_progress.c.learner_id, str(attempt.learner_id)
+            ) == 0
+            assert await count_rows(
+                session, idempotency_results, idempotency_results.c.learner_id, str(attempt.learner_id)
+            ) == 0
+        await database.dispose()
+
+    asyncio.run(scenario())
+
+
+def test_postgres_same_key_retry_has_no_duplicate_completion_effects() -> None:
+    async def scenario() -> None:
+        database = Database(os.environ["DATABASE_URL"])
+        run_id = uuid4().hex
+        attempt = await seed_completion_attempt(database, run_id)
+        async with database.session() as session:
+            use_case = CompleteAttempt(
+                SqlAlchemyAttemptRepository(session),
+                SqlAlchemyAtomicCompletionWriter(session, IntegrationScorer()),
+                SqlAlchemyCompletionIdempotencyRepository(session),
+                SqlAlchemyTransactionManager(session),
+                FixedClock(),
+            )
+            principal = Principal(attempt.learner_id)
+            command = conclusion_for(attempt)
+            first = await use_case.execute(principal, command)
+            replay = await use_case.execute(principal, command)
+            assert first == replay
+
+        async with database.session() as session:
+            assert await count_rows(session, conclusions, conclusions.c.attempt_id, str(attempt.id)) == 1
+            assert await count_rows(session, xp_ledger, xp_ledger.c.attempt_id, str(attempt.id)) == 1
+            assert await count_rows(session, receipts, receipts.c.attempt_id, str(attempt.id)) == 1
+            assert await count_rows(session, outbox, outbox.c.subject_id, str(attempt.id)) == 1
+            assert await count_rows(
+                session, learner_progress, learner_progress.c.learner_id, str(attempt.learner_id)
+            ) == 1
+            assert await count_rows(
+                session, idempotency_results, idempotency_results.c.learner_id, str(attempt.learner_id)
+            ) == 1
         await database.dispose()
 
     asyncio.run(scenario())

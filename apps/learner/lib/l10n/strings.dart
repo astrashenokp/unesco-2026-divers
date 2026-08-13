@@ -1052,9 +1052,22 @@ class Strings {
         'Please don\'t include personal information about yourself or anyone else.',
         'Будь ласка, не додавай особисту інформацію про себе чи інших.',
       );
+  /// Says what happened, and promises nothing beyond it.
+  ///
+  /// This read "a human reviewer will look at this", which was a promise
+  /// the product cannot keep: there is no named moderation owner, no
+  /// queue and no review destination (#33). A product that teaches
+  /// people to check a claim before believing it cannot make an unbacked
+  /// one on its own confirmation screen.
+  ///
+  /// It must not swing the other way either and imply the report is
+  /// pointless. Confirming receipt, naming what it was attached to, and
+  /// declining to promise a timeline does all three at once.
   String get reportSent => _s(
-        'Thank you. A human reviewer will look at this.',
-        'Дякуємо. Це перегляне людина.',
+        'Received. This is recorded against the version of the mission you '
+            'were looking at. We can\'t promise when someone will read it.',
+        "Отримано. Записано разом із тією версією місії, яку ти дивилася. "
+            "Не можемо обіцяти, коли це хтось прочитає.",
       );
 
   /// Demo mode has no moderation queue, so it must not claim one.
@@ -1066,6 +1079,16 @@ class Strings {
   String get reportFailed => _s(
         'Couldn\'t send that. Please try again.',
         'Не вдалося надіслати. Спробуй ще раз.',
+      );
+
+  /// Offline needs its own line: "try again" is bad advice when the
+  /// thing to do is wait, and it invites someone to hammer a button
+  /// that cannot work yet. What they typed is still in the box.
+  String get reportFailedOffline => _s(
+        'No connection, so this hasn\'t been sent. What you wrote is still '
+            'here — try again once you\'re back online.',
+        "Немає зв'язку, тож це не надіслано. Написане лишилося тут — "
+            "спробуй, коли з'явиться мережа.",
       );
 
   // ------------------------------------------------------------ navigation

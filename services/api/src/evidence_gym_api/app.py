@@ -31,6 +31,7 @@ from evidence_gym_api.coach.errors import CoachProviderError
 from evidence_gym_api.trace import TRACE_ID_HEADER, get_trace_id, normalize_trace_id
 from evidence_gym_api.receipt.api import ReceiptServices, router as receipt_router
 from evidence_gym_api.receipt.use_cases import ReceiptNotFound
+from evidence_gym_api.progress.api import ProgressServices, router as progress_router
 
 
 class TraceIdMiddleware(BaseHTTPMiddleware):
@@ -57,6 +58,7 @@ def create_app(
     cors_allowed_origins: tuple[str, ...] = (),
     path_prefix: str = "",
     receipt_services: ReceiptServices | None = None,
+    progress_services: ProgressServices | None = None,
 ) -> FastAPI:
     """Create an API instance with explicit runtime dependencies.
 
@@ -80,6 +82,7 @@ def create_app(
     app.state.learning_services = learning_services
     app.state.catalog_reader = catalog_reader
     app.state.receipt_services = receipt_services
+    app.state.progress_services = progress_services
     app.add_middleware(TraceIdMiddleware)
     if cors_allowed_origins:
         app.add_middleware(
@@ -95,6 +98,7 @@ def create_app(
     app.include_router(catalog_router, prefix=path_prefix)
     app.include_router(learning_router, prefix=path_prefix)
     app.include_router(receipt_router, prefix=path_prefix)
+    app.include_router(progress_router, prefix=path_prefix)
 
     @app.exception_handler(ApiProblem)
     async def handle_api_problem(request: Request, exc: ApiProblem) -> JSONResponse:

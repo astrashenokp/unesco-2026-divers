@@ -70,10 +70,14 @@ Implemented learner mutations:
 Implemented authenticated learner queries:
 
 - `GET /receipts/{receiptId}`
+- `GET /me/progress`
 
 Receipt lookup is ownership-filtered. A missing receipt and a receipt owned by
 another learner both return the same `404 receipt-not-found` response so IDs do
 not become an existence oracle.
+
+Progress is always scoped to the verified principal. New learners receive
+`totalXp: 0` and an empty skill list rather than a missing-resource error.
 
 All require a verified Firebase bearer principal and `Idempotency-Key`. The
 repository contains only a fake verifier for tests/local composition checks;

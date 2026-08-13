@@ -244,6 +244,56 @@ class Strings {
             "налаштуваннях.",
       );
 
+  // ------------------------------------------------------- streak and XP
+  //
+  // The streak is a profile signal and never gates a reward, so the copy
+  // must not read as a threat. Nothing here says "don't lose it".
+  String streakDays(int n) => _s(
+        n == 1 ? '1 day' : '$n days',
+        n == 1 ? '1 день' : '$n дн.',
+      );
+  String get streakLabel => _s('in a row', 'поспіль');
+  String get streakNone => _s('not started', 'ще не почато');
+  String get streakPaused => _s('paused', 'на паузі');
+  String get streakPauseAction => _s('Pause the streak', 'Поставити на паузу');
+  String get streakResumeAction => _s('Resume it', 'Зняти з паузи');
+  String get streakExplain => _p(
+        'Days you investigated. It never unlocks or blocks anything, and '
+            'missing a day is forgiven once. Pause it whenever you need to.',
+        "Дні, коли ти перевіряла. Це нічого не відкриває й нічого не "
+            "блокує, а один пропущений день пробачається. Ставити на паузу "
+            "можна будь-коли.",
+        'Days you investigated. It does not unlock anything.',
+        "Дні, коли ти перевіряла. Воно нічого не відкриває.",
+      );
+  String get streakPausedExplain => _p(
+        'Paused. Nothing counts against you until you turn it back on.',
+        "На паузі. Доки не увімкнеш, ніщо не зараховується проти тебе.",
+        'Paused. Nothing counts against you.',
+        "На паузі. Нічого не зараховується проти тебе.",
+      );
+
+  String get processLevelTitle =>
+      _s('How you worked', 'Як ти працювала');
+  String processLevelOf(int level) => _s(
+        'Process level $level of 4',
+        'Рівень процесу $level з 4',
+      );
+  String get processLevelExplain => _p(
+        'This is what the XP was for. It counts what you checked, not '
+            'whether your conclusion turned out to match — investigating '
+            'well after a wrong first instinct scores the same as being '
+            'right from the start.',
+        "Саме за це нараховано XP. Рахується те, що ти перевірила, а не чи "
+            "збігся твій висновок: добре перевірити після хибного першого "
+            "відчуття — те саме, що вгадати одразу.",
+        'This is what the XP was for. It counts what you checked, not '
+            'whether you were right.',
+        "Саме за це нараховано XP. Рахується перевірене, а не правильність.",
+      );
+  String processLevelNext(String criteria) =>
+      _s('Next rung: $criteria', 'Наступна сходинка: $criteria');
+
   // ---------------------------------------------------------------- arenas
   //
   // Named for what the learner meets, not for an academic category.

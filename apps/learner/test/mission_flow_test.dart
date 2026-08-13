@@ -1,5 +1,6 @@
 import 'package:evidence_gym_learner/data/api_client.dart';
 import 'package:evidence_gym_learner/data/arenas.dart';
+import 'package:evidence_gym_learner/data/gameplay.dart';
 import 'package:evidence_gym_learner/data/audience.dart';
 import 'package:evidence_gym_learner/data/demo_fixtures.dart';
 import 'package:evidence_gym_learner/data/mission_repository.dart';
@@ -129,6 +130,25 @@ void main() {
     final thorough = await run(['check_source', 'check_date', 'reverse_search'], 'authentic');
     final hasty = await run(['check_source'], 'altered');
     expect(thorough, greaterThan(hasty));
+
+    // Pinned to the reviewed ladder, not just ordered. `greaterThan`
+    // alone passed under the homemade `1 + checks` formula this used to
+    // use, so it could not have caught the demo drifting away from the
+    // rubric the product actually scores by.
+    expect(hasty, 2, reason: 'one check is process level 1, worth 2 XP');
+    expect(thorough, 6, reason: 'three checks is level 3, worth 6 XP');
+  });
+
+  test('the demo pays the rubric, and stops paying past the top rung',
+      () async {
+    // The old formula was unbounded: every extra check bought another
+    // point forever, which rewards clicking rather than investigating.
+    final r = repo();
+    final mission = await r.getMission('viral-flood-photo');
+    expect(mission.rubric, isNotEmpty,
+        reason: 'a mission with no rubric cannot pay anything');
+    expect(xpFor(mission.rubric, 4), xpFor(mission.rubric, 40),
+        reason: 'running forty checks must not pay more than four');
   });
 
   test('the coach climbs its ladder and stops at four', () async {

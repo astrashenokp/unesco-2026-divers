@@ -1,6 +1,7 @@
 import 'api_client.dart';
 import 'audience.dart';
 import 'demo_fixtures.dart';
+import 'gameplay.dart';
 import 'models.dart';
 
 /// Screens depend on this, never on [EvidenceGymApiClient] or the demo
@@ -12,6 +13,23 @@ abstract class MissionRepository {
   /// promising things a demo cannot deliver — e.g. that a report will
   /// actually reach a human reviewer.
   bool get isDemo;
+
+  /// The learner's compassionate streak.
+  ///
+  /// Not on the wire: `Progress` in the contract carries `totalXp` and
+  /// `skills` and nothing about streaks, so a live client cannot show
+  /// one yet. `packages/gameplay` computes it server-side, which makes
+  /// this a contract gap rather than a missing feature — the rules
+  /// exist, the field to carry them does not.
+  StreakState get streak;
+
+  /// Excuses activity through [until], inclusive.
+  ///
+  /// Deliberately part of the repository rather than a UI-local flag: a
+  /// pause is a fact about the learner, and a pause that vanishes when
+  /// the screen rebuilds would be worse than no pause at all.
+  void pauseStreak(DateTime until);
+  void resumeStreak();
 
   Future<LearningPath> getLearningPath();
   Future<Mission> getMission(String missionId);
@@ -70,13 +88,16 @@ class DemoMissionRepository implements MissionRepository {
   var _receiptCounter = 0;
   final _completed = <String>{};
   var _earnedXp = 0;
-  final _skillHits = <String, int>{};
+  /// Skill mastery and review schedule, run through the real rules.
+  ///
+  /// This was a hit counter with a homemade "stale after two
+  /// completions" heuristic, written before Role 4 existed. It now uses
+  /// `gameplay.dart`, which transcribes `packages/gameplay`: 0.25
+  /// mastery per practice, review intervals doubling from one day.
+  final _skills = <String, SkillState>{};
 
-  /// Which completion a skill was last practised on, so the demo can
-  /// show a skill going stale. Spaced repetition is Role 4's to design;
-  /// this is only enough to make the state visible in a demo, and it is
-  /// labelled as such rather than pretending to be a real schedule.
-  final _skillLastPractised = <String, int>{};
+  /// The compassionate streak, same rules as the server package.
+  var _streak = const StreakState();
   final _hintLevel = <String, int>{};
 
   Future<void> _pause() => Future<void>.delayed(const Duration(milliseconds: 300));
@@ -288,15 +309,27 @@ class DemoMissionRepository implements MissionRepository {
       );
     }
     _receiptCounter += 1;
-    final xp = 1 + usedCount; // mirrors the process-XP rubric shape, demo-scale only
-    _earnedXp += xp;
 
-    // Credit the skills the mission actually exercises, so the demo
-    // progress screen reflects what the learner just did.
+    // XP comes off the mission's curated rubric at the process level the
+    // evidence behaviour earned. It used to be `1 + usedCount`, a
+    // homemade formula that was unbounded and paid differently from the
+    // reviewed ladder — a demo showing numbers the product does not
+    // award.
+    final level = processLevelFor(usedCount);
+    final xp = xpFor(mission?.rubric ?? const [], usedCount);
+    _earnedXp += xp;
+    _lastProcessLevel = level;
+
+    // One practice per skill the mission exercises, through the real
+    // mastery and review-interval rules.
+    final now = DateTime.now();
     for (final tag in mission?.skillTags ?? const <String>[]) {
-      _skillHits[tag] = (_skillHits[tag] ?? 0) + usedCount;
-      _skillLastPractised[tag] = _completed.length;
+      _skills[tag] = (_skills[tag] ?? SkillState(skill: tag)).practise(now);
     }
+
+    // The streak is a profile signal, recorded on completion and never
+    // used to gate any of the above.
+    _streak = _streak.recordActivity(now);
 
     if (missionId != null) _completed.add(missionId);
 
@@ -348,32 +381,44 @@ class DemoMissionRepository implements MissionRepository {
     );
   }
 
-  /// Skills that have gone two completions without being practised.
-  ///
-  /// A stand-in for a real review schedule, not a model of one. It exists
-  /// so the "practice due" state is reachable in a demo instead of being
-  /// a code path nobody ever sees.
-  Set<String> get _dueSkills => {
-        for (final entry in _skillLastPractised.entries)
-          if (_completed.length - entry.value >= 2) entry.key,
-      };
+  /// Skills whose scheduled review has come round.
+  Set<String> get _dueSkills {
+    final now = DateTime.now();
+    return {
+      for (final entry in _skills.entries)
+        if (entry.value.isDue(now)) entry.key,
+    };
+  }
 
   Progress _buildProgress() => Progress(
         totalXp: _earnedXp,
         skills: [
-          for (final entry in _skillHits.entries)
+          for (final entry in _skills.entries)
             SkillProgress(
               skill: entry.key,
-              // Four solid evidence checks on a skill reads as mastery in
-              // the demo; the real curve is Role 4's to own.
-              mastery: (entry.value / 4).clamp(0.0, 1.0),
-              // The contract types this as a date; the demo has no
-              // schedule to draw one from, so a due skill is simply due
-              // now. The screen only asks whether it is set.
-              dueAt: _dueSkills.contains(entry.key) ? DateTime.now() : null,
+              mastery: entry.value.mastery,
+              dueAt: entry.value.dueAt,
             ),
         ],
       );
+
+  /// The process level the last completed attempt reached.
+  ///
+  /// Not on `Progress` in the contract, and it belongs on the receipt
+  /// rather than in progress anyway — it describes one attempt, not a
+  /// running total.
+  int? _lastProcessLevel;
+  int? get lastProcessLevel => _lastProcessLevel;
+
+  /// The learner's streak, for the profile. Never gates anything.
+  @override
+  StreakState get streak => _streak;
+
+  @override
+  void pauseStreak(DateTime until) => _streak = _streak.pause(until);
+
+  @override
+  void resumeStreak() => _streak = _streak.resume();
 
   @override
   Future<Progress> getMyProgress() async {
@@ -421,6 +466,18 @@ class DemoMissionRepository implements MissionRepository {
 /// Talks to the real API via [EvidenceGymApiClient], generating a fresh
 /// idempotency key per user-initiated mutation.
 class LiveMissionRepository implements MissionRepository {
+  /// Empty until the contract carries a streak. Returning a plausible
+  /// value here would put an invented number on the profile, which is
+  /// the mistake the path header already had to have removed from it.
+  @override
+  StreakState get streak => const StreakState();
+
+  @override
+  void pauseStreak(DateTime until) {}
+
+  @override
+  void resumeStreak() {}
+
   LiveMissionRepository(this._client);
   final EvidenceGymApiClient _client;
 

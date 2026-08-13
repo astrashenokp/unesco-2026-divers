@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/demo_fixtures.dart';
 import '../../data/mission_repository.dart';
+import '../../data/gameplay.dart';
 import '../../data/models.dart';
 import 'arena_screen.dart';
 import '../../data/arenas.dart';
@@ -159,6 +160,14 @@ class _PathScreenState extends State<PathScreen> {
               ? s.arenaAll
               : s.arenaTitleOf(_arena!.name),
           onChangeArena: () => setState(() => _chosen = false),
+          streak: widget.repository.streak,
+          onPauseStreak: () => setState(() {
+            // A week. Long enough to be a real break rather than a
+            // gesture, short enough that nobody forgets it is on.
+            widget.repository
+                .pauseStreak(DateTime.now().add(const Duration(days: 7)));
+          }),
+          onResumeStreak: () => setState(widget.repository.resumeStreak),
         );
 
         final map = _PathMap(nodes: path.nodes, onOpen: _openMission);
@@ -222,6 +231,9 @@ class _PathHeader extends StatelessWidget {
   const _PathHeader({
     required this.arenaLabel,
     required this.onChangeArena,
+    required this.streak,
+    required this.onPauseStreak,
+    required this.onResumeStreak,
     required this.completed,
     required this.total,
     required this.totalXp,
@@ -245,6 +257,13 @@ class _PathHeader extends StatelessWidget {
   final String arenaLabel;
   final VoidCallback onChangeArena;
 
+  /// The compassionate streak from `packages/gameplay`, mirrored client
+  /// side for the demo. A real number now — the tile that used to sit
+  /// here showed the completed-mission count wearing a flame icon.
+  final StreakState streak;
+  final VoidCallback onPauseStreak;
+  final VoidCallback onResumeStreak;
+
   /// The first mission still open, if any.
   final LearningPathNode? next;
   final VoidCallback? onContinue;
@@ -253,6 +272,7 @@ class _PathHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = Strings.of(context);
     final tokens = context.tokens;
+    final paused = streak.isPaused(DateTime.now());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,7 +328,38 @@ class _PathHeader extends StatelessWidget {
               tint: tokens.action,
               count: skillsPractised,
             ),
+            // Real at last, and honest when there is nothing to show:
+            // a streak of zero says "not started" rather than "0 days",
+            // which reads as a loss rather than a beginning.
+            StatTile(
+              icon: paused
+                  ? Icons.pause_circle_outline
+                  : Icons.local_fire_department_outlined,
+              value: paused
+                  ? s.streakPaused
+                  : (streak.current == 0
+                      ? s.streakNone
+                      : s.streakDays(streak.current)),
+              label: paused ? '' : s.streakLabel,
+              tint: paused ? tokens.textMuted : tokens.evidenceSecondary,
+            ),
           ],
+        ),
+        SizedBox(height: tokens.space(1)),
+        // The streak is explained where it is shown, and the explanation
+        // says what it does *not* do. A streak that silently looks like
+        // it gates something is a streak that pressures people.
+        Text(
+          paused ? s.streakPausedExplain : s.streakExplain,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: paused ? onResumeStreak : onPauseStreak,
+            icon: Icon(paused ? Icons.play_arrow : Icons.pause, size: 18),
+            label: Text(paused ? s.streakResumeAction : s.streakPauseAction),
+          ),
         ),
         SizedBox(height: tokens.space(1)),
         Text(

@@ -223,6 +223,32 @@ void main() {
             'finished doing');
   });
 
+  test('a repeated evidence action is its own kind of 409', () {
+    // Three unrelated situations share this status on one endpoint and
+    // they call for opposite responses: restart, do more work, or do
+    // nothing at all. A repeat costs the learner nothing — they already
+    // have the result — so it must not read as a fault or offer to
+    // start the mission over.
+    for (final code in [
+      'evidence-action-already-used',
+      'evidence_action_already_used',
+    ]) {
+      final error = EvidenceGymApiException(
+        Problem(
+          type: 'about:blank',
+          title: 'Already used',
+          status: 409,
+          code: code,
+          traceId: 't',
+        ),
+      );
+      expect(error.evidenceAlreadyUsed, isTrue, reason: '$code not recognised');
+      expect(error.isStaleVersion, isFalse,
+          reason: 'a repeat must not offer to restart the mission');
+      expect(error.needsMoreEvidence, isFalse);
+    }
+  });
+
   test('a stale version reads as stale, whichever casing the code uses', () {
     // The server writes kebab-case and the demo pack writes snake_case.
     // Matching one spelling silently misses the other, and a missed
@@ -293,6 +319,24 @@ void main() {
         throwsA(isA<EvidenceGymApiException>()
             .having((e) => e.problem.status, 'status', 404)),
       );
+    });
+
+    test('a mission nobody tagged is not assumed safe for children', () {
+      // The hole Rina found in #26. Parsing a missing `contentWarnings`
+      // as an empty list made a server that does not implement the
+      // field look exactly like content reviewed and certified as
+      // unremarkable, so every live mission passed the child filter.
+      //
+      // Null is "nobody said" and empty is "reviewed, nothing to warn
+      // about". The contract makes the field required precisely so an
+      // empty array can be a positive statement.
+      expect(suitableFor(AudienceMode.child, null), isFalse,
+          reason: 'filtering on silence is not filtering');
+      expect(suitableFor(AudienceMode.child, const []), isTrue,
+          reason: 'a reviewed mission that declares nothing must still '
+              'be reachable, or the younger mode empties out');
+      expect(suitableFor(AudienceMode.adult, null), isTrue,
+          reason: 'the adult mode filters nothing');
     });
 
     test('an unrecognised content warning fails closed', () {

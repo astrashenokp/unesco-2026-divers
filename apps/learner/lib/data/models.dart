@@ -109,7 +109,7 @@ class Mission {
     required this.skillTags,
     this.testsCriticalIgnoring = false,
     this.minimumCompletionEvidence = 1,
-    this.contentWarnings = const [],
+    this.contentWarnings,
     this.rubric = const [],
   });
 
@@ -136,7 +136,20 @@ class Mission {
   ///
   /// Parsed defensively anyway, so it starts working the moment the
   /// contract carries it, with no client change.
-  final List<String> contentWarnings;
+  /// Null means the source did not say. Empty means it said "nothing".
+  ///
+  /// The distinction is the whole safety of the younger audience mode,
+  /// and Rina caught that I had lost it: parsing a missing field as an
+  /// empty list made a server that does not implement content warnings
+  /// look exactly like content reviewed and certified as unremarkable,
+  /// so every live mission would have passed the child filter.
+  ///
+  /// The contract now makes the field required precisely so that an
+  /// empty array is a positive statement. Until a server sends it, this
+  /// stays null and the younger mode declines to show the mission —
+  /// which is the failure that costs a hidden mission rather than the
+  /// one that costs a child.
+  final List<String>? contentWarnings;
 
   /// The mission's curated process-level rubric, rungs 0 to 4.
   ///
@@ -163,8 +176,7 @@ class Mission {
         testsCriticalIgnoring: json['testsCriticalIgnoring'] as bool? ?? false,
         minimumCompletionEvidence:
             (json['minimumCompletionEvidence'] as num?)?.toInt() ?? 1,
-        contentWarnings:
-            (json['contentWarnings'] as List?)?.cast<String>() ?? const [],
+        contentWarnings: (json['contentWarnings'] as List?)?.cast<String>(),
         rubric: [
           for (final level in (json['rubric']
                   as Map<String, dynamic>?)?['processLevels'] as List? ??

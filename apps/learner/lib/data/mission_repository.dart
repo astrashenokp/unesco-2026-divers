@@ -23,6 +23,15 @@ abstract class MissionRepository {
   /// exist, the field to carry them does not.
   StreakState get streak;
 
+  /// How many missions the current audience mode left out of the last
+  /// path fetched. Zero in the adult mode.
+  ///
+  /// Reported rather than silently applied, because a filter the learner
+  /// cannot see turns a hidden mission into a missing one — and "where
+  /// did it go" is a worse question to leave someone with than "why is
+  /// it hidden".
+  int get hiddenByAudience;
+
   /// Excuses activity through [until], inclusive.
   ///
   /// Deliberately part of the repository rather than a UI-local flag: a
@@ -116,10 +125,10 @@ class DemoMissionRepository implements MissionRepository {
     final mode = audience();
     final visible = [
       for (final node in path.nodes)
-        if (suitableFor(
-            mode, missionsAll[node.missionId]?.contentWarnings ?? const []))
+        if (suitableFor(mode, missionsAll[node.missionId]?.contentWarnings))
           node,
     ];
+    _hiddenByAudience = path.nodes.length - visible.length;
 
     final due = _dueSkills;
     if (due.isEmpty) {
@@ -415,6 +424,11 @@ class DemoMissionRepository implements MissionRepository {
   @override
   StreakState get streak => _streak;
 
+  var _hiddenByAudience = 0;
+
+  @override
+  int get hiddenByAudience => _hiddenByAudience;
+
   @override
   void pauseStreak(DateTime until) => _streak = _streak.pause(until);
 
@@ -472,6 +486,12 @@ class LiveMissionRepository implements MissionRepository {
   /// the mistake the path header already had to have removed from it.
   @override
   StreakState get streak => const StreakState();
+
+  /// Nothing is filtered here yet: `Mission.contentWarnings` has only
+  /// just entered the contract and no server sends it, so the live path
+  /// is unfiltered and there is nothing hidden to report.
+  @override
+  int get hiddenByAudience => 0;
 
   @override
   void pauseStreak(DateTime until) {}

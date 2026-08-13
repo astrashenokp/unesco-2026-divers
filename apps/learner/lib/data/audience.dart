@@ -45,11 +45,22 @@ const kWarningsSuitableForChildren = <String>{
 
 /// Whether a mission carrying [contentWarnings] belongs in [mode].
 ///
-/// An empty list means the mission declared nothing to warn about, which
-/// is different from carrying an unrecognised tag: absence is not the
-/// same as unknown, and treating it as such would empty the younger mode
-/// of everything the moment content stopped tagging.
-bool suitableFor(AudienceMode mode, Iterable<String> contentWarnings) {
+/// Three cases, and they are genuinely different:
+///
+/// * **Null** — nobody said. The source does not carry warnings at all,
+///   which is where a live server sits until it implements the field.
+///   Not suitable: filtering on silence is not filtering.
+/// * **Empty** — reviewed, and there is nothing to warn about. Suitable.
+///   This is why the contract makes the field required; an optional
+///   field cannot tell this apart from the case above.
+/// * **Tagged** — suitable only if every tag is one a younger learner
+///   may meet.
+///
+/// The middle case is what keeps the younger mode from emptying out the
+/// moment content declares itself unremarkable, and the first is what
+/// keeps it from filling up with content nobody checked.
+bool suitableFor(AudienceMode mode, Iterable<String>? contentWarnings) {
   if (mode == AudienceMode.adult) return true;
+  if (contentWarnings == null) return false;
   return contentWarnings.every(kWarningsSuitableForChildren.contains);
 }

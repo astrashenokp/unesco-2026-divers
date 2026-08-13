@@ -97,7 +97,35 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/EvidenceResult' }
         '404': { $ref: '#/components/responses/Problem' }
-        '409': { $ref: '#/components/responses/Problem' }
+        '409':
+          description: |
+            Conflict. Distinguish by `code`, never by the status alone —
+            several unrelated situations share 409 here and they call for
+            opposite responses from a client.
+
+            * `stale-attempt-version` — the client's `version` is behind
+              the server's. The attempt moved on elsewhere.
+            * `idempotency-key-conflict` — the same key was replayed with
+              a different body inside the retention window.
+            * `evidence-action-already-used` — this `actionId` has
+              already advanced this attempt.
+
+            Each curated evidence action may advance an attempt **once**.
+            Replaying with the same `Idempotency-Key` returns the
+            original result; repeating the same `actionId` with a new key
+            returns `evidence-action-already-used`. A rejected repeat
+            does not advance `Attempt.version`, and does not count toward
+            hint progression, minimum completion evidence, skill practice
+            or process XP.
+
+            Without this, one action could be replayed to inflate the
+            evidence count, the hint level, completion eligibility, skill
+            mastery and XP — all of the things this product scores. It
+            also matches the `UNIQUE (attempt_id, action_ref)` constraint
+            the persistence layer already enforces (#25).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
         '429': { $ref: '#/components/responses/Problem' }
   /attempts/{attemptId}/hints:
     post:
@@ -229,7 +257,7 @@ components:
     Mission:
       type: object
       additionalProperties: false
-      required: [id, version, title, claim, media, accessibility, reactions, evidenceActions, skillTags, minimumCompletionEvidence]
+      required: [id, version, title, claim, media, accessibility, reactions, evidenceActions, skillTags, minimumCompletionEvidence, contentWarnings]
       properties:
         id: { type: string }
         version: { type: string }
@@ -257,6 +285,26 @@ components:
               type: { type: string }
               label: { type: string }
         skillTags: { type: array, items: { type: string } }
+        # Role 3 owns this taxonomy and assigns the tags; Role 2 projects
+        # the reviewed values from the pinned mission fixture without
+        # interpreting or rewriting them; Role 1 filters the younger
+        # audience mode on them, failing closed on any tag it does not
+        # recognise.
+        #
+        # Required rather than optional, and an empty array is a positive
+        # statement that the mission was reviewed and declares nothing to
+        # warn about. That distinction is the point: an absent field and
+        # an empty list are indistinguishable to a client, so an optional
+        # field would let a server that simply does not send it look
+        # exactly like content certified as unremarkable — and the
+        # younger mode would be filtering on silence.
+        #
+        # Audience mode remains a suitability preference. It is not age
+        # assurance and not an access-control boundary (#26, PRIVACY.md).
+        contentWarnings:
+          type: array
+          uniqueItems: true
+          items: { type: string }
         testsCriticalIgnoring: { type: boolean, default: false }
         minimumCompletionEvidence:
           type: integer

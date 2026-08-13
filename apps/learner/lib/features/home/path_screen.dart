@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../data/demo_fixtures.dart';
 import '../../data/mission_repository.dart';
+import '../../app_settings.dart';
+import '../../data/audience.dart';
 import '../../data/gameplay.dart';
 import '../../data/models.dart';
 import 'arena_screen.dart';
@@ -29,7 +31,8 @@ class PathScreen extends StatefulWidget {
 }
 
 class _PathScreenState extends State<PathScreen> {
-  late Future<({LearningPath path, Progress progress})> _future;
+  late Future<({LearningPath path, Progress progress, int hiddenCount})>
+      _future;
 
   /// Which arena the learner is working in, or null for the whole path.
   ///
@@ -47,10 +50,18 @@ class _PathScreenState extends State<PathScreen> {
     _future = _load();
   }
 
-  Future<({LearningPath path, Progress progress})> _load() async {
+  Future<({LearningPath path, Progress progress, int hiddenCount})>
+      _load() async {
     final path = await widget.repository.getLearningPath();
     final progress = await widget.repository.getMyProgress();
-    return (path: path, progress: progress);
+    // Counted here rather than inside the repository, so the number is
+    // derived from the same two calls the screen already makes and
+    // cannot disagree with what is on the cards.
+    return (
+      path: path,
+      progress: progress,
+      hiddenCount: widget.repository.hiddenByAudience,
+    );
   }
 
   void _retry() => setState(() => _future = _load());
@@ -91,7 +102,8 @@ class _PathScreenState extends State<PathScreen> {
   Widget build(BuildContext context) {
     final s = Strings.of(context);
 
-    return FutureBuilder<({LearningPath path, Progress progress})>(
+    return FutureBuilder<
+        ({LearningPath path, Progress progress, int hiddenCount})>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -109,6 +121,10 @@ class _PathScreenState extends State<PathScreen> {
 
         final allNodes = snapshot.data!.path.nodes;
         final progress = snapshot.data!.progress;
+        final settings = AppSettingsScope.of(context);
+        // The repository filters, so it knows the real total; this is
+        // the difference the learner is not being shown.
+        final hiddenCount = snapshot.data!.hiddenCount;
 
         // The arena grid is the screen until a choice is made.
         if (!_chosen) {
@@ -119,6 +135,7 @@ class _PathScreenState extends State<PathScreen> {
                 constraints: const BoxConstraints(maxWidth: 1000),
                 child: ArenaGrid(
                   nodes: allNodes,
+                  hiddenCount: hiddenCount,
                   onSelect: (arena) => setState(() {
                     _arena = arena;
                     _chosen = true;
@@ -160,6 +177,7 @@ class _PathScreenState extends State<PathScreen> {
               ? s.arenaAll
               : s.arenaTitleOf(_arena!.name),
           onChangeArena: () => setState(() => _chosen = false),
+          audience: settings.audience,
           streak: widget.repository.streak,
           onPauseStreak: () => setState(() {
             // A week. Long enough to be a real break rather than a
@@ -234,6 +252,7 @@ class _PathHeader extends StatelessWidget {
     required this.streak,
     required this.onPauseStreak,
     required this.onResumeStreak,
+    required this.audience,
     required this.completed,
     required this.total,
     required this.totalXp,
@@ -264,6 +283,12 @@ class _PathHeader extends StatelessWidget {
   final VoidCallback onPauseStreak;
   final VoidCallback onResumeStreak;
 
+  /// Shown so the younger mode is never invisible. A learner or a
+  /// teacher who cannot see that a filter is on has no way to tell a
+  /// hidden mission from a missing one, and "where did it go" is a worse
+  /// question than "why is it hidden".
+  final AudienceMode audience;
+
   /// The first mission still open, if any.
   final LearningPathNode? next;
   final VoidCallback? onContinue;
@@ -279,13 +304,22 @@ class _PathHeader extends StatelessWidget {
       children: [
         Text(s.yourPath, style: Theme.of(context).textTheme.headlineMedium),
         const SectionRule(),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: ActionChip(
-            avatar: const Icon(Icons.swap_horiz, size: 18),
-            label: Text('${s.arenaNowIn(arenaLabel)} · ${s.arenaChange}'),
-            onPressed: onChangeArena,
-          ),
+        Wrap(
+          spacing: tokens.space(1),
+          runSpacing: tokens.space(0.5),
+          children: [
+            ActionChip(
+              avatar: const Icon(Icons.swap_horiz, size: 18),
+              label: Text('${s.arenaNowIn(arenaLabel)} · ${s.arenaChange}'),
+              onPressed: onChangeArena,
+            ),
+            if (audience == AudienceMode.child)
+              Chip(
+                avatar: Icon(Icons.child_care_outlined,
+                    size: 18, color: tokens.evidencePrimary),
+                label: Text(s.audienceChild),
+              ),
+          ],
         ),
         SizedBox(height: tokens.space(1)),
         SizedBox(height: tokens.space(1)),

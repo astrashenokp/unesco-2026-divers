@@ -244,6 +244,16 @@ class Strings {
             "налаштуваннях.",
       );
 
+  String get evidenceAlreadyUsedBody => _p(
+        'You have already run this check — its result is still above. '
+            'Each check counts once, so repeating one does not add to '
+            'anything.',
+        "Ти вже робила цю перевірку — її результат лишається вище. Кожна "
+            "перевірка зараховується один раз, тож повтор нічого не додає.",
+        'You already ran this check. Its result is above.',
+        "Ти вже робила цю перевірку. Її результат вище.",
+      );
+
   // ------------------------------------------------------------ correction
   String get correctionTitle =>
       _s('This mission was corrected', 'Цю місію виправили');

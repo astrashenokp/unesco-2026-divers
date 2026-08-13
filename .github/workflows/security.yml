@@ -1,0 +1,65 @@
+name: Security and supply chain
+
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  static:
+    name: Secret, SAST and dependency checks
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@dcedce43c6f43de0b836d1fe38946645c9c638dc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install audit tools and packages
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install bandit pip-audit
+          python -m pip install -e 'packages/gameplay[test]'
+          python -m pip install -e 'services/api[test]'
+          python -m pip install -e 'packages/data_access[test]'
+
+      - name: Bandit Python SAST
+        run: bandit -q -r packages/gameplay/src services/api/src packages/data_access/src
+
+      - name: Python dependency audit
+        run: pip-audit --skip-editable
+
+      - name: Shell syntax checks
+        run: bash -n packages/data_access/scripts/backup.sh packages/data_access/scripts/restore.sh
+
+  actions:
+    name: Workflow policy
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Reject unpinned third-party actions
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RInE 'uses: [^@]+@(v|main|master|latest|[0-9]+\.[0-9]+)' .github/workflows; then
+            echo 'All workflow actions must be pinned to a full commit SHA.' >&2
+            exit 1
+          fi

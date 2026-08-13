@@ -103,6 +103,7 @@ class _MissionScreenState extends State<MissionScreen> {
         _error = switch (e) {
           _ when e.isStaleVersion => s.conflictBody,
           _ when e.needsMoreEvidence => s.needMoreEvidenceBody,
+          _ when e.evidenceAlreadyUsed => s.evidenceAlreadyUsedBody,
           _ => e.problem.detail ?? e.problem.title,
         };
       });
@@ -528,10 +529,15 @@ class _MissionBriefState extends State<_MissionBrief> {
     final s = Strings.of(context);
     final mission = widget.mission;
 
-    if (mission.contentWarnings.isNotEmpty && !_revealed) {
+    // Null means nobody declared warnings, which is not the same as
+    // declaring none — but it is also not grounds for inventing one
+    // here. The younger mode already declines such a mission outright;
+    // in the adult mode there is nothing truthful to show.
+    final warnings = mission.contentWarnings ?? const <String>[];
+    if (warnings.isNotEmpty && !_revealed) {
       return ContentWarning(
         title: s.contentWarningTitle,
-        body: '${mission.contentWarnings.map(s.contentWarningLabel).join(', ')}.'
+        body: '${warnings.map(s.contentWarningLabel).join(', ')}.'
             '\n\n${s.contentWarningBody}',
         revealLabel: s.contentWarningReveal,
         onReveal: () => setState(() => _revealed = true),

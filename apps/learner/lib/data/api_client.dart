@@ -52,6 +52,22 @@ class EvidenceGymApiException implements Exception {
         'minimum-evidence-not-met',
       }.contains(problem.code);
 
+  /// This evidence action has already advanced this attempt.
+  ///
+  /// A curated action counts once (#25): replaying it with a new
+  /// idempotency key is rejected so that one action cannot be used to
+  /// inflate the evidence count, the hint level, completion
+  /// eligibility, skill mastery or XP.
+  ///
+  /// The third distinct meaning of 409 on this endpoint, which is why
+  /// none of these read the status. Nothing was lost when it happens —
+  /// the learner already has this result — so it needs neither a
+  /// restart nor an alarm.
+  bool get evidenceAlreadyUsed => const {
+        'evidence-action-already-used',
+        'evidence_action_already_used',
+      }.contains(problem.code);
+
   /// The request never reached a server. Status 0 is not a real HTTP
   /// status — it is this client's marker for "no answer at all", which
   /// the UI must present as a connection problem rather than as

@@ -6,6 +6,7 @@ from evidence_gym_api.learning.in_memory import (
     InMemoryIdempotencyRepository,
     InMemoryMissionPolicyReader,
     InMemoryTransactionManager,
+    InMemoryAtomicCompletionWriter,
     SequentialAttemptIdGenerator,
 )
 
@@ -15,5 +16,6 @@ __all__ = [
     "InMemoryIdempotencyRepository",
     "InMemoryMissionPolicyReader",
     "InMemoryTransactionManager",
+    "InMemoryAtomicCompletionWriter",
     "SequentialAttemptIdGenerator",
 ]

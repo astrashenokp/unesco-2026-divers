@@ -14,10 +14,13 @@ from evidence_gym_api.evidence.model import EvidenceResult
 from evidence_gym_api.evidence.ports import DeterministicEvidenceProvider
 from evidence_gym_api.learning.attempt import (
     Attempt,
+    AxisAssessment,
+    Conclusion,
     Confidence,
     IllegalAttemptTransition,
     Prediction,
     Reaction,
+    ShareDecision,
 )
 from evidence_gym_api.learning.errors import (
     AttemptAccessDenied,
@@ -28,8 +31,11 @@ from evidence_gym_api.learning.errors import (
 )
 from evidence_gym_api.learning.ports import (
     AttemptIdGenerator,
+    AtomicCompletionWriter,
     AttemptRepository,
     Clock,
+    CompletionIdempotencyRepository,
+    CompletionResult,
     EvidenceActionResult,
     EvidenceIdempotencyRepository,
     HintIdempotencyRepository,
@@ -39,6 +45,7 @@ from evidence_gym_api.learning.ports import (
     StoredAttemptResult,
     StoredEvidenceResult,
     StoredHintResult,
+    StoredCompletionResult,
     TransactionManager,
 )
 from evidence_gym_api.learning.value_objects import (
@@ -422,3 +429,95 @@ class RequestHint:
             and not any(term in normalized_text for term in forbidden_terms)
             and REFERENCE_LEAK_PATTERN.search(hint.text) is None
         )
+
+
+@dataclass(frozen=True, slots=True)
+class CompleteAttemptCommand:
+    attempt_id: AttemptId
+    authenticity: AxisAssessment
+    claim_veracity: AxisAssessment
+    context_integrity: AxisAssessment
+    post_confidence: Confidence
+    share_decision: ShareDecision
+    version: int
+    idempotency_key: IdempotencyKey
+
+
+class CompleteAttempt:
+    """Atomically complete an attempt and replay the complete original response."""
+
+    def __init__(
+        self,
+        attempts: AttemptRepository,
+        writer: AtomicCompletionWriter,
+        idempotency: CompletionIdempotencyRepository,
+        transactions: TransactionManager,
+        clock: Clock,
+    ) -> None:
+        self._attempts = attempts
+        self._writer = writer
+        self._idempotency = idempotency
+        self._transactions = transactions
+        self._clock = clock
+
+    async def execute(
+        self, principal: Principal, command: CompleteAttemptCommand
+    ) -> CompletionResult:
+        fingerprint = _fingerprint(
+            {
+                "attemptId": command.attempt_id.value,
+                "authenticity": _axis_payload(command.authenticity),
+                "claimVeracity": _axis_payload(command.claim_veracity),
+                "contextIntegrity": _axis_payload(command.context_integrity),
+                "postConfidence": command.post_confidence.value,
+                "shareDecision": command.share_decision.value,
+                "version": command.version,
+            }
+        )
+        scope = IdempotencyScope(
+            principal.subject,
+            "/attempts/{attemptId}/conclusion",
+            command.idempotency_key,
+        )
+        async with self._transactions.transaction():
+            now = self._clock.now()
+            stored = await self._idempotency.get_completion(scope, at=now)
+            if stored is not None:
+                if stored.request_fingerprint != fingerprint:
+                    raise IdempotencyConflict(
+                        "idempotency key was reused with another request"
+                    )
+                return stored.result
+
+            attempt = await self._attempts.get(command.attempt_id)
+            if attempt is None:
+                raise AttemptNotFound("attempt does not exist")
+            if attempt.learner_id != principal.subject:
+                raise AttemptAccessDenied("attempt belongs to another learner")
+            if attempt.version != command.version:
+                raise StaleAttemptVersion("attempt version is stale")
+
+            conclusion = Conclusion(
+                authenticity=command.authenticity,
+                claim_veracity=command.claim_veracity,
+                context_integrity=command.context_integrity,
+                post_confidence=command.post_confidence,
+                share_decision=command.share_decision,
+            )
+            result = await self._writer.complete(
+                attempt,
+                conclusion,
+                expected_version=attempt.version,
+                completed_at=now,
+            )
+            await self._idempotency.put_completion(
+                scope,
+                StoredCompletionResult(
+                    fingerprint, result, now + IDEMPOTENCY_RETENTION
+                ),
+            )
+            return result
+
+
+def _axis_payload(axis: AxisAssessment) -> dict[str, object]:
+    return {"label": axis.label, "confidence": axis.confidence.value}

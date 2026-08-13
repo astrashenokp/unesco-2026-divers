@@ -6,17 +6,22 @@ from evidence_gym_api.app import create_app
 from evidence_gym_api.identity import Principal
 from evidence_gym_api.identity.testing import FakeIdentityVerifier
 from evidence_gym_api.learning.api import LearningServices
-from evidence_gym_api.learning.ports import MissionPolicy
+from evidence_gym_api.learning.ports import MissionPolicy, XpAward
 from evidence_gym_api.learning.testing import (
     FixedClock,
     InMemoryAttemptRepository,
     InMemoryIdempotencyRepository,
     InMemoryMissionPolicyReader,
     InMemoryTransactionManager,
+    InMemoryAtomicCompletionWriter,
     SequentialAttemptIdGenerator,
 )
 from evidence_gym_api.learning.use_cases import StartAttempt, SubmitPrediction
-from evidence_gym_api.learning.use_cases import RequestHint, UseEvidenceAction
+from evidence_gym_api.learning.use_cases import (
+    CompleteAttempt,
+    RequestHint,
+    UseEvidenceAction,
+)
 from evidence_gym_api.evidence import EvidenceResult, EvidenceStatus
 from evidence_gym_api.coach import CoachHint, HintUncertainty
 from evidence_gym_api.learning.value_objects import (
@@ -67,6 +72,11 @@ class UnsafeCoachProvider:
         )
 
 
+class StubCompletionScorer:
+    async def award(self, mission_id, mission_version, used_evidence_actions):
+        return XpAward("process-xp:1", 2, 1)
+
+
 def make_client() -> TestClient:
     attempts = InMemoryAttemptRepository()
     idempotency = InMemoryIdempotencyRepository()
@@ -98,6 +108,13 @@ def make_client() -> TestClient:
             transactions,
             clock,
             provider=UnsafeCoachProvider(),
+        ),
+        complete_attempt=CompleteAttempt(
+            attempts,
+            InMemoryAtomicCompletionWriter(attempts, StubCompletionScorer()),
+            idempotency,
+            transactions,
+            clock,
         ),
     )
     verifier = FakeIdentityVerifier(
@@ -157,6 +174,12 @@ def test_implemented_route_templates_and_operation_ids_match_contract() -> None:
     assert (
         generated["paths"]["/attempts/{attemptId}/hints"]["post"]["operationId"]
         == "requestHint"
+    )
+    assert (
+        generated["paths"]["/attempts/{attemptId}/conclusion"]["post"][
+            "operationId"
+        ]
+        == "completeAttempt"
     )
 
 
@@ -333,6 +356,77 @@ def test_hint_hides_foreign_attempt_and_rejects_illegal_state() -> None:
     assert foreign.json()["code"] == "attempt-not-found"
     assert ready.status_code == 409
     assert ready.json()["code"] == "attempt-conflict"
+
+
+def conclusion_body(version: int = 3) -> dict[str, object]:
+    return {
+        "authenticity": {"label": "authentic", "confidence": 80},
+        "claimVeracity": {"label": "insufficient_evidence", "confidence": 65},
+        "contextIntegrity": {"label": "misleading_context", "confidence": 85},
+        "postConfidence": 75,
+        "shareDecision": "share_with_context",
+        "version": version,
+    }
+
+
+def test_conclusion_completes_atomically_and_replays_response() -> None:
+    with make_client() as client:
+        attempt_id = start_attempt(client).json()["id"]
+        client.post(
+            f"/attempts/{attempt_id}/prediction",
+            headers=auth_headers(key="predict-complete-01"),
+            json={"reaction": "investigate", "confidence": 60, "version": 1},
+        )
+        client.post(
+            f"/attempts/{attempt_id}/evidence-actions",
+            headers=auth_headers(key="evidence-complete-1"),
+            json={"actionId": "inspect-source", "version": 2},
+        )
+        headers = auth_headers(key="complete-key-001")
+        first = client.post(
+            f"/attempts/{attempt_id}/conclusion",
+            headers=headers,
+            json=conclusion_body(),
+        )
+        replay = client.post(
+            f"/attempts/{attempt_id}/conclusion",
+            headers=headers,
+            json=conclusion_body(),
+        )
+
+    assert first.status_code == 200
+    assert first.json() == {
+        "receiptId": f"receipt-{attempt_id}",
+        "xpAwarded": 2,
+        "progress": {"totalXp": 2, "skills": []},
+    }
+    assert replay.json() == first.json()
+
+
+def test_conclusion_hides_foreign_attempt_and_rejects_stale_version() -> None:
+    with make_client() as client:
+        foreign_id = start_attempt(client, token="other-token").json()["id"]
+        foreign = client.post(
+            f"/attempts/{foreign_id}/conclusion",
+            headers=auth_headers(key="foreign-complete-1"),
+            json=conclusion_body(version=1),
+        )
+        own_id = start_attempt(client).json()["id"]
+        client.post(
+            f"/attempts/{own_id}/prediction",
+            headers=auth_headers(key="predict-stale-c1"),
+            json={"reaction": "investigate", "confidence": 60, "version": 1},
+        )
+        stale = client.post(
+            f"/attempts/{own_id}/conclusion",
+            headers=auth_headers(key="stale-complete-01"),
+            json=conclusion_body(version=1),
+        )
+
+    assert foreign.status_code == 404
+    assert foreign.json()["code"] == "attempt-not-found"
+    assert stale.status_code == 409
+    assert stale.json()["code"] == "stale-attempt-version"
 
 
 def test_learning_mutations_require_verified_bearer_token() -> None:

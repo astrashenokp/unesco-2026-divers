@@ -26,4 +26,4 @@ packages = ["src/data_access"]
 [tool.pytest.ini_options]
 addopts = "-q"
 testpaths = ["tests"]
-pythonpath = ["src", "../../services/api/src"]
+pythonpath = ["src", "../../services/api/src", "../gameplay/src"]

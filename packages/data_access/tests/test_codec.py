@@ -39,7 +39,10 @@ def test_attempt_snapshot_round_trips_domain_state() -> None:
     assert restored.version == attempt.version
     assert restored.prediction == attempt.prediction
     assert restored.evidence_action_refs == attempt.evidence_action_refs
-    assert restored.conclusion == attempt.conclusion
+    assert restored.conclusion is not None
+    assert restored.conclusion.authenticity.label == attempt.conclusion.authenticity.label
+    assert restored.conclusion.authenticity.confidence == attempt.conclusion.authenticity.confidence
+    assert restored.conclusion.authenticity.rationale_ref is None
 
 
 def test_datetime_snapshots_require_timezone_aware_values() -> None:

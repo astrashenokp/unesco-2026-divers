@@ -12,9 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from data_access.codec import (
     decode_attempt,
     decode_coach_hint,
+    decode_completion_result,
     decode_evidence_result,
     encode_attempt,
     encode_coach_hint,
+    encode_completion_result,
     encode_evidence_result,
 )
 from data_access.schema import idempotency_results
@@ -25,6 +27,7 @@ from evidence_gym_api.learning.ports import (
     StoredAttemptResult,
     StoredEvidenceResult,
     StoredHintResult,
+    StoredCompletionResult,
 )
 
 
@@ -182,6 +185,32 @@ class SqlAlchemyHintIdempotencyRepository(_IdempotencyRepository):
             scope,
             result.request_fingerprint,
             {"hint": encode_coach_hint(result.result)},
+            result.expires_at,
+        )
+
+
+class SqlAlchemyCompletionIdempotencyRepository(_IdempotencyRepository):
+    result_kind = "completion"
+
+    async def get_completion(
+        self, scope: IdempotencyScope, *, at: datetime
+    ) -> StoredCompletionResult | None:
+        row = await self._row(scope, at=at)
+        if row is None:
+            return None
+        return StoredCompletionResult(
+            request_fingerprint=row["request_fingerprint"],
+            result=decode_completion_result(row["result_json"]["completion"]),
+            expires_at=self._utc(row["expires_at"]),
+        )
+
+    async def put_completion(
+        self, scope: IdempotencyScope, result: StoredCompletionResult
+    ) -> None:
+        await self._put(
+            scope,
+            result.request_fingerprint,
+            {"completion": encode_completion_result(result.result)},
             result.expires_at,
         )
 

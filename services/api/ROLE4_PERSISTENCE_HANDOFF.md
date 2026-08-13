@@ -97,3 +97,20 @@ for rollback, duplicate keys and concurrent stale-version updates.
 Role 4: propose the physical mapping and migration/recovery plan. Acceptance
 requires both Role 2 review of invariant/transaction compatibility and Role 4
 evidence that rollback and concurrent retry tests pass.
+
+### Atomic completion follow-up
+
+`POST /attempts/{id}/conclusion` now depends on
+`AtomicCompletionWriter.complete`. Its concrete Role 4 implementation must write
+the completed attempt snapshot, immutable receipt, XP ledger entries, progress
+projection, outbox event and `StoredCompletionResult` in the same database
+transaction. The current SQL attempt repository accepts only a one-version
+advance, while completion advances through the logical `concluded` and
+`completed` stages; the atomic writer must persist the final snapshot without
+making either intermediate stage observable.
+
+Role 2 now supplies `GameplayCompletionScorer`, which reads the pinned Role 3
+`rubric.processLevels`, converts them to Role 4 `gameplay.ProcessLevel` values,
+and delegates the award to `gameplay.award_xp()`. The PostgreSQL writer must
+persist the returned stable `rule_code`, amount and level; it must not introduce
+another XP table or scoring formula.

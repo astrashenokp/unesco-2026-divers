@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from data_access.attempts import SqlAlchemyAttemptRepository
 from data_access.db import SqlAlchemyTransactionManager
 from data_access.idempotency import (
+    SqlAlchemyCompletionIdempotencyRepository,
     SqlAlchemyIdempotencyRepository,
     cleanup_expired_idempotency,
 )
@@ -14,8 +15,11 @@ from evidence_gym_api.learning.attempt import Attempt
 from evidence_gym_api.learning.attempt import Confidence, Prediction, Reaction
 from evidence_gym_api.learning.errors import RepositoryConflict
 from evidence_gym_api.learning.ports import (
+    CompletionResult,
     IdempotencyScope,
+    ProgressResult,
     StoredAttemptResult,
+    StoredCompletionResult,
 )
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
@@ -126,6 +130,31 @@ def test_transaction_manager_rolls_back_attempt_and_action_rows() -> None:
             except RuntimeError:
                 pass
             assert await repository.get(AttemptId("attempt-1")) is None
+        await engine.dispose()
+
+    run(scenario())
+
+
+def test_completion_idempotency_round_trips_response_snapshot() -> None:
+    async def scenario() -> None:
+        engine, sessions = await session_factory()
+        now = datetime.now(UTC)
+        scope = IdempotencyScope(
+            LearnerId("learner-completion"),
+            "/v1/attempts/{attemptId}/conclusion",
+            IdempotencyKey("completion-key"),
+        )
+        stored = StoredCompletionResult(
+            "completion-fingerprint",
+            CompletionResult("receipt-1", 2, ProgressResult(2, ())),
+            now + timedelta(hours=24),
+        )
+        async with sessions() as session:
+            repository = SqlAlchemyCompletionIdempotencyRepository(session)
+            async with session.begin():
+                await repository.put_completion(scope, stored)
+            replay = await repository.get_completion(scope, at=now)
+            assert replay == stored
         await engine.dispose()
 
     run(scenario())

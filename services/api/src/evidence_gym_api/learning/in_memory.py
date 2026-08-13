@@ -10,6 +10,7 @@ from copy import deepcopy
 import asyncio
 from datetime import UTC, datetime
 from itertools import count
+from hashlib import sha256
 
 from evidence_gym_api.learning.attempt import Attempt
 from evidence_gym_api.learning.errors import RepositoryConflict
@@ -19,6 +20,11 @@ from evidence_gym_api.learning.ports import (
     StoredAttemptResult,
     StoredEvidenceResult,
     StoredHintResult,
+    StoredCompletionResult,
+    CompletionResult,
+    ProgressResult,
+    SkillProgress,
+    CompletionScorer,
 )
 from evidence_gym_api.learning.value_objects import (
     AttemptId,
@@ -73,6 +79,7 @@ class InMemoryIdempotencyRepository:
         self._results: dict[IdempotencyScope, StoredAttemptResult] = {}
         self._evidence_results: dict[IdempotencyScope, StoredEvidenceResult] = {}
         self._hint_results: dict[IdempotencyScope, StoredHintResult] = {}
+        self._completion_results: dict[IdempotencyScope, StoredCompletionResult] = {}
 
     async def get(
         self, scope: IdempotencyScope, *, at: datetime
@@ -124,6 +131,83 @@ class InMemoryIdempotencyRepository:
         if existing is not None and existing != result:
             raise RepositoryConflict("idempotency result already exists")
         self._hint_results[scope] = deepcopy(result)
+
+    async def get_completion(
+        self, scope: IdempotencyScope, *, at: datetime
+    ) -> StoredCompletionResult | None:
+        result = self._completion_results.get(scope)
+        if result is not None and result.expires_at <= at:
+            del self._completion_results[scope]
+            return None
+        return deepcopy(result) if result is not None else None
+
+    async def put_completion(
+        self, scope: IdempotencyScope, result: StoredCompletionResult
+    ) -> None:
+        existing = self._completion_results.get(scope)
+        if existing is not None and existing != result:
+            raise RepositoryConflict("idempotency result already exists")
+        self._completion_results[scope] = deepcopy(result)
+
+
+class InMemoryAtomicCompletionWriter:
+    """Local reference for the Role 4 atomic completion adapter."""
+
+    def __init__(
+        self, attempts: InMemoryAttemptRepository, scorer: CompletionScorer
+    ) -> None:
+        self._attempts = attempts
+        self._scorer = scorer
+        self.receipts: dict[str, dict[str, object]] = {}
+        self.outbox: list[dict[str, object]] = []
+        self.total_xp: dict[str, int] = {}
+
+    async def complete(
+        self, attempt, conclusion, *, expected_version: int, completed_at: datetime
+    ) -> CompletionResult:
+        attempt.submit_conclusion(conclusion)
+        attempt.complete()
+        xp_grant = await self._scorer.award(
+            attempt.mission_id,
+            attempt.mission_version,
+            len(attempt.evidence_action_refs),
+        )
+        xp_awarded = xp_grant.amount
+        receipt_id = f"receipt-{attempt.id.value}"
+        learner_key = attempt.learner_id.value
+        total_xp = self.total_xp.get(learner_key, 0) + xp_awarded
+        receipt_hash = sha256(
+            f"{attempt.id.value}:{attempt.mission_version.value}:{attempt.version}".encode()
+        ).hexdigest()
+
+        await self._attempts.save(attempt, expected_version=expected_version)
+        self.total_xp[learner_key] = total_xp
+        self.receipts[receipt_id] = {
+            "id": receipt_id,
+            "attempt_id": attempt.id.value,
+            "mission_version": attempt.mission_version.value,
+            "assessments": (
+                conclusion.authenticity,
+                conclusion.claim_veracity,
+                conclusion.context_integrity,
+            ),
+            "evidence_refs": attempt.evidence_action_refs,
+            "hash": receipt_hash,
+            "created_at": completed_at,
+            "disclaimer": "This receipt records a learning process, not a universal truth verdict.",
+        }
+        self.outbox.append(
+            {
+                "type": "attempt.completed",
+                "attempt_id": attempt.id.value,
+                "xp_rule_code": xp_grant.rule_code,
+            }
+        )
+        return CompletionResult(
+            receipt_id=receipt_id,
+            xp_awarded=xp_awarded,
+            progress=ProgressResult(total_xp=total_xp, skills=()),
+        )
 
 
 class InMemoryTransactionManager:

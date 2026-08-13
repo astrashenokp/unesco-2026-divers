@@ -53,6 +53,8 @@
 - SLO dashboards, alerts, owner, runbook, rollback/kill switches.
 - Provider/LLM/DB/deploy failure rehearsals.
 - Cost budgets/quotas and support ownership.
+- PR workflow runs tests, migrations, secrets, SAST/SCA and dependency gates with read-only permissions.
+- Load probe records p95 evidence against a local/staging endpoint.
 
 ## Submission
 

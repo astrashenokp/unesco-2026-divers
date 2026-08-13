@@ -11,6 +11,15 @@
 7. ephemeral API + critical E2E; screenshots/accessibility smoke;
 8. preview artifact and concise report.
 
+The repository implements the PR stages in `.github/workflows/pr.yml` and
+`.github/workflows/security.yml`. Python packages are installed from local
+paths, PostgreSQL migrations run against an isolated service database, and
+fork pull requests receive no deployment credentials. Workflow actions are
+pinned to full commit SHAs and workflow permissions are read-only.
+
+The CI gate is evidence, not a claim of production readiness: a passing PR
+does not perform a production deploy or replace the required human review.
+
 ## Main/release
 
 Build once; SBOM and provenance; image scan; deploy to staging by digest; migration dry-run; integration/E2E/DAST/load smoke; human approval; progressive production traffic; SLO check; automatic rollback threshold.

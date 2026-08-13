@@ -25,3 +25,14 @@ Demo health; API/DB; provider/LLM; learning funnel; AI safety/eval; security/abu
 ## Trace propagation
 
 W3C trace context from edge/client request through API, outbox event and worker/provider call. Correlation ID is exposed in safe errors for support.
+
+## Local load probe
+
+`tools/load/run_health_load.py` exercises a safe liveness/readiness URL with
+synthetic concurrent requests and reports p50/p95 latency. It must target a
+local or staging endpoint only; it does not accept production credentials and
+does not send learner content.
+
+```bash
+python tools/load/run_health_load.py http://127.0.0.1:8000/health --users 100
+```

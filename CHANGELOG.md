@@ -4,6 +4,16 @@ This file records meaningful project-level changes. It does not replace Git hist
 
 ## Unreleased
 
+### Added
+
+- Added read-only pull-request quality gates for Python, Flutter, contracts, migrations, PostgreSQL integration, and security checks.
+- Added a deterministic health/readiness load probe for local and staging evidence.
+
+### Security
+
+- Updated FastAPI, Starlette, and pytest dependency bounds to resolve the audited vulnerabilities available in the supported toolchain.
+- Added pinned GitHub Actions policy, secret scanning, SAST, dependency auditing, and fork-safe workflow permissions.
+
 ### Documentation baseline
 
 - Established the Evidence Gym product, architecture, contracts, safety, delivery, design, research, and decision documentation.

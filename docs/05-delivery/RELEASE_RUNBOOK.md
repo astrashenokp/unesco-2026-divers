@@ -8,6 +8,7 @@
 - Backup/rollback and provider kill switches verified.
 - Dashboards/alerts staffed; budget/quota adequate.
 - Demo offline fallback and recorded backup work.
+- PR security and supply-chain gates pass; artifact digest and SBOM are recorded.
 
 ## Steps
 
@@ -21,6 +22,10 @@
 ## Rollback triggers
 
 Authz/privacy/security incident, failed mission completion/XP integrity, broken accessibility on core path, error/SLO burn, uncontrolled LLM/provider cost, dangerous AI policy regression or inability to complete offline demo.
+
+The current hardening branch does not deploy to GCP. It proves local/staging
+checks and keeps production deployment behind the future protected environment,
+OIDC and human approval gate.
 
 ## Submission release
 

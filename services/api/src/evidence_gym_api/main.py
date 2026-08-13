@@ -63,9 +63,13 @@ learning_services = LearningServices(
     ),
 )
 
+# The contract declares `servers: https://…/v1`, so a conforming client
+# asks for `/v1/...`. Overridable, but the default matches the contract
+# rather than matching what the tests happen to call.
 app = create_app(
     catalog_reader=fixture_reader,
     learning_services=learning_services,
     identity_verifier=identity_verifier(os.environ),
     cors_allowed_origins=cors_allowed_origins(os.environ),
+    path_prefix=os.environ.get("EVIDENCE_GYM_PATH_PREFIX", "/v1"),
 )

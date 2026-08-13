@@ -53,8 +53,19 @@ def create_app(
     learning_services: LearningServices | None = None,
     catalog_reader: PublicCatalogReader | None = None,
     cors_allowed_origins: tuple[str, ...] = (),
+    path_prefix: str = "",
 ) -> FastAPI:
-    """Create an API instance with explicit runtime dependencies."""
+    """Create an API instance with explicit runtime dependencies.
+
+    ``path_prefix`` mounts the API under a base path. The contract
+    declares ``servers: https://…/v1``, so a conforming client asks for
+    ``/v1/catalog/path`` while an unprefixed app serves
+    ``/catalog/path`` — both sides internally correct, every request a
+    404. Only a real client finds this; no unit test on either side can.
+
+    Defaults to empty so the existing tests, which call the routes
+    directly, keep passing unchanged. ``main.py`` sets the value the
+    contract promises."""
 
     app = FastAPI(
         title="Evidence Gym API",
@@ -74,9 +85,11 @@ def create_app(
             allow_methods=["GET", "POST", "OPTIONS"],
             allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
         )
+    # Operational probes stay at the root: a load balancer checking
+    # /health should not need to know the API's version prefix.
     app.include_router(router)
-    app.include_router(catalog_router)
-    app.include_router(learning_router)
+    app.include_router(catalog_router, prefix=path_prefix)
+    app.include_router(learning_router, prefix=path_prefix)
 
     @app.exception_handler(ApiProblem)
     async def handle_api_problem(request: Request, exc: ApiProblem) -> JSONResponse:

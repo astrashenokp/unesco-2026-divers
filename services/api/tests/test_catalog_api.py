@@ -114,10 +114,24 @@ def test_public_catalog_routes_match_contract_operation_ids() -> None:
 
 
 def test_default_asgi_entrypoint_serves_checked_in_catalog() -> None:
+    """The deployed app answers where the contract says it will.
+
+    `create_app` mounts at the root by default and the tests above call
+    it that way; `main.py` sets the `/v1` prefix the contract declares in
+    its `servers` block. This is the one test that exercises the
+    deployment rather than the factory, so it is the one that has to use
+    the real path — a conforming client asks for `/v1/catalog/path`, and
+    when the app served `/catalog/path` every request 404'd.
+    """
     from evidence_gym_api.main import app
 
     with TestClient(app) as client:
-        response = client.get("/catalog/path")
+        response = client.get("/v1/catalog/path")
+        unprefixed = client.get("/catalog/path")
 
     assert response.status_code == 200
     assert response.json()["nodes"][0]["missionId"] == "authentic-media-wrong-context"
+    assert unprefixed.status_code == 404, (
+        "the deployed app must not also answer without the prefix, or the "
+        "mismatch stays invisible"
+    )

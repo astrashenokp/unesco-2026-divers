@@ -244,6 +244,158 @@ class Strings {
             "налаштуваннях.",
       );
 
+  // ------------------------------------------------------------ correction
+  String get correctionTitle =>
+      _s('This mission was corrected', 'Цю місію виправили');
+  String correctionBody(String was, String now) => _p(
+        'You worked on version $was. It is now version $now. Your record '
+            'stands exactly as you made it — nothing here has been rewritten '
+            '— but the material behind it has been corrected since.',
+        "Ти працювала з версією $was. Тепер це версія $now. Твій запис "
+            "лишається таким, яким ти його зробила — тут нічого не "
+            "переписано, — але матеріал за ним відтоді виправили.",
+        'You worked on an older version of this mission. Your record is '
+            'unchanged, but the material was corrected since.',
+        "Ти працювала зі старішою версією. Твій запис не змінено, але "
+            "матеріал відтоді виправили.",
+      );
+
+  // ------------------------------------------------------- streak and XP
+  //
+  // The streak is a profile signal and never gates a reward, so the copy
+  // must not read as a threat. Nothing here says "don't lose it".
+  String streakDays(int n) => _s(
+        n == 1 ? '1 day' : '$n days',
+        n == 1 ? '1 день' : '$n дн.',
+      );
+  String get streakLabel => _s('in a row', 'поспіль');
+  String get streakNone => _s('not started', 'ще не почато');
+  String get streakPaused => _s('paused', 'на паузі');
+  String get streakPauseAction => _s('Pause the streak', 'Поставити на паузу');
+  String get streakResumeAction => _s('Resume it', 'Зняти з паузи');
+  String get streakExplain => _p(
+        'Days you investigated. It never unlocks or blocks anything, and '
+            'missing a day is forgiven once. Pause it whenever you need to.',
+        "Дні, коли ти перевіряла. Це нічого не відкриває й нічого не "
+            "блокує, а один пропущений день пробачається. Ставити на паузу "
+            "можна будь-коли.",
+        'Days you investigated. It does not unlock anything.',
+        "Дні, коли ти перевіряла. Воно нічого не відкриває.",
+      );
+  String get streakPausedExplain => _p(
+        'Paused. Nothing counts against you until you turn it back on.',
+        "На паузі. Доки не увімкнеш, ніщо не зараховується проти тебе.",
+        'Paused. Nothing counts against you.',
+        "На паузі. Нічого не зараховується проти тебе.",
+      );
+
+  String get processLevelTitle =>
+      _s('How you worked', 'Як ти працювала');
+  String processLevelOf(int level) => _s(
+        'Process level $level of 4',
+        'Рівень процесу $level з 4',
+      );
+  String get processLevelExplain => _p(
+        'This is what the XP was for. It counts what you checked, not '
+            'whether your conclusion turned out to match — investigating '
+            'well after a wrong first instinct scores the same as being '
+            'right from the start.',
+        "Саме за це нараховано XP. Рахується те, що ти перевірила, а не чи "
+            "збігся твій висновок: добре перевірити після хибного першого "
+            "відчуття — те саме, що вгадати одразу.",
+        'This is what the XP was for. It counts what you checked, not '
+            'whether you were right.',
+        "Саме за це нараховано XP. Рахується перевірене, а не правильність.",
+      );
+  String processLevelNext(String criteria) =>
+      _s('Next rung: $criteria', 'Наступна сходинка: $criteria');
+
+  // ---------------------------------------------------------------- arenas
+  //
+  // Named for what the learner meets, not for an academic category.
+  // "Health and science misinformation" is a research label; "someone
+  // says a study proves it" is the thing they actually scrolled past.
+  String get arenasTitle =>
+      _s('What are you up against?', 'Проти чого працюємо?');
+  String get arenasIntro => _p(
+        'The same three checks work everywhere. Pick the ground you want '
+            'to practise on — you can change it whenever you like.',
+        "Ті самі три перевірки працюють усюди. Обери ґрунт, на якому "
+            "хочеться потренуватися, — змінити можна будь-коли.",
+        'The same checks work everywhere. Pick where to start.',
+        "Ті самі перевірки працюють усюди. Обери, з чого почати.",
+      );
+  String get arenaAll => _s('Everything', 'Усе разом');
+  String get arenaAllExample => _p(
+        'Every mission, in the order the skills build.',
+        "Усі місії, у порядку, в якому нарощуються навички.",
+        'All the missions in order.',
+        "Усі місії по порядку.",
+      );
+
+  String arenaTitleOf(String arena) => switch (arena) {
+        'crisis' => _s('Crisis and emergency', 'Криза й надзвичайне'),
+        'healthAndScience' => _s('Health and science', 'Здоров’я і наука'),
+        'powerAndMoney' => _s('Power and money', 'Влада й гроші'),
+        'syntheticAndRecycled' =>
+          _s('Fake and recycled media', 'Підроблене й перевикористане'),
+        _ => arena,
+      };
+
+  /// One concrete thing from the arena, in the words a learner would use.
+  String arenaExampleOf(String arena) => switch (arena) {
+        'crisis' => _p(
+            'A flood photo from another year. Footage of a crowd moved to a '
+                'different country. The pull to share before checking is '
+                'strongest here.',
+            "Фото повені з іншого року. Кадри натовпу, перенесені в іншу "
+                "країну. Саме тут найдужче тягне поширити, не перевіривши.",
+            'An old flood photo shared as if it were today.',
+            "Старе фото повені, подане як сьогоднішнє.",
+          ),
+        'healthAndScience' => _p(
+            'A confident answer citing a study with a real-looking title, '
+                'authors and DOI — none of which exist.',
+            "Впевнена відповідь із посиланням на дослідження, у якого "
+                "переконлива назва, автори й DOI — і жодного з них не існує.",
+            'A study that sounds real and is not.',
+            "Дослідження, яке звучить справжнім, але його немає.",
+          ),
+        'powerAndMoney' => _p(
+            '"Officials have confirmed", with no name and no department. '
+                'Real figures arranged into a story they do not support.',
+            "«Посадовці підтвердили» — без імені й без відомства. Справжні "
+                "цифри, складені в історію, якої вони не підтверджують.",
+            '"Officials say" with nobody named.',
+            "«Посадовці кажуть» — і жодного імені.",
+          ),
+        'syntheticAndRecycled' => _p(
+            'An image that is almost certainly generated, about an event '
+                'that really happened. A real clip with a new caption.',
+            "Зображення, майже напевно згенероване, про подію, яка справді "
+                "сталася. Справжній кадр із новим підписом.",
+            'A generated picture of something real.',
+            "Згенероване зображення чогось справжнього.",
+          ),
+        _ => '',
+      };
+
+  String arenaProgress(int done, int total) => _s(
+        '$done of $total done',
+        'Пройдено $done з $total',
+      );
+  String arenaDue(int n) => _s('$n to revisit', 'повторити: $n');
+  String get arenaEmpty => _p(
+        'No missions here in this mode. Try another subject, or switch to '
+            'the adult mode in settings.',
+        "У цьому режимі тут немає місій. Обери іншу тему або перемкни "
+            "дорослий режим у налаштуваннях.",
+        'Nothing here right now. Try another subject.',
+        "Тут поки порожньо. Обери іншу тему.",
+      );
+  String get arenaChange => _s('Change subject', 'Змінити тему');
+  String arenaNowIn(String title) => _s('In $title', 'Тема: $title');
+
   // ------------------------------------------------------------------ path
   String get yourPath => _s('Your path', 'Твій шлях');
   String get pathEmpty => _s('No missions available yet.', 'Поки що немає доступних місій.');

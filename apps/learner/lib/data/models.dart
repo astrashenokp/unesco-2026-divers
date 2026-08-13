@@ -1,3 +1,5 @@
+import 'gameplay.dart';
+
 // Typed mirror of contracts/openapi.yaml. Keep in lockstep with that file;
 // do not hand-add fields the contract does not define (ADR-008, API_CONTRACT.md).
 
@@ -108,6 +110,7 @@ class Mission {
     this.testsCriticalIgnoring = false,
     this.minimumCompletionEvidence = 1,
     this.contentWarnings = const [],
+    this.rubric = const [],
   });
 
   final String id;
@@ -135,6 +138,17 @@ class Mission {
   /// contract carries it, with no client change.
   final List<String> contentWarnings;
 
+  /// The mission's curated process-level rubric, rungs 0 to 4.
+  ///
+  /// XP is read off this and never hard-coded — `packages/gameplay`
+  /// makes that rule explicit, and it is why a rubric change is a
+  /// content change rather than a code change. Sofia's pack already
+  /// carries `rubric.processLevels`; `Mission` in the contract does not,
+  /// so this is another field that reaches the client only in demo mode
+  /// until the contract carries it. Parsed defensively so it starts
+  /// working the moment it does.
+  final List<ProcessLevel> rubric;
+
   factory Mission.fromJson(Map<String, dynamic> json) => Mission(
         id: json['id'] as String,
         version: json['version'] as String,
@@ -151,6 +165,18 @@ class Mission {
             (json['minimumCompletionEvidence'] as num?)?.toInt() ?? 1,
         contentWarnings:
             (json['contentWarnings'] as List?)?.cast<String>() ?? const [],
+        rubric: [
+          for (final level in (json['rubric']
+                  as Map<String, dynamic>?)?['processLevels'] as List? ??
+              const [])
+            ProcessLevel(
+              level: (level['level'] as num).toInt(),
+              xpGuidance: (level['xpGuidance'] as num).toInt(),
+              criteria: level['criteria'] as String? ?? '',
+              skillTags:
+                  (level['skillTags'] as List?)?.cast<String>() ?? const [],
+            ),
+        ],
       );
 }
 
@@ -364,6 +390,7 @@ class Receipt {
     required this.id,
     required this.attemptId,
     required this.missionVersion,
+    this.missionId,
     required this.assessments,
     required this.evidenceRefs,
     required this.createdAt,
@@ -374,6 +401,22 @@ class Receipt {
   final String id;
   final String attemptId;
   final String missionVersion;
+
+  /// Which mission this receipt is about.
+  ///
+  /// Not on the wire. `Receipt` in the contract carries `missionVersion`
+  /// but no `missionId`, and there is no `GET /attempts/{id}` to resolve
+  /// one from `attemptId` — so a receipt cannot be traced back to what
+  /// it is about. That blocks two things: naming the mission in the
+  /// learner's own history, and the ADR-005 correction flow, which has
+  /// to compare this receipt's version against the mission's current
+  /// one.
+  ///
+  /// The demo repository can fill it because it holds the attempt state.
+  /// Against a real server it stays null and the correction banner
+  /// simply never appears, which is the honest failure: no claim is made
+  /// either way about whether the mission changed.
+  final String? missionId;
   final List<AxisAssessment> assessments;
   final List<String> evidenceRefs;
   final DateTime createdAt;

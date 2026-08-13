@@ -4,6 +4,7 @@ import 'package:flutter/semantics.dart';
 
 import '../../data/api_client.dart';
 import '../../data/mission_repository.dart';
+import '../../data/gameplay.dart';
 import '../../data/models.dart';
 import '../../l10n/axis_localization.dart';
 import '../../l10n/strings.dart';
@@ -453,6 +454,8 @@ class _MissionScreenState extends State<MissionScreen> {
             postConfidence: _postConfidence,
             reaction: _reaction,
             claim: _claim,
+            processLevel: processLevelFor(_collected.length),
+            rubric: mission.rubric,
             onOpenReceipt: _receiptId == null
                 ? null
                 : () => Navigator.of(context).push(
@@ -1063,6 +1066,8 @@ class _ReceiptStep extends StatelessWidget {
     required this.postConfidence,
     required this.reaction,
     required this.claim,
+    required this.processLevel,
+    required this.rubric,
     required this.onOpenReceipt,
     required this.onDone,
   });
@@ -1078,6 +1083,16 @@ class _ReceiptStep extends StatelessWidget {
   final int postConfidence;
   final String? reaction;
   final AxisOption? claim;
+
+  /// Which rung of the mission's rubric the evidence behaviour earned,
+  /// and the rubric it was read from.
+  ///
+  /// The XP figure on its own tells a learner they were paid without
+  /// telling them what for. The rubric already contains the sentence
+  /// that explains it — curated by Role 3, in the mission's own words —
+  /// so showing the number without it was leaving the useful half out.
+  final int processLevel;
+  final List<ProcessLevel> rubric;
 
   final VoidCallback? onOpenReceipt;
   final VoidCallback onDone;
@@ -1102,6 +1117,38 @@ class _ReceiptStep extends StatelessWidget {
           Text(s.receiptXp(xpAwarded), style: Theme.of(context).textTheme.titleLarge),
           SizedBox(height: tokens.space(1)),
           const Slid(),
+          SizedBox(height: tokens.space(3)),
+
+          // What the XP was for, in the rubric's own words.
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: tokens.space(2)),
+            child: Builder(builder: (context) {
+              final reached = rubric.where((r) => r.level == processLevel);
+              final next = rubric.where((r) => r.level == processLevel + 1);
+              if (reached.isEmpty) return const SizedBox.shrink();
+              return SkillMeter(
+                label: s.processLevelOf(processLevel),
+                mastery: processLevel / kMaxProcessLevel,
+                masteryLabel: reached.first.criteria,
+                segments: kMaxProcessLevel,
+                // The next rung is shown as a direction, not a scold.
+                // Naming what would have counted for more is the only
+                // way a process score teaches anything.
+                dueLabel: next.isEmpty
+                    ? null
+                    : s.processLevelNext(next.first.criteria),
+              );
+            }),
+          ),
+          SizedBox(height: tokens.space(1)),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: tokens.space(2)),
+            child: Text(
+              s.processLevelExplain,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
           SizedBox(height: tokens.space(3)),
 
           // What the mission actually did to the learner. XP is what the

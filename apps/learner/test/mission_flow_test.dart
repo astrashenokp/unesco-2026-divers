@@ -1,4 +1,6 @@
 import 'package:evidence_gym_learner/data/api_client.dart';
+import 'package:evidence_gym_learner/data/arenas.dart';
+import 'package:evidence_gym_learner/data/gameplay.dart';
 import 'package:evidence_gym_learner/data/audience.dart';
 import 'package:evidence_gym_learner/data/demo_fixtures.dart';
 import 'package:evidence_gym_learner/data/mission_repository.dart';
@@ -128,6 +130,25 @@ void main() {
     final thorough = await run(['check_source', 'check_date', 'reverse_search'], 'authentic');
     final hasty = await run(['check_source'], 'altered');
     expect(thorough, greaterThan(hasty));
+
+    // Pinned to the reviewed ladder, not just ordered. `greaterThan`
+    // alone passed under the homemade `1 + checks` formula this used to
+    // use, so it could not have caught the demo drifting away from the
+    // rubric the product actually scores by.
+    expect(hasty, 2, reason: 'one check is process level 1, worth 2 XP');
+    expect(thorough, 6, reason: 'three checks is level 3, worth 6 XP');
+  });
+
+  test('the demo pays the rubric, and stops paying past the top rung',
+      () async {
+    // The old formula was unbounded: every extra check bought another
+    // point forever, which rewards clicking rather than investigating.
+    final r = repo();
+    final mission = await r.getMission('viral-flood-photo');
+    expect(mission.rubric, isNotEmpty,
+        reason: 'a mission with no rubric cannot pay anything');
+    expect(xpFor(mission.rubric, 4), xpFor(mission.rubric, 40),
+        reason: 'running forty checks must not pay more than four');
   });
 
   test('the coach climbs its ladder and stops at four', () async {
@@ -338,5 +359,63 @@ void main() {
       expect(childXp, adultXp,
           reason: 'the younger mode paid differently for the same work');
     });
+  });
+
+  test('every mission belongs to exactly one arena', () async {
+    // An untagged mission would be reachable only through "Everything"
+    // and would vanish from every arena — present in the product and
+    // absent from the way people navigate it.
+    final path = await repo().getLearningPath();
+    for (final node in path.nodes) {
+      expect(demoArenaOf[node.missionId], isNotNull,
+          reason: '${node.missionId} belongs to no arena');
+    }
+
+    // And every arena has something in it, or it is a room with a sign
+    // and no door.
+    for (final arena in kArenaOrder) {
+      expect(
+        path.nodes.where((n) => demoArenaOf[n.missionId] == arena),
+        isNotEmpty,
+        reason: '$arena is empty in the adult mode',
+      );
+    }
+  });
+
+  test('a receipt can be traced back to its mission, in demo mode', () async {
+    // Without this the ADR-005 correction flow can never reach a
+    // learner: telling them the material was corrected means comparing
+    // the receipt's version against the mission's current one, and a
+    // receipt that does not know its mission cannot be compared to
+    // anything.
+    final r = repo();
+    final attempt = await startFirst(r);
+    await r.submitPrediction(
+      attempt.id,
+      PredictionInput(reaction: 'trust', confidence: 60, version: attempt.version),
+    );
+    final evidence = await r.useEvidenceAction(
+        attempt.id, 'viral-flood-photo', 'check_source', 2);
+    final done = await r.submitConclusion(
+      attempt.id,
+      ConclusionInput(
+        authenticity: const AxisAssessment(label: 'authentic', confidence: 60),
+        claimVeracity:
+            const AxisAssessment(label: 'insufficient_evidence', confidence: 40),
+        contextIntegrity: const AxisAssessment(label: 'accurate', confidence: 60),
+        postConfidence: 50,
+        shareDecision: 'do_not_share',
+        version: evidence.attemptVersion,
+      ),
+    );
+
+    final receipt = await r.getReceipt(done.receiptId);
+    expect(receipt.missionId, 'viral-flood-photo');
+
+    // And the mission it points at must actually exist, or the lookup
+    // that drives the banner throws instead of resolving.
+    final mission = await r.getMission(receipt.missionId!);
+    expect(mission.version, receipt.missionVersion,
+        reason: 'an unchanged mission must not look corrected');
   });
 }

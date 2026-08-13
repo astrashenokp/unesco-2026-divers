@@ -21,6 +21,7 @@ import json
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -30,6 +31,22 @@ CONTRACT = Path(__file__).with_name("openapi.yaml")
 WEB_ORIGIN = "http://localhost:8080"
 
 OK, MISSING, WARN = "PASS", "FAIL", "WARN"
+
+
+def contract_base_path() -> str:
+    """The path prefix the contract's `servers` entry declares.
+
+    A client built from this contract asks for `<server url><path>`, so a
+    probe that ignores the server block measures a URL nobody uses. This
+    caught a real mismatch: the contract declares `/v1`, the client
+    obeyed it, and the service mounted its routes at the root — every
+    request 404'd, and both sides looked correct in isolation.
+    """
+    for line in CONTRACT.read_text(encoding="utf-8").splitlines():
+        if match := re.match(r"\s*-\s*url:\s*(\S+)", line):
+            path = urllib.parse.urlparse(match.group(1)).path.rstrip("/")
+            return path
+    return ""
 
 
 def contract_paths() -> dict[str, list[str]]:
@@ -69,17 +86,20 @@ def request(url: str, method: str = "GET", headers: dict[str, str] | None = None
         return None, {}, str(exc).encode()
 
 
-def main(base: str) -> int:
-    base = base.rstrip("/")
+def main(base_url: str) -> int:
+    base_url = base_url.rstrip("/")
     findings: list[tuple[str, str]] = []
 
-    status, _, body = request(f"{base}/openapi.json")
+    status, _, body = request(f"{base_url}/openapi.json")
     if status != 200:
-        print(f"{MISSING}  no server at {base} ({status or 'unreachable'})")
+        print(f"{MISSING}  no server at {base_url} ({status or 'unreachable'})")
         return 1
 
     served = json.loads(body).get("paths", {})
     promised = contract_paths()
+    base = contract_base_path()
+    if base:
+        print(f"Contract declares a base path of {base!r}; probing there.\n")
 
     print(f"Contract promises {sum(len(v) for v in promised.values())} operations "
           f"across {len(promised)} paths.\n")
@@ -88,7 +108,7 @@ def main(base: str) -> int:
     for path, verbs in promised.items():
         # FastAPI and OpenAPI agree on `{param}` syntax, so paths compare
         # directly without normalising.
-        actual = served.get(path)
+        actual = served.get(f"{base}{path}") or served.get(path)
         for verb in verbs:
             if actual and verb.lower() in actual:
                 print(f"  {OK}  {verb:6} {path}")
@@ -105,7 +125,7 @@ def main(base: str) -> int:
     # from the web build fails before it reaches a route — including the
     # routes that do exist.
     status, headers, _ = request(
-        f"{base}/attempts",
+        f"{base_url}{base}/attempts",
         method="OPTIONS",
         headers={
             "Origin": WEB_ORIGIN,
@@ -127,7 +147,7 @@ def main(base: str) -> int:
     # route, so the endpoints that exist are still unreachable. Told apart
     # from a genuine rejection by the code, not the status.
     status, _, body = request(
-        f"{base}/attempts",
+        f"{base_url}{base}/attempts",
         method="POST",
         headers={"Authorization": "Bearer probe", "Idempotency-Key": "probe-key-1234"},
     )

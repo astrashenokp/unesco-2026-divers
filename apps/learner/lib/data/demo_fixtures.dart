@@ -1,3 +1,4 @@
+import 'gameplay.dart';
 import 'models.dart';
 
 /// Deterministic, offline demo pack. Loaded when a learner enters the demo
@@ -21,6 +22,56 @@ bool _uk(String code) => code == 'uk';
 /// Which chapter a mission belongs to. Grouping is a client-side
 /// presentation of the ordered path the server already returns — no
 /// contract field is invented here.
+
+/// The process-level ladder, taken verbatim from the reviewed pack at
+/// `content/p0-demo-pack`.
+///
+/// Shared by every demo mission because the pack's own missions share
+/// it. Copied rather than invented: XP must come from curated content,
+/// and a demo that pays differently from the reviewed rubric would be
+/// showing a judge numbers the product does not actually award.
+List<ProcessLevel> demoRubric(String code) => [
+      ProcessLevel(
+        level: 0,
+        xpGuidance: 1,
+        criteria: _uk(code)
+            ? 'Висновок лише з відчуття або з вигляду.'
+            : 'Concludes from instinct or visual appearance only.',
+      ),
+      ProcessLevel(
+        level: 1,
+        xpGuidance: 2,
+        criteria: _uk(code)
+            ? 'Перевірено джерело чи походження, але не контекст.'
+            : 'Checks source identity or provenance but does not test context.',
+        skillTags: const ['source_identity', 'provenance'],
+      ),
+      ProcessLevel(
+        level: 2,
+        xpGuidance: 4,
+        criteria: _uk(code)
+            ? 'Знайдено раніше джерело або розбіжність у даті чи місці.'
+            : 'Finds the earlier source or date/place mismatch.',
+        skillTags: const ['primary_source', 'context_time_place'],
+      ),
+      ProcessLevel(
+        level: 3,
+        xpGuidance: 6,
+        criteria: _uk(code)
+            ? 'Контекст підтверджено незалежно; медіа відокремлено від підпису.'
+            : 'Corroborates context independently and separates media from caption.',
+        skillTags: const ['corroboration', 'claim_decomposition'],
+      ),
+      ProcessLevel(
+        level: 4,
+        xpGuidance: 8,
+        criteria: _uk(code)
+            ? 'Калібрований висновок за трьома осями і відповідальне рішення про поширення.'
+            : 'Makes a calibrated three-axis conclusion and chooses a responsible sharing decision.',
+        skillTags: const ['uncertainty', 'responsible_sharing'],
+      ),
+    ];
+
 enum DemoChapter { whoSaidIt, whenAndWhere, howItIsFramed }
 
 const demoChapterOf = <String, DemoChapter>{
@@ -98,6 +149,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       evidenceActions: [source, date, reverse, others],
       skillTags: const ['source_identity', 'context_time_place', 'provenance'],
       contentWarnings: const ['natural-disaster'],
+      rubric: demoRubric(code),
     ),
     'anonymous-claim': Mission(
       id: 'anonymous-claim',
@@ -118,6 +170,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       evidenceActions: [source, others, date],
       skillTags: const ['source_identity', 'corroboration', 'claim_decomposition'],
       contentWarnings: const ['impersonation'],
+      rubric: demoRubric(code),
     ),
     'citation-hunt': Mission(
       id: 'citation-hunt',
@@ -138,6 +191,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       evidenceActions: [citation, source, others],
       skillTags: const ['citation_integrity', 'primary_source', 'uncertainty'],
       contentWarnings: const ['academic-integrity'],
+      rubric: demoRubric(code),
       minimumCompletionEvidence: 3,
     ),
     'context-swap': Mission(
@@ -158,6 +212,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       evidenceActions: [date, reverse, others],
       skillTags: const ['context_time_place', 'provenance', 'corroboration'],
       contentWarnings: const [],
+      rubric: demoRubric(code),
     ),
     'old-protest-clip': Mission(
       id: 'old-protest-clip',
@@ -177,6 +232,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       evidenceActions: [reverse, date, source, others],
       skillTags: const ['context_time_place', 'provenance', 'responsible_sharing'],
       contentWarnings: const ['civil-unrest'],
+      rubric: demoRubric(code),
     ),
     'true-numbers-false-story': Mission(
       id: 'true-numbers-false-story',
@@ -197,6 +253,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       evidenceActions: [numbers, source, date],
       skillTags: const ['claim_decomposition', 'uncertainty', 'context_time_place'],
       contentWarnings: const ['statistics-misuse'],
+      rubric: demoRubric(code),
     ),
     'synthetic-but-real-topic': Mission(
       id: 'synthetic-but-real-topic',
@@ -219,6 +276,7 @@ Map<String, Mission> demoMissionsFor(String code) {
       // three axes must be allowed to disagree with one another.
       skillTags: const ['provenance', 'corroboration', 'responsible_sharing'],
       contentWarnings: const ['ai-generated-media'],
+      rubric: demoRubric(code),
     ),
   };
 }

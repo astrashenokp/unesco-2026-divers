@@ -27,3 +27,4 @@ export 'src/components/source_card.dart';
 export 'src/components/receipt_timeline.dart';
 export 'src/components/uncertainty_panel.dart';
 export 'src/components/confidence_shift.dart';
+export 'src/components/arena_card.dart';

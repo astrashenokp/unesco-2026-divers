@@ -194,6 +194,47 @@ paths:
   /reports:
     post:
       operationId: reportContent
+      summary: Report a problem with published content
+      description: |
+        Accepts a learner's report and confirms nothing beyond acceptance.
+
+        **What `202` means, and what it does not.** It means the service
+        has taken responsibility for the report. It is not a statement
+        that anyone has read it, will read it, or will act on it, and no
+        response on this endpoint may imply otherwise. Moderation state,
+        reviewer identity and queue position stay out of the contract
+        entirely — exposing them would turn a safety feature into a
+        surface for probing who is looking at what.
+
+        A `202` must not be returned until the report is durably stored
+        or queued. Accepting and discarding would make this endpoint a
+        confirmation with nothing behind it, which is worse than not
+        offering the report button at all: a learner who reports harmful
+        content and is thanked for it reasonably stops looking for
+        another way to raise it.
+
+        **Learner-facing wording is bound by the same rule** (Role 1,
+        #33). The client says the report was received and names what it
+        was attached to. It does not promise a human will read it, and
+        it does not promise a timeline, because neither is backed by
+        anything today. A product whose subject is checking claims
+        before believing them cannot make an unbacked claim on its own
+        confirmation screen.
+
+        On failure the client keeps the dialog open with the learner's
+        text intact and does not confirm receipt; offline is reported as
+        offline rather than as "try again", which is bad advice when the
+        thing to do is wait.
+
+        In demo mode nothing leaves the device and the client says so
+        explicitly, rather than reusing the live confirmation.
+
+        **Privacy.** The reporter is the verified principal; a client
+        cannot report on behalf of another learner. Bearer tokens,
+        request headers and device identifiers are not stored, and
+        report detail does not appear in logs (`PRIVACY.md`). `detail`
+        is free text a learner may fill with anything, so it is treated
+        as sensitive by default.
       parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
       requestBody:
         required: true
@@ -209,7 +250,31 @@ paths:
                   enum: [incorrect, harmful, outdated, copyright, accessibility, other]
                 detail: { type: string, maxLength: 1000 }
       responses:
-        '202': { description: Accepted without exposing moderation state }
+        '202':
+          description: |
+            Accepted and durably recorded. Exposes no moderation state,
+            reviewer identity or queue position, and asserts nothing
+            about review.
+        '401': { $ref: '#/components/responses/Problem' }
+        '409':
+          description: |
+            `idempotency-key-conflict` — the same key was reused with
+            different content. A replay with the same key and the same
+            body returns the original acceptance rather than creating a
+            second report.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+        '503':
+          description: |
+            The report could not be durably stored or queued, so it was
+            not accepted. Returned in preference to a `202` the service
+            cannot stand behind — a learner who is told their report
+            landed will not send it again.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Problem' }
 components:
   securitySchemes:
     firebaseBearer:

@@ -1,6 +1,7 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
+import '../../data/api_client.dart';
 import '../../l10n/strings.dart';
 
 /// Report harmful or incorrect content.
@@ -61,18 +62,24 @@ class _ReportDialogState extends State<_ReportDialog> {
     final navigator = Navigator.of(context);
     final s = Strings.of(context);
     final confirmation = widget.isDemo ? s.reportSentDemo : s.reportSent;
-    final failure = s.reportFailed;
 
     try {
       await widget.onSubmit(
         _reason!,
         _detailController.text.trim().isEmpty ? null : _detailController.text.trim(),
       );
-    } catch (_) {
-      // A failed send must not be confirmed as received. Keep the dialog
+    } catch (e) {
+      // A failed send must not be confirmed as received. The dialog stays
       // open with its content intact so the report isn't silently lost.
+      //
+      // Offline gets its own message: "try again" is bad advice when the
+      // thing to do is wait, and it invites hammering a button that
+      // cannot work yet.
+      final offline = e is EvidenceGymApiException && e.isOffline;
       if (mounted) setState(() => _sending = false);
-      messenger.showSnackBar(SnackBar(content: Text(failure)));
+      messenger.showSnackBar(SnackBar(
+        content: Text(offline ? s.reportFailedOffline : s.reportFailed),
+      ));
       return;
     }
 

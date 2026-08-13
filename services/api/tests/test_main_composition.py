@@ -16,7 +16,7 @@ def test_default_asgi_entrypoint_wires_learning_services_and_coach_hint() -> Non
     try:
         with TestClient(app) as client:
             started = client.post(
-                "/attempts",
+                "/v1/attempts",
                 headers={
                     "Authorization": "Bearer local-test-token",
                     "Idempotency-Key": "main-start-key-0001",
@@ -28,7 +28,7 @@ def test_default_asgi_entrypoint_wires_learning_services_and_coach_hint() -> Non
             )
             attempt_id = started.json()["id"]
             predicted = client.post(
-                f"/attempts/{attempt_id}/prediction",
+                f"/v1/attempts/{attempt_id}/prediction",
                 headers={
                     "Authorization": "Bearer local-test-token",
                     "Idempotency-Key": "main-predict-key-0001",
@@ -40,7 +40,7 @@ def test_default_asgi_entrypoint_wires_learning_services_and_coach_hint() -> Non
                 },
             )
             hinted = client.post(
-                f"/attempts/{attempt_id}/hints",
+                f"/v1/attempts/{attempt_id}/hints",
                 headers={
                     "Authorization": "Bearer local-test-token",
                     "Idempotency-Key": "main-hint-key-0001",

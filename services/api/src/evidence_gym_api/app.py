@@ -4,6 +4,7 @@ from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -51,8 +52,30 @@ def create_app(
     identity_verifier: IdentityVerifier | None = None,
     learning_services: LearningServices | None = None,
     catalog_reader: PublicCatalogReader | None = None,
+    allowed_origins: tuple[str, ...] = (),
+    path_prefix: str = "",
 ) -> FastAPI:
-    """Create an API instance with explicit runtime dependencies."""
+    """Create an API instance with explicit runtime dependencies.
+
+    ``allowed_origins`` enables CORS for exactly those origins. It
+    defaults to none, so no deployment gains cross-origin access by
+    accident and existing behaviour is unchanged.
+
+    It exists because the learner client ships as a Flutter **web**
+    build. A browser sends a preflight before any request carrying an
+    ``Authorization`` header, and with no CORS middleware that preflight
+    answers 405 — so every call from the web client fails before it
+    reaches a route, including routes that work perfectly. The failure
+    is invisible from this side: ``curl`` succeeds, the service tests
+    pass, and only a browser fails.
+
+    ``path_prefix`` mounts the API under a base path. The contract
+    declares ``servers: https://…/v1``, so a conforming client asks for
+    ``/v1/catalog/path`` while this app serves ``/catalog/path`` — every
+    request 404s. It defaults to empty so the existing tests, which call
+    the routes directly, keep passing unchanged; ``main.py`` sets it to
+    the value the contract promises.
+    """
 
     app = FastAPI(
         title="Evidence Gym API",
@@ -63,10 +86,30 @@ def create_app(
     app.state.identity_verifier = identity_verifier
     app.state.learning_services = learning_services
     app.state.catalog_reader = catalog_reader
+    if allowed_origins:
+        # Explicit origins, never a wildcard: credentials and `*` cannot
+        # be combined, and the client sends an Authorization header.
+        # Headers are listed rather than opened, because Idempotency-Key
+        # is ours and the browser must be told it is allowed.
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=list(allowed_origins),
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "OPTIONS"],
+            allow_headers=[
+                "Authorization",
+                "Content-Type",
+                "Idempotency-Key",
+                TRACE_ID_HEADER,
+            ],
+            expose_headers=[TRACE_ID_HEADER],
+        )
     app.add_middleware(TraceIdMiddleware)
+    # Operational probes stay at the root: a load balancer checking
+    # /health should not need to know the API's version prefix.
     app.include_router(router)
-    app.include_router(catalog_router)
-    app.include_router(learning_router)
+    app.include_router(catalog_router, prefix=path_prefix)
+    app.include_router(learning_router, prefix=path_prefix)
 
     @app.exception_handler(ApiProblem)
     async def handle_api_problem(request: Request, exc: ApiProblem) -> JSONResponse:

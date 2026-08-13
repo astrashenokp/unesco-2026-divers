@@ -16,14 +16,22 @@ const _apiBaseUrl = String.fromEnvironment(
   defaultValue: 'http://localhost:8000/',
 );
 
+/// A token for local development, supplied at build time.
+///
+/// Empty in any build that does not pass it, so nothing ships with a
+/// credential baked in. Paired with the API's own opt-in dev verifier,
+/// which only accepts tokens named in `EVIDENCE_GYM_DEV_TOKENS`:
+///
+///     flutter run -d chrome ///       --dart-define=API_BASE_URL=http://localhost:8000/ ///       --dart-define=DEV_AUTH_TOKEN=dev-token
+///
 /// TODO(Role 1): once Firebase is configured (`flutterfire configure`),
 /// replace this with `signInAnonymously()` and return the real ID token.
 /// ADR-008 already fixes guest auth as Firebase Anonymous Auth, verified
 /// server-side like any other principal — not a bespoke demo principal.
-/// Until then "Continue as guest" reaches the API unauthenticated and the
-/// server is expected to reject protected routes; the demo key below is
-/// the reliable path for a presentation.
-Future<String?> _placeholderGuestTokenProvider() async => null;
+const _devAuthToken = String.fromEnvironment('DEV_AUTH_TOKEN');
+
+Future<String?> _guestTokenProvider() async =>
+    _devAuthToken.isEmpty ? null : _devAuthToken;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -61,7 +69,7 @@ class _AuthScreenState extends State<AuthScreen> {
       LiveMissionRepository(
         EvidenceGymApiClient(
           baseUrl: Uri.parse(_apiBaseUrl),
-          authTokenProvider: _placeholderGuestTokenProvider,
+          authTokenProvider: _guestTokenProvider,
         ),
       ),
     );

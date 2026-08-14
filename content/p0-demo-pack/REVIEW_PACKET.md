@@ -1,6 +1,6 @@
 # P0 demo pack review packet
 
-Status: review-stage submission demo, not public publication approval.
+Status: submission-demo audit passed; not public publication approval.
 
 Review owner lane: Evidence Guardian. The lane is recorded here, not in
 `review.reviewerIds`, because `reviewerIds` is reserved for actual human
@@ -32,9 +32,12 @@ status to `approved` or `restricted` until a human reviewer records sign-off wit
 
 ## Current Review Result
 
-- Schema/hash validation: ready for review.
-- Deterministic evidence path: ready for review.
-- Coach eval gate: deterministic fixture preflight artifact present.
+- Schema/hash validation: passed for submission-demo use.
+- Deterministic evidence path: passed for submission-demo use.
+- Coach eval gate: deterministic fixture preflight artifact passed.
+- USGS source re-check: official USGS page still identifies the image as
+  Brooklyn/Gowanus flooding, lists Sources/Usage as Public Domain, and credits
+  Metro Transit Authority as of 2026-08-14.
 - Human publication approval: pending.
 
 ## Remaining Sign-Off Fields

@@ -5,7 +5,8 @@
 - One-sentence concept, audience and differentiators are consistent everywhere.
 - Trust/Suspicious/Investigate is initial prediction, not final verdict.
 - Three axes and insufficient evidence are first-class.
-- Two demo cases are complete, reviewed and memorable.
+- Two demo cases are complete, submission-audited and memorable; public
+  publication approval remains a separate content-review gate.
 
 ## Learning
 

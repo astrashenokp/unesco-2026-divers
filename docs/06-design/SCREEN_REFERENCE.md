@@ -112,13 +112,13 @@ Three slides, `PageView`, never auto-advancing.
 
 ---
 
-### 3.2 Auth / demo entry — **partial**
+### 3.2 Auth / demo entry
 
 Two ways in, presented as equals.
 
-**Continue as guest** → Firebase Anonymous Auth per ADR-008. *Currently a placeholder that returns no token; the server will reject protected routes until `flutterfire configure` is done.* This is the one known incomplete path in the flow.
+**Continue as guest** → In local/debug builds this can call the API with a build-time `DEV_AUTH_TOKEN`, accepted only by the API's opt-in development identity verifier. Release builds discard that token at compile time, so there is no baked credential. Production guest auth remains Firebase Anonymous Auth per ADR-008 once Firebase is configured.
 
-**Enter demo** → validates a key (case-insensitive, checked entirely on-device, no network) and loads the offline pack. This is the reliable presentation path.
+**Enter demo** → validates a key (case-insensitive, checked entirely on-device, no network) and loads the offline pack. This remains the reliable presentation path for submission rehearsals and judged demos.
 
 **States.** Idle; invalid key (inline `errorText` naming the expected key); accepted.
 

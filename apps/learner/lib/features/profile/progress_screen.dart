@@ -14,9 +14,18 @@ import 'skill_screen.dart';
 /// rule from `GAME_AND_LEARNING_DESIGN.md` is printed on the screen, not
 /// just honoured in the scoring.
 class ProgressScreen extends StatefulWidget {
-  const ProgressScreen({super.key, required this.repository});
+  const ProgressScreen({
+    super.key,
+    required this.repository,
+    this.onGoToPath,
+  });
 
   final MissionRepository repository;
+
+  /// Moves the learner to the path. Supplied by the shell, which owns
+  /// the destination index — a screen inside a shell should not be
+  /// reaching for a Navigator that is not its own.
+  final VoidCallback? onGoToPath;
 
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
@@ -55,6 +64,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         }
 
         final progress = snapshot.data!;
+        final onGoToPath = widget.onGoToPath;
         return ReadableWidth(
           child: ListView(
             padding: EdgeInsets.all(tokens.space(2)),
@@ -78,12 +88,69 @@ class _ProgressScreenState extends State<ProgressScreen> {
               SizedBox(height: tokens.space(3)),
               Text(s.skillsTitle, style: Theme.of(context).textTheme.titleLarge),
               const Slid(),
-              if (progress.skills.isEmpty)
+              if (progress.skills.isEmpty) ...[
+                // A destination that says "0" and nothing else spends a
+                // whole tab telling someone they have done nothing. This
+                // space is worth more explaining what is about to be
+                // measured, which is also the product's argument: every
+                // skill below is about how a claim was checked, and not
+                // one of them is about being right.
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: tokens.space(2)),
-                  child: Text(s.profileEmpty, style: Theme.of(context).textTheme.bodyLarge),
-                )
-              else
+                  padding: EdgeInsets.symmetric(vertical: tokens.space(1)),
+                  child: Text(
+                    s.progressEmptyTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                Text(s.progressEmptyBody,
+                    style: Theme.of(context).textTheme.bodyMedium),
+                SizedBox(height: tokens.space(2)),
+                Text(s.progressWhatIsMeasured,
+                    style: Theme.of(context).textTheme.titleLarge),
+                SizedBox(height: tokens.space(1)),
+                for (final (i, skill) in s.skillPreview.indexed)
+                  RevealOnScroll(
+                    delayIndex: i,
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: tokens.space(1.25)),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.check_circle_outline,
+                              size: 18, color: tokens.textMuted),
+                          SizedBox(width: tokens.space(1)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  skill.name,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                Text(skill.what,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                SizedBox(height: tokens.space(2)),
+                // The only thing that changes any of this is finishing a
+                // mission, so the screen offers that rather than leaving
+                // the learner to work out where to go.
+                if (onGoToPath != null)
+                  ElevatedButton.icon(
+                    onPressed: onGoToPath,
+                    icon: const Icon(Icons.route_outlined),
+                    label: Text(s.progressEmptyAction),
+                  ),
+              ] else
                 for (var i = 0; i < progress.skills.length; i++)
                   RevealOnScroll(
                     delayIndex: i,

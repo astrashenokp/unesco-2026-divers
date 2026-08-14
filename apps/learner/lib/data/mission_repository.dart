@@ -3,6 +3,7 @@ import 'audience.dart';
 import 'demo_fixtures.dart';
 import 'gameplay.dart';
 import 'models.dart';
+import '../features/leaderboard/leaderboard_screen.dart';
 
 /// Screens depend on this, never on [EvidenceGymApiClient] or the demo
 /// fixtures directly — keeps widgets identical whether the learner is in
@@ -31,6 +32,21 @@ abstract class MissionRepository {
   /// did it go" is a worse question to leave someone with than "why is
   /// it hidden".
   int get hiddenByAudience;
+
+  /// The board, ranked by process XP.
+  ///
+  /// Returns an empty list until the learner opts in, because a board
+  /// that shows other people before you have agreed to be shown is not
+  /// an opt-in. There is no `/leaderboard` in the contract yet, so this
+  /// is demo-only — the live repository returns nothing rather than
+  /// inventing rivals, which would be the same fabrication the invented
+  /// streak was.
+  Future<List<BoardEntry>> getLeaderboard();
+
+  /// Whether this learner has joined, and the handle they chose.
+  bool get boardHandleSet;
+  void joinBoard(String handle);
+  void leaveBoard();
 
   /// Excuses activity through [until], inclusive.
   ///
@@ -429,6 +445,44 @@ class DemoMissionRepository implements MissionRepository {
   @override
   int get hiddenByAudience => _hiddenByAudience;
 
+  String? _boardHandle;
+
+  @override
+  bool get boardHandleSet => _boardHandle != null;
+
+  @override
+  void joinBoard(String handle) => _boardHandle = handle;
+
+  @override
+  void leaveBoard() => _boardHandle = null;
+
+  /// A fixed set of rivals, clearly fictional, plus the learner.
+  ///
+  /// Named as obviously invented rather than as plausible people: a demo
+  /// board of realistic names reads as real users to anyone glancing at
+  /// it, and this product cannot be the one that fakes an active
+  /// community. Their XP is fixed so the learner's own position moves
+  /// only because of what the learner did.
+  @override
+  Future<List<BoardEntry>> getLeaderboard() async {
+    await _pause();
+    if (_boardHandle == null) return const [];
+    final mine = BoardEntry(
+      handle: _boardHandle!,
+      xp: _earnedXp,
+      missions: _completed.length,
+      isYou: true,
+    );
+    final board = <BoardEntry>[
+      const BoardEntry(handle: 'Sample learner A', xp: 34, missions: 5),
+      const BoardEntry(handle: 'Sample learner B', xp: 22, missions: 4),
+      const BoardEntry(handle: 'Sample learner C', xp: 12, missions: 2),
+      const BoardEntry(handle: 'Sample learner D', xp: 4, missions: 1),
+      mine,
+    ]..sort((a, b) => b.xp.compareTo(a.xp));
+    return board;
+  }
+
   @override
   void pauseStreak(DateTime until) => _streak = _streak.pause(until);
 
@@ -492,6 +546,20 @@ class LiveMissionRepository implements MissionRepository {
   /// is unfiltered and there is nothing hidden to report.
   @override
   int get hiddenByAudience => 0;
+
+  /// Empty until the contract carries a board. Inventing rivals to fill
+  /// the screen would be the same fabrication as the invented streak.
+  @override
+  Future<List<BoardEntry>> getLeaderboard() async => const [];
+
+  @override
+  bool get boardHandleSet => false;
+
+  @override
+  void joinBoard(String handle) {}
+
+  @override
+  void leaveBoard() {}
 
   @override
   void pauseStreak(DateTime until) {}

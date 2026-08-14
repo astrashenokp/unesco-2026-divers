@@ -1,6 +1,8 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
+import '../../app_settings.dart';
+import '../../data/audience.dart';
 import '../../data/mission_repository.dart';
 import '../../l10n/strings.dart';
 import '../common/demo_banner.dart';
@@ -165,6 +167,22 @@ class _HomeShellState extends State<HomeShell> {
                       label: Text(d.label),
                     ),
                 ],
+                // The wide layout has room the phone does not, and the
+                // rail was using none of it. These are read-only: the
+                // rail is for moving between places, and a control here
+                // would compete with the destination it sits under.
+                //
+                // Grouped at the bottom so they never push the
+                // destinations off a short window.
+                trailing: Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: EdgeInsets.only(bottom: tokens.space(2)),
+                      child: _RailFooter(repository: widget.repository),
+                    ),
+                  ),
+                ),
               ),
             ),
             const VerticalDivider(width: 1),
@@ -182,6 +200,98 @@ class _HomeShellState extends State<HomeShell> {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+/// The quiet corner of the rail: what the learner has, and what the
+/// session is.
+///
+/// Read-only on purpose. A rail is for moving between places, and a
+/// control tucked into it competes with the destination above it. These
+/// answer "where do I stand" without asking anyone to click.
+///
+/// Only on the wide layout, because it is the one with room to spare —
+/// the phone puts the same facts on the screens themselves rather than
+/// spending a bottom bar on them.
+class _RailFooter extends StatelessWidget {
+  const _RailFooter({required this.repository});
+
+  final MissionRepository repository;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final tokens = context.tokens;
+    final settings = AppSettingsScope.of(context);
+    final streak = repository.streak;
+    final paused = streak.isPaused(DateTime.now());
+
+    Widget fact(IconData icon, String value, String label, Color tint) =>
+        Semantics(
+          label: '$value $label',
+          child: ExcludeSemantics(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: tokens.space(0.75)),
+              child: Column(
+                children: [
+                  Icon(icon, size: 18, color: tint),
+                  SizedBox(height: tokens.space(0.25)),
+                  Text(
+                    value,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                  Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+    return SizedBox(
+      width: 84,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Divider(
+              indent: tokens.space(2),
+              endIndent: tokens.space(2),
+              color: tokens.textMuted.withValues(alpha: 0.2),
+            ),
+            fact(
+              paused
+                  ? Icons.pause_circle_outline
+                  : Icons.local_fire_department_outlined,
+              paused
+                  ? s.streakPaused
+                  : (streak.current == 0
+                      ? s.streakNone
+                      : s.streakDays(streak.current)),
+              paused ? '' : s.streakLabel,
+              paused ? tokens.textMuted : tokens.evidenceSecondary,
+            ),
+            // Named rather than assumed. Someone handing a laptop to a
+            // child should be able to see the mode without opening
+            // settings, and someone who forgot they turned it on should
+            // not have to wonder where the missions went.
+            if (settings.audience == AudienceMode.child)
+              fact(Icons.child_care_outlined, s.audienceChild, '',
+                  tokens.evidencePrimary),
+            if (repository.isDemo)
+              fact(Icons.science_outlined, s.demoBadge, '', tokens.action),
           ],
         ),
       ),

@@ -1125,36 +1125,40 @@ class _ReceiptStep extends StatelessWidget {
           const Slid(),
           SizedBox(height: tokens.space(3)),
 
-          // What the XP was for, in the rubric's own words.
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: tokens.space(2)),
-            child: Builder(builder: (context) {
-              final reached = rubric.where((r) => r.level == processLevel);
-              final next = rubric.where((r) => r.level == processLevel + 1);
-              if (reached.isEmpty) return const SizedBox.shrink();
-              return SkillMeter(
-                label: s.processLevelOf(processLevel),
-                mastery: processLevel / kMaxProcessLevel,
-                masteryLabel: reached.first.criteria,
-                segments: kMaxProcessLevel,
-                // The next rung is shown as a direction, not a scold.
-                // Naming what would have counted for more is the only
-                // way a process score teaches anything.
-                dueLabel: next.isEmpty
-                    ? null
-                    : s.processLevelNext(next.first.criteria),
-              );
-            }),
-          ),
-          SizedBox(height: tokens.space(1)),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: tokens.space(2)),
-            child: Text(
-              s.processLevelExplain,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall,
+          // The whole ladder, not just the rung reached. A score without
+          // its scale is an arbitrary number, and the rungs above are
+          // the only useful thing a process score can offer: what to do
+          // differently next time.
+          if (rubric.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: tokens.space(2)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(s.processLevelTitle,
+                      style: Theme.of(context).textTheme.titleLarge),
+                  SizedBox(height: tokens.space(1)),
+                  LevelLadder(
+                    rungs: [
+                      for (final rung in rubric)
+                        LadderRung(
+                          level: rung.level,
+                          criteria: rung.criteria,
+                          xp: rung.xpGuidance,
+                        ),
+                    ],
+                    reached: processLevel,
+                    levelLabel: s.ladderLevel,
+                    xpLabel: s.ladderXp,
+                    reachedLabel: s.ladderReached,
+                    nextLabel: s.ladderNext,
+                  ),
+                  SizedBox(height: tokens.space(1)),
+                  Text(s.processLevelExplain,
+                      style: Theme.of(context).textTheme.bodySmall),
+                ],
+              ),
             ),
-          ),
           SizedBox(height: tokens.space(3)),
 
           // What the mission actually did to the learner. XP is what the

@@ -14,6 +14,11 @@ from data_access.idempotency import (
     SqlAlchemyCompletionIdempotencyRepository,
     SqlAlchemyIdempotencyRepository,
 )
+from data_access.reports import (
+    SqlAlchemyReportRepository,
+    StoredReportResult,
+    SubmittedReport,
+)
 from evidence_gym_api.learning.attempt import (
     Attempt,
     AxisAssessment,
@@ -49,6 +54,7 @@ from data_access.schema import (
     learner_progress,
     outbox,
     receipts,
+    reports,
     xp_ledger,
 )
 
@@ -327,6 +333,185 @@ def test_postgres_same_key_retry_has_no_duplicate_completion_effects() -> None:
             ) == 1
             assert await count_rows(
                 session, idempotency_results, idempotency_results.c.learner_id, str(attempt.learner_id)
+            ) == 1
+        await database.dispose()
+
+    asyncio.run(scenario())
+
+
+def make_report(run_id: str, *, reason: str = "harmful", detail: str | None = "reported detail") -> SubmittedReport:
+    return SubmittedReport(
+        report_id=f"report-{run_id}",
+        reporter_id=f"reporter-{run_id}",
+        mission_id=f"report-mission-{run_id}",
+        mission_version="v1",
+        reason=reason,
+        detail=detail,
+        submitted_at=datetime.now(UTC),
+    )
+
+
+def test_postgres_report_submission_commits_report_idempotency_and_outbox() -> None:
+    async def scenario() -> None:
+        database = Database(os.environ["DATABASE_URL"])
+        run_id = uuid4().hex
+        now = datetime.now(UTC)
+        scope = IdempotencyScope(
+            LearnerId(f"reporter-{run_id}"),
+            "/v1/reports",
+            IdempotencyKey(f"report-key-{run_id}"),
+        )
+        report = make_report(run_id)
+        stored = StoredReportResult(f"fingerprint-{run_id}", report, now + timedelta(hours=24))
+        async with database.session() as session:
+            repository = SqlAlchemyReportRepository(session)
+            async with session.begin():
+                await repository.put(scope, stored)
+            replay = await repository.get(scope, at=now)
+            assert replay is not None
+            assert replay.report == report
+            row = (
+                await session.execute(select(reports).where(reports.c.id == report.report_id))
+            ).mappings().one_or_none()
+            assert row is not None
+            assert row["reporter_id"] == f"reporter-{run_id}"
+            assert row["mission_id"] == f"report-mission-{run_id}"
+            assert row["mission_version"] == "v1"
+            assert row["reason"] == "harmful"
+            assert row["detail"] == "reported detail"
+            assert row["status"] == "pending"
+            event = (
+                await session.execute(select(outbox).where(outbox.c.subject_id == report.report_id))
+            ).mappings().one_or_none()
+            assert event is not None
+            assert event["event_type"] == "report.submitted.v1"
+            assert event["producer"] == "trust"
+            assert "detail" not in event["payload"]
+            assert "reporter_id" not in event["payload"]
+        await database.dispose()
+
+    asyncio.run(scenario())
+
+
+def test_postgres_report_same_key_retry_has_no_duplicate_effects() -> None:
+    async def scenario() -> None:
+        database = Database(os.environ["DATABASE_URL"])
+        run_id = uuid4().hex
+        now = datetime.now(UTC)
+        scope = IdempotencyScope(
+            LearnerId(f"reporter-{run_id}"),
+            "/v1/reports",
+            IdempotencyKey(f"report-key-{run_id}"),
+        )
+        report = make_report(run_id)
+        stored = StoredReportResult(f"fingerprint-{run_id}", report, now + timedelta(hours=24))
+        async with database.session() as session:
+            repository = SqlAlchemyReportRepository(session)
+            async with session.begin():
+                await repository.put(scope, stored)
+                replay = await repository.get(scope, at=now)
+            async with session.begin():
+                await repository.put(scope, stored)
+        async with database.session() as session:
+            assert await count_rows(session, reports, reports.c.id, report.report_id) == 1
+            assert await count_rows(session, outbox, outbox.c.subject_id, report.report_id) == 1
+            assert replay is not None and replay.report == report
+        await database.dispose()
+
+    asyncio.run(scenario())
+
+
+def test_postgres_report_same_key_different_content_conflicts() -> None:
+    async def scenario() -> None:
+        database = Database(os.environ["DATABASE_URL"])
+        run_id = uuid4().hex
+        now = datetime.now(UTC)
+        scope = IdempotencyScope(
+            LearnerId(f"reporter-{run_id}"),
+            "/v1/reports",
+            IdempotencyKey(f"report-key-{run_id}"),
+        )
+        report = make_report(run_id)
+        stored = StoredReportResult(f"fingerprint-{run_id}", report, now + timedelta(hours=24))
+        async with database.session() as session:
+            repository = SqlAlchemyReportRepository(session)
+            async with session.begin():
+                await repository.put(scope, stored)
+            async with session.begin():
+                with pytest.raises(RepositoryConflict, match="different report"):
+                    await repository.put(
+                        scope,
+                        StoredReportResult(
+                            f"fingerprint-{run_id}-other",
+                            make_report(run_id, reason="copyright"),
+                            now + timedelta(hours=24),
+                        ),
+                    )
+        async with database.session() as session:
+            assert await count_rows(session, reports, reports.c.reporter_id, f"reporter-{run_id}") == 1
+        await database.dispose()
+
+    asyncio.run(scenario())
+
+
+def test_postgres_report_rolls_back_all_effects() -> None:
+    async def scenario() -> None:
+        database = Database(os.environ["DATABASE_URL"])
+        run_id = uuid4().hex
+        now = datetime.now(UTC)
+        scope = IdempotencyScope(
+            LearnerId(f"reporter-{run_id}"),
+            "/v1/reports",
+            IdempotencyKey(f"report-key-{run_id}"),
+        )
+        report = make_report(run_id)
+        stored = StoredReportResult(f"fingerprint-{run_id}", report, now + timedelta(hours=24))
+        try:
+            async with database.session() as session:
+                repository = SqlAlchemyReportRepository(session)
+                async with session.begin():
+                    await repository.put(scope, stored)
+                    raise RuntimeError("forced report rollback")
+        except RuntimeError:
+            pass
+        async with database.session() as session:
+            assert await count_rows(session, reports, reports.c.id, report.report_id) == 0
+            assert await count_rows(session, outbox, outbox.c.subject_id, report.report_id) == 0
+            assert await count_rows(
+                session, idempotency_results, idempotency_results.c.learner_id, f"reporter-{run_id}"
+            ) == 0
+        await database.dispose()
+
+    asyncio.run(scenario())
+
+
+def test_postgres_report_concurrent_same_key_is_single_report() -> None:
+    async def scenario() -> None:
+        database = Database(os.environ["DATABASE_URL"])
+        run_id = uuid4().hex
+        now = datetime.now(UTC)
+        scope = IdempotencyScope(
+            LearnerId(f"reporter-{run_id}"),
+            "/v1/reports",
+            IdempotencyKey(f"report-key-{run_id}"),
+        )
+        report = make_report(run_id)
+        stored = StoredReportResult(f"fingerprint-{run_id}", report, now + timedelta(hours=24))
+
+        async def submit(repository: SqlAlchemyReportRepository, session) -> None:
+            async with session.begin():
+                await repository.put(scope, stored)
+
+        async with database.session() as first_session, database.session() as second_session:
+            await asyncio.gather(
+                submit(SqlAlchemyReportRepository(first_session), first_session),
+                submit(SqlAlchemyReportRepository(second_session), second_session),
+            )
+        async with database.session() as session:
+            assert await count_rows(session, reports, reports.c.id, report.report_id) == 1
+            assert await count_rows(session, outbox, outbox.c.subject_id, report.report_id) == 1
+            assert await count_rows(
+                session, idempotency_results, idempotency_results.c.learner_id, f"reporter-{run_id}"
             ) == 1
         await database.dispose()
 

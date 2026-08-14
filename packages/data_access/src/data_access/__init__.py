@@ -10,15 +10,25 @@ from data_access.idempotency import (
     SqlAlchemyIdempotencyRepository,
     cleanup_expired_idempotency,
 )
+from data_access.reports import (
+    ReportRepository,
+    SqlAlchemyReportRepository,
+    StoredReportResult,
+    SubmittedReport,
+)
 
 __all__ = [
     "Database",
+    "ReportRepository",
     "SqlAlchemyAtomicCompletionWriter",
     "SqlAlchemyCompletionIdempotencyRepository",
     "SqlAlchemyAttemptRepository",
     "SqlAlchemyEvidenceIdempotencyRepository",
     "SqlAlchemyHintIdempotencyRepository",
     "SqlAlchemyIdempotencyRepository",
+    "SqlAlchemyReportRepository",
     "SqlAlchemyTransactionManager",
+    "StoredReportResult",
+    "SubmittedReport",
     "cleanup_expired_idempotency",
 ]

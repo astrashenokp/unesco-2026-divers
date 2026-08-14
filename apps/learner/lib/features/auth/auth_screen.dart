@@ -31,8 +31,21 @@ const _apiBaseUrl = String.fromEnvironment(
 /// server-side like any other principal — not a bespoke demo principal.
 const _devAuthToken = String.fromEnvironment('DEV_AUTH_TOKEN');
 
-Future<String?> _guestTokenProvider() async =>
-    _devAuthToken.isEmpty ? null : _devAuthToken;
+/// Ignored entirely in a release build.
+///
+/// `String.fromEnvironment` is resolved at compile time and baked into
+/// the bundle, so nothing stopped someone running
+/// `flutter build web --release --dart-define=DEV_AUTH_TOKEN=...` and
+/// shipping a working credential to every visitor — readable with view
+/// source. The guard makes that impossible rather than merely
+/// discouraged: in release the value is discarded whatever was passed.
+///
+/// It is a compile-time constant, so the release build also tree-shakes
+/// the token out instead of carrying a dead string.
+Future<String?> _guestTokenProvider() async {
+  if (kReleaseMode) return null;
+  return _devAuthToken.isEmpty ? null : _devAuthToken;
+}
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});

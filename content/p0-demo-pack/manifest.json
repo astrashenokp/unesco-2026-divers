@@ -32,12 +32,12 @@
     {
       "id": "authentic-media-wrong-context",
       "file": "missions/authentic-media-wrong-context.json",
-      "sha256": "85016b90dd5ab14ab2d1a7739df2a3da14d66f5611a265b9a0bd88c95e8d10bd"
+      "sha256": "a04527791d64ba19260a750880071475f67cde4cc1c460921802d32b70e86e62"
     },
     {
       "id": "ai-citation-integrity",
       "file": "missions/ai-citation-integrity.json",
-      "sha256": "3cb41e15cecfd0a1173ffe94c44dae3ef84846b2b101792f1337bb899d0f11da"
+      "sha256": "c9d1484e85d3d7ba06cf4b9351cfd7c890dcd50cecf7d5ad1061c687a9d514b4"
     }
   ]
 }

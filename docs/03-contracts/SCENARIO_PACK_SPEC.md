@@ -40,7 +40,9 @@ pack/
 - gold evidence graph with source identity/retrieval/license metadata;
 - accepted three-axis assessments, including uncertainty ranges;
 - Socratic hint ladder and forbidden leakage terms;
-- rubric with eval hooks, correction/history metadata, reviewer sign-off;
+- rubric with process levels 0-4, skill tags, confidence calibration,
+  responsible-sharing and uncertainty guidance, eval hooks,
+  correction/history metadata, reviewer sign-off;
 - explicit `testsCriticalIgnoring` boolean in P0 fixtures. Mission fixture
   `schemaVersion: 2` requires this field; legacy/pre-v2 importers may only
   default an omitted value to `false` during migration before validating as v2.
@@ -55,6 +57,12 @@ eval hooks mandatory. `rubric.evalHooks` includes `coachEvalCaseRefs` for the
 release gate, `observableSignals` for process-scoring instrumentation, and
 `blockingFailureSignals` for failures that should stop publication or demo
 promotion.
+
+Rubric semantics are defined in
+`docs/01-product/RUBRIC_AND_XP_GUIDANCE.md`. XP is server-awarded from the
+version-pinned rubric and must never be treated as a truth, intelligence or
+trustworthiness score. The AI coach may explain the reviewed rubric after
+completion but must not award XP or decide score.
 
 ## Publication gates
 

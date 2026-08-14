@@ -20,10 +20,32 @@ class VerificationStatus(StrEnum):
 
 
 @dataclass(frozen=True, slots=True)
+class EvidenceLicense:
+    identifier: str
+    attribution: str
+    use_basis: str
+
+
+@dataclass(frozen=True, slots=True)
+class EvidenceSource:
+    source_type: str
+    publisher: str
+    retrieved_at: datetime
+    license: EvidenceLicense
+    limitations: tuple[str, ...]
+    author: str | None = None
+    canonical_url: str | None = None
+    canonical_id: str | None = None
+    published_at: datetime | None = None
+    snapshot_hash: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class EvidenceItem:
     evidence_id: str
     type: str
     title: str
+    source: EvidenceSource
     retrieved_at: datetime
     verification_status: VerificationStatus
     source_url: str | None = None
@@ -35,4 +57,3 @@ class EvidenceResult:
     status: EvidenceStatus
     items: tuple[EvidenceItem, ...]
     limitations: tuple[str, ...]
-

@@ -7,7 +7,9 @@ from evidence_gym_api.evidence.errors import (
 )
 from evidence_gym_api.evidence.model import (
     EvidenceItem,
+    EvidenceLicense,
     EvidenceResult,
+    EvidenceSource,
     EvidenceStatus,
     VerificationStatus,
 )
@@ -17,9 +19,11 @@ __all__ = [
     "DeterministicEvidenceProvider",
     "EvidenceActionNotFound",
     "EvidenceItem",
+    "EvidenceLicense",
     "EvidenceMissionNotFound",
     "EvidenceProviderError",
     "EvidenceResult",
+    "EvidenceSource",
     "EvidenceStatus",
     "FixtureDeterministicEvidenceProvider",
     "VerificationStatus",

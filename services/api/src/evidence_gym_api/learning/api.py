@@ -74,10 +74,30 @@ class EvidenceActionBody(BaseModel):
     version: int = Field(ge=1)
 
 
+class EvidenceLicenseResponse(BaseModel):
+    identifier: str
+    attribution: str
+    useBasis: str
+
+
+class EvidenceSourceResponse(BaseModel):
+    sourceType: str
+    publisher: str
+    retrievedAt: datetime
+    license: EvidenceLicenseResponse
+    limitations: list[str]
+    author: str | None = None
+    canonicalUrl: str | None = None
+    canonicalId: str | None = None
+    publishedAt: datetime | None = None
+    snapshotHash: str | None = None
+
+
 class EvidenceItemResponse(BaseModel):
     evidenceId: str
     type: str
     title: str
+    source: EvidenceSourceResponse
     sourceUrl: str | None = None
     retrievedAt: datetime
     verificationStatus: str
@@ -101,6 +121,22 @@ class EvidenceResultResponse(BaseModel):
                     evidenceId=item.evidence_id,
                     type=item.type,
                     title=item.title,
+                    source=EvidenceSourceResponse(
+                        sourceType=item.source.source_type,
+                        publisher=item.source.publisher,
+                        author=item.source.author,
+                        canonicalUrl=item.source.canonical_url,
+                        canonicalId=item.source.canonical_id,
+                        publishedAt=item.source.published_at,
+                        retrievedAt=item.source.retrieved_at,
+                        snapshotHash=item.source.snapshot_hash,
+                        license=EvidenceLicenseResponse(
+                            identifier=item.source.license.identifier,
+                            attribution=item.source.license.attribution,
+                            useBasis=item.source.license.use_basis,
+                        ),
+                        limitations=list(item.source.limitations),
+                    ),
                     sourceUrl=item.source_url,
                     retrievedAt=item.retrieved_at,
                     verificationStatus=item.verification_status.value,

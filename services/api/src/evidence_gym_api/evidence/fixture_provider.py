@@ -9,7 +9,9 @@ from evidence_gym_api.evidence.errors import (
 )
 from evidence_gym_api.evidence.model import (
     EvidenceItem,
+    EvidenceLicense,
     EvidenceResult,
+    EvidenceSource,
     EvidenceStatus,
     VerificationStatus,
 )
@@ -44,10 +46,9 @@ class FixtureDeterministicEvidenceProvider:
                     evidence_id=item["evidenceId"],
                     type=item["type"],
                     title=item["title"],
-                    source_url=item.get("sourceUrl"),
-                    retrieved_at=datetime.fromisoformat(
-                        item["retrievedAt"].replace("Z", "+00:00")
-                    ),
+                    source=_source_from_document(_required_document(item["source"])),
+                    source_url=_optional_string(item, "sourceUrl"),
+                    retrieved_at=_required_datetime(item["retrievedAt"]),
                     verification_status=VerificationStatus(
                         item["verificationStatus"]
                     ),
@@ -56,3 +57,47 @@ class FixtureDeterministicEvidenceProvider:
             ),
             limitations=tuple(document["limitations"]),
         )
+
+
+def _parse_datetime(value: str | None) -> datetime | None:
+    if value is None:
+        return None
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def _required_datetime(value: str) -> datetime:
+    parsed = _parse_datetime(value)
+    assert parsed is not None
+    return parsed
+
+
+def _optional_string(document: dict[str, object], key: str) -> str | None:
+    value = document.get(key)
+    return value if isinstance(value, str) else None
+
+
+def _required_document(value: object) -> dict[str, object]:
+    assert isinstance(value, dict)
+    return value
+
+
+def _source_from_document(source: dict[str, object]) -> EvidenceSource:
+    license_document = _required_document(source["license"])
+    return EvidenceSource(
+        source_type=str(source["sourceType"]),
+        publisher=str(source["publisher"]),
+        author=_optional_string(source, "author"),
+        canonical_url=_optional_string(source, "canonicalUrl"),
+        canonical_id=_optional_string(source, "canonicalId"),
+        published_at=_parse_datetime(_optional_string(source, "publishedAt")),
+        retrieved_at=_required_datetime(str(source["retrievedAt"])),
+        snapshot_hash=_optional_string(source, "snapshotHash"),
+        license=EvidenceLicense(
+            identifier=str(license_document["identifier"]),
+            attribution=str(license_document["attribution"]),
+            use_basis=str(license_document["useBasis"]),
+        ),
+        limitations=tuple(
+            item for item in source["limitations"] if isinstance(item, str)
+        ),
+    )

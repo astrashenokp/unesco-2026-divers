@@ -1,4 +1,5 @@
 from dataclasses import FrozenInstanceError
+from inspect import signature
 
 import pytest
 
@@ -26,6 +27,19 @@ def test_award_xp_uses_version_pinned_rubric_and_stable_rule_code() -> None:
     second = award_xp(rubric(), 3)
 
     assert first == second == (XpGrant("process-xp:3", 6, 3),)
+
+
+def test_award_xp_has_no_truth_or_ai_inputs() -> None:
+    parameters = set(signature(award_xp).parameters)
+
+    assert parameters == {"process_levels", "used_evidence_actions"}
+    assert not {
+        "prediction_correct",
+        "verdict",
+        "claim_label",
+        "model_score",
+        "ai_score",
+    } & parameters
 
 
 @pytest.mark.parametrize(

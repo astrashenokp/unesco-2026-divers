@@ -23,6 +23,7 @@ Future<void> _enterDemo(WidgetTester tester) async {
   await _settle(tester);
   await tester.enterText(
       find.byKey(const ValueKey('auth.demoKey')), demoAccessKey);
+  await tester.ensureVisible(find.byKey(const ValueKey('auth.enterDemo')));
   await tester.tap(find.byKey(const ValueKey('auth.enterDemo')));
   await _settle(tester);
 }

@@ -48,6 +48,9 @@ def test_provider_returns_normalized_curated_result_from_exact_mission() -> None
     assert result.items
     assert result.items[0].verification_status is VerificationStatus.CURATED
     assert result.items[0].retrieved_at.tzinfo is UTC
+    assert result.items[0].source.publisher == "Evidence Gym P0 demo source packet"
+    assert result.items[0].source.license.use_basis == "team_created"
+    assert result.items[0].source.limitations
     assert result.limitations
 
 
@@ -65,6 +68,9 @@ def test_not_found_remains_not_found_and_preserves_limitation() -> None:
     assert result.items[0].evidence_id == "E-DOI-NOT-FOUND"
     assert result.items[0].type == "registry_record"
     assert result.items[0].verification_status is VerificationStatus.CURATED
+    assert result.items[0].source.source_type == "academic_registry"
+    assert result.items[0].source.canonical_id == "doi:10.4242/jamr.2025.0199"
+    assert result.items[0].source.license.use_basis == "metadata_only"
     assert "does not prove fabrication" in " ".join(result.limitations).lower()
 
 

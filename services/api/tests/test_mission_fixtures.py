@@ -74,8 +74,50 @@ def test_every_p0_evidence_action_has_deterministic_response() -> None:
 
             assert response["actionId"] == action["id"]
             assert response["status"] in {"ok", "not_found", "unavailable", "blocked"}
-            assert isinstance(response["items"], list)
-            assert isinstance(response["limitations"], list)
+            assert response["items"], (mission["id"], action["id"])
+            assert response["limitations"], (mission["id"], action["id"])
+
+
+def test_p0_deterministic_responses_carry_source_metadata_directly() -> None:
+    for path in mission_paths():
+        mission = load_json(path)
+        gold_by_id = {
+            evidence["evidenceId"]: evidence
+            for evidence in mission["goldEvidenceGraph"]["evidence"]
+        }
+
+        for action in mission["evidenceActions"]:
+            response = action["deterministicResponse"]
+            for item in response["items"]:
+                gold_evidence = gold_by_id[item["evidenceId"]]
+                source = item["source"]
+                license_record = source["license"]
+
+                assert source == gold_evidence["source"], (
+                    mission["id"],
+                    action["id"],
+                    item["evidenceId"],
+                )
+                assert source["sourceType"], (mission["id"], action["id"])
+                assert source["publisher"], (mission["id"], action["id"])
+                assert source["retrievedAt"] == item["retrievedAt"], (
+                    mission["id"],
+                    action["id"],
+                    item["evidenceId"],
+                )
+                assert source["limitations"], (mission["id"], item["evidenceId"])
+                assert license_record["identifier"], (
+                    mission["id"],
+                    item["evidenceId"],
+                )
+                assert license_record["attribution"], (
+                    mission["id"],
+                    item["evidenceId"],
+                )
+                assert license_record["useBasis"], (
+                    mission["id"],
+                    item["evidenceId"],
+                )
 
 
 def test_p0_missions_have_accessibility_contract_fields() -> None:
@@ -141,6 +183,44 @@ def test_p0_mission_contract_invariants_are_unambiguous() -> None:
                 mission["id"],
                 axis_name,
             )
+
+
+def test_p0_rubrics_cover_required_process_xp_guidance() -> None:
+    required_skill_tags = {
+        "source_identity",
+        "primary_source",
+        "corroboration",
+        "context_time_place",
+        "provenance",
+        "citation_integrity",
+        "claim_decomposition",
+        "uncertainty",
+        "responsible_sharing",
+    }
+    mission_tags: set[str] = set()
+    action_tags: set[str] = set()
+    rubric_tags: set[str] = set()
+
+    for path in mission_paths():
+        mission = load_json(path)
+        levels = mission["rubric"]["processLevels"]
+        xp_guidance = [level["xpGuidance"] for level in levels]
+
+        assert [level["level"] for level in levels] == [0, 1, 2, 3, 4], mission["id"]
+        assert xp_guidance == sorted(xp_guidance), mission["id"]
+        assert levels[0]["skillTags"] == [], mission["id"]
+        assert mission["rubric"]["confidenceCalibration"], mission["id"]
+        assert mission["learning"]["responsibleSharingGoal"], mission["id"]
+
+        mission_tags.update(mission["learning"]["skillTags"])
+        for action in mission["evidenceActions"]:
+            action_tags.update(action["skillTags"])
+        for level in levels:
+            rubric_tags.update(level["skillTags"])
+
+    assert required_skill_tags <= mission_tags
+    assert required_skill_tags <= (action_tags | rubric_tags)
+    assert "responsible_sharing" in rubric_tags
 
 
 def test_p0_mission_eval_hooks_reference_known_coach_cases() -> None:

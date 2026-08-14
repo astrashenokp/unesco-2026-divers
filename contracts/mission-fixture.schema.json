@@ -152,6 +152,7 @@
         },
         "limitations": {
           "type": "array",
+          "minItems": 1,
           "items": { "$ref": "#/$defs/shortText" }
         }
       }
@@ -398,6 +399,7 @@
         },
         "limitations": {
           "type": "array",
+          "minItems": 1,
           "items": { "$ref": "#/$defs/shortText" }
         }
       }
@@ -470,7 +472,7 @@
     "evidenceResultItem": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["evidenceId", "type", "title", "retrievedAt", "verificationStatus"],
+      "required": ["evidenceId", "type", "title", "source", "retrievedAt", "verificationStatus"],
       "properties": {
         "evidenceId": { "$ref": "#/$defs/evidenceId" },
         "type": {
@@ -485,6 +487,7 @@
           "type": "string",
           "format": "uri"
         },
+        "source": { "$ref": "#/$defs/sourceRef" },
         "retrievedAt": {
           "type": "string",
           "format": "date-time"
@@ -732,6 +735,7 @@
         "license": { "$ref": "#/$defs/license" },
         "limitations": {
           "type": "array",
+          "minItems": 1,
           "items": { "$ref": "#/$defs/shortText" }
         }
       }

@@ -26,10 +26,12 @@ bool _uk(String code) => code == 'uk';
 /// The process-level ladder, taken verbatim from the reviewed pack at
 /// `content/p0-demo-pack`.
 ///
-/// Shared by every demo mission because the pack's own missions share
-/// it. Copied rather than invented: XP must come from curated content,
-/// and a demo that pays differently from the reviewed rubric would be
-/// showing a judge numbers the product does not actually award.
+/// This offline demo uses one generic ladder across its local missions;
+/// checked-in P0 mission JSON can carry mission-specific criteria and
+/// skill tags. The invariant is the same in both places: XP must come
+/// from curated content, and a demo that pays differently from its
+/// reviewed rubric would be showing a judge numbers the product does
+/// not actually award.
 List<ProcessLevel> demoRubric(String code) => [
       ProcessLevel(
         level: 0,
@@ -324,6 +326,17 @@ Map<String, EvidenceResult> demoEvidenceResultsFor(String code) {
   final onlyDemo = _uk(code)
       ? 'Демонстраційні дані — це не справжній запит.'
       : 'Demo fixture — not a live lookup.';
+  final demoSource = EvidenceSource(
+    sourceType: 'team_fixture',
+    publisher: 'Evidence Gym P0 demo source packet',
+    retrievedAt: DateTime.utc(2026, 8, 10, 9),
+    license: const EvidenceLicense(
+      identifier: 'EGYM-DEMO-0.1',
+      attribution: 'Evidence Gym team-created demo metadata',
+      useBasis: 'team_created',
+    ),
+    limitations: [onlyDemo],
+  );
 
   EvidenceResult ok(String actionId, String id, String type, String en, String uk,
           String status, {List<String> extra = const []}) =>
@@ -337,6 +350,7 @@ Map<String, EvidenceResult> demoEvidenceResultsFor(String code) {
             evidenceId: id,
             type: type,
             title: _uk(code) ? uk : en,
+            source: demoSource,
             retrievedAt: DateTime.utc(2026, 8, 10, 9),
             verificationStatus: status,
           ),

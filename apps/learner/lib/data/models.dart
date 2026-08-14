@@ -234,11 +234,73 @@ class PredictionInput {
       };
 }
 
+class EvidenceLicense {
+  const EvidenceLicense({
+    required this.identifier,
+    required this.attribution,
+    required this.useBasis,
+  });
+
+  final String identifier;
+  final String attribution;
+  final String useBasis;
+
+  factory EvidenceLicense.fromJson(Map<String, dynamic> json) =>
+      EvidenceLicense(
+        identifier: json['identifier'] as String,
+        attribution: json['attribution'] as String,
+        useBasis: json['useBasis'] as String,
+      );
+}
+
+class EvidenceSource {
+  const EvidenceSource({
+    required this.sourceType,
+    required this.publisher,
+    required this.retrievedAt,
+    required this.license,
+    required this.limitations,
+    this.author,
+    this.canonicalUrl,
+    this.canonicalId,
+    this.publishedAt,
+    this.snapshotHash,
+  });
+
+  final String sourceType;
+  final String publisher;
+  final DateTime retrievedAt;
+  final EvidenceLicense license;
+  final List<String> limitations;
+  final String? author;
+  final String? canonicalUrl;
+  final String? canonicalId;
+  final DateTime? publishedAt;
+  final String? snapshotHash;
+
+  factory EvidenceSource.fromJson(Map<String, dynamic> json) => EvidenceSource(
+        sourceType: json['sourceType'] as String,
+        publisher: json['publisher'] as String,
+        author: json['author'] as String?,
+        canonicalUrl: json['canonicalUrl'] as String?,
+        canonicalId: json['canonicalId'] as String?,
+        publishedAt: json['publishedAt'] == null
+            ? null
+            : DateTime.parse(json['publishedAt'] as String),
+        retrievedAt: DateTime.parse(json['retrievedAt'] as String),
+        snapshotHash: json['snapshotHash'] as String?,
+        license:
+            EvidenceLicense.fromJson(json['license'] as Map<String, dynamic>),
+        limitations: (json['limitations'] as List).cast<String>(),
+      );
+}
+
 class EvidenceItem {
   const EvidenceItem({
     required this.evidenceId,
     required this.type,
     required this.title,
+    required this.source,
     required this.retrievedAt,
     required this.verificationStatus,
     this.sourceUrl,
@@ -247,6 +309,7 @@ class EvidenceItem {
   final String evidenceId;
   final String type;
   final String title;
+  final EvidenceSource source;
   final String? sourceUrl;
   final DateTime retrievedAt;
   final String verificationStatus; // verified_metadata|curated|unverified|conflicting
@@ -255,6 +318,7 @@ class EvidenceItem {
         evidenceId: json['evidenceId'] as String,
         type: json['type'] as String,
         title: json['title'] as String,
+        source: EvidenceSource.fromJson(json['source'] as Map<String, dynamic>),
         sourceUrl: json['sourceUrl'] as String?,
         retrievedAt: DateTime.parse(json['retrievedAt'] as String),
         verificationStatus: json['verificationStatus'] as String,

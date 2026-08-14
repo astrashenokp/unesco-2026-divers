@@ -231,28 +231,51 @@ class _RailFooter extends StatelessWidget {
     final streak = repository.streak;
     final paused = streak.isPaused(DateTime.now());
 
-    Widget fact(IconData icon, String value, String label, Color tint) =>
+    // One row per fact, aligned on a fixed icon column so the labels
+    // start at the same x whatever their length. The first version
+    // stacked icon over text and centred both, which left every item a
+    // different width and visibly ragged — and passed an empty string
+    // as the label for two of them, so those rendered a blank line and
+    // sat taller than the rest.
+    //
+    // The second line is optional now rather than empty.
+    Widget fact(IconData icon, String value, String? label, Color tint) =>
         Semantics(
-          label: '$value $label',
+          label: label == null ? value : '$value $label',
           child: ExcludeSemantics(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: tokens.space(0.75)),
-              child: Column(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(icon, size: 18, color: tint),
-                  SizedBox(height: tokens.space(0.25)),
-                  Text(
-                    value,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                  SizedBox(
+                    width: 22,
+                    child: Icon(icon, size: 18, color: tint),
                   ),
-                  Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          value,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                height: 1.15,
+                              ),
+                        ),
+                        if (label != null && label.isNotEmpty)
+                          Text(
+                            label,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(height: 1.15),
+                          ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -261,38 +284,40 @@ class _RailFooter extends StatelessWidget {
         );
 
     return SizedBox(
-      width: 84,
+      // Matches the rail's own minWidth so the block lines up with the
+      // destinations above rather than floating narrower than them.
+      width: 92,
       child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Divider(
-              indent: tokens.space(2),
-              endIndent: tokens.space(2),
-              color: tokens.textMuted.withValues(alpha: 0.2),
-            ),
-            fact(
-              paused
-                  ? Icons.pause_circle_outline
-                  : Icons.local_fire_department_outlined,
-              paused
-                  ? s.streakPaused
-                  : (streak.current == 0
-                      ? s.streakNone
-                      : s.streakDays(streak.current)),
-              paused ? '' : s.streakLabel,
-              paused ? tokens.textMuted : tokens.evidenceSecondary,
-            ),
-            // Named rather than assumed. Someone handing a laptop to a
-            // child should be able to see the mode without opening
-            // settings, and someone who forgot they turned it on should
-            // not have to wonder where the missions went.
-            if (settings.audience == AudienceMode.child)
-              fact(Icons.child_care_outlined, s.audienceChild, '',
-                  tokens.evidencePrimary),
-            if (repository.isDemo)
-              fact(Icons.science_outlined, s.demoBadge, '', tokens.action),
-          ],
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: tokens.space(1.25)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Divider(color: tokens.textMuted.withValues(alpha: 0.2)),
+              fact(
+                paused
+                    ? Icons.pause_circle_outline
+                    : Icons.local_fire_department_outlined,
+                paused
+                    ? s.streakPaused
+                    : (streak.current == 0
+                        ? s.streakNone
+                        : s.streakDays(streak.current)),
+                paused ? null : s.streakLabel,
+                paused ? tokens.textMuted : tokens.evidenceSecondary,
+              ),
+              // Named rather than assumed. Someone handing a laptop to a
+              // child should be able to see the mode without opening
+              // settings, and someone who forgot they turned it on
+              // should not have to wonder where the missions went.
+              if (settings.audience == AudienceMode.child)
+                fact(Icons.child_care_outlined, s.audienceChild, null,
+                    tokens.evidencePrimary),
+              if (repository.isDemo)
+                fact(Icons.science_outlined, s.demoBadge, null, tokens.action),
+            ],
+          ),
         ),
       ),
     );

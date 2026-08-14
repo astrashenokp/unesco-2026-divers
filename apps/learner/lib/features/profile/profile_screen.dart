@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 import '../../data/mission_repository.dart';
 import '../../data/arenas.dart';
-import '../../data/demo_fixtures.dart';
+import '../../data/gameplay.dart';
 import '../../data/models.dart';
 import '../../l10n/strings.dart';
 import '../common/failure_view.dart';
@@ -26,8 +26,13 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late Future<({Progress progress, List<Receipt> receipts, LearningPath path})>
-      _future;
+  late Future<
+      ({
+        Progress progress,
+        List<Receipt> receipts,
+        LearningPath path,
+        List<ProcessLevel> rubric,
+      })> _future;
 
   @override
   void initState() {
@@ -37,12 +42,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _retry() => setState(() => _future = _load());
 
-  Future<({Progress progress, List<Receipt> receipts, LearningPath path})>
-      _load() async {
+  Future<
+      ({
+        Progress progress,
+        List<Receipt> receipts,
+        LearningPath path,
+        List<ProcessLevel> rubric,
+      })> _load() async {
     final progress = await widget.repository.getMyProgress();
     final receipts = await widget.repository.listReceipts();
     final path = await widget.repository.getLearningPath();
-    return (progress: progress, receipts: receipts, path: path);
+
+    // The ladder comes off a real mission rather than a hardcoded demo
+    // copy. The first version of this called `demoRubric()` directly,
+    // which would have shown demo content to a live learner as though it
+    // were the rubric they are actually scored against — the same class
+    // of mistake as the invented streak that had to be removed from the
+    // path header.
+    //
+    // Allowed to come back empty: no mission, no ladder, and the section
+    // is simply absent rather than filled with a plausible stand-in.
+    var rubric = const <ProcessLevel>[];
+    if (path.nodes.isNotEmpty) {
+      try {
+        rubric = (await widget.repository.getMission(path.nodes.first.missionId))
+            .rubric;
+      } catch (_) {
+        // The profile is worth showing without it.
+      }
+    }
+
+    return (
+      progress: progress,
+      receipts: receipts,
+      path: path,
+      rubric: rubric,
+    );
   }
 
   Future<void> _export(Progress progress, List<Receipt> receipts) async {
@@ -79,7 +114,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final tokens = context.tokens;
 
     return FutureBuilder<
-        ({Progress progress, List<Receipt> receipts, LearningPath path})>(
+        ({
+          Progress progress,
+          List<Receipt> receipts,
+          LearningPath path,
+          List<ProcessLevel> rubric,
+        })>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -101,6 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final progress = snapshot.data!.progress;
         final receipts = snapshot.data!.receipts;
         final nodes = snapshot.data!.path.nodes;
+        final rubric = snapshot.data!.rubric;
 
         return ReadableWidth(
           child: ListView(
@@ -211,24 +252,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // on a receipt it explains a score just given, and here it
               // answers "what am I being measured on" before the next
               // mission rather than after it.
-              Text(s.ladderTitle, style: Theme.of(context).textTheme.titleLarge),
-              SizedBox(height: tokens.space(0.5)),
-              Text(s.ladderIntro, style: Theme.of(context).textTheme.bodySmall),
-              SizedBox(height: tokens.space(1.5)),
-              LevelLadder(
-                rungs: [
-                  for (final rung in demoRubric(s.locale.languageCode))
-                    LadderRung(
-                      level: rung.level,
-                      criteria: rung.criteria,
-                      xp: rung.xpGuidance,
-                    ),
-                ],
-                reached: null,
-                levelLabel: s.ladderLevel,
-                xpLabel: s.ladderXp,
-              ),
-              SizedBox(height: tokens.space(3)),
+              if (rubric.isNotEmpty) ...[
+                Text(s.ladderTitle,
+                    style: Theme.of(context).textTheme.titleLarge),
+                SizedBox(height: tokens.space(0.5)),
+                Text(s.ladderIntro,
+                    style: Theme.of(context).textTheme.bodySmall),
+                SizedBox(height: tokens.space(1.5)),
+                LevelLadder(
+                  rungs: [
+                    for (final rung in rubric)
+                      LadderRung(
+                        level: rung.level,
+                        criteria: rung.criteria,
+                        xp: rung.xpGuidance,
+                      ),
+                  ],
+                  reached: null,
+                  levelLabel: s.ladderLevel,
+                  xpLabel: s.ladderXp,
+                ),
+                SizedBox(height: tokens.space(3)),
+              ],
 
               Text(s.historyTitle, style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: tokens.space(1)),

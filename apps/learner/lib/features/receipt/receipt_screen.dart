@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/mission_repository.dart';
+import '../../data/gameplay.dart';
 import '../../data/models.dart';
 import '../../l10n/axis_localization.dart';
 import '../../l10n/strings.dart';
@@ -29,7 +30,12 @@ class ReceiptScreen extends StatefulWidget {
 }
 
 class _ReceiptScreenState extends State<ReceiptScreen> {
-  late Future<({Receipt receipt, String? currentVersion})> _future;
+  late Future<
+      ({
+        Receipt receipt,
+        String? currentVersion,
+        List<ProcessLevel> rubric,
+      })> _future;
 
   @override
   void initState() {
@@ -52,15 +58,26 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   /// mistaken for a promise that nothing changed, and blocking the whole
   /// receipt because a second request failed would trade something the
   /// learner asked for against something extra.
-  Future<({Receipt receipt, String? currentVersion})> _load() async {
+  Future<
+      ({
+        Receipt receipt,
+        String? currentVersion,
+        List<ProcessLevel> rubric,
+      })> _load() async {
     final receipt = await widget.repository.getReceipt(widget.receiptId);
     final missionId = receipt.missionId;
-    if (missionId == null) return (receipt: receipt, currentVersion: null);
+    if (missionId == null) {
+      return (receipt: receipt, currentVersion: null, rubric: const <ProcessLevel>[]);
+    }
     try {
       final mission = await widget.repository.getMission(missionId);
-      return (receipt: receipt, currentVersion: mission.version);
+      return (
+        receipt: receipt,
+        currentVersion: mission.version,
+        rubric: mission.rubric,
+      );
     } catch (_) {
-      return (receipt: receipt, currentVersion: null);
+      return (receipt: receipt, currentVersion: null, rubric: const <ProcessLevel>[]);
     }
   }
 
@@ -75,7 +92,12 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
       appBar: AppBar(title: Text(s.receiptScreenTitle)),
       body: LivingBackground(
         variant: GroundVariant.grid,
-        child: FutureBuilder<({Receipt receipt, String? currentVersion})>(
+        child: FutureBuilder<
+            ({
+              Receipt receipt,
+              String? currentVersion,
+              List<ProcessLevel> rubric,
+            })>(
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -93,6 +115,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
           final receipt = snapshot.data!.receipt;
           final currentVersion = snapshot.data!.currentVersion;
+          final rubric = snapshot.data!.rubric;
           final corrected = currentVersion != null &&
               currentVersion != receipt.missionVersion;
           // The contract guarantees exactly three assessments, in axis
@@ -156,6 +179,39 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                   ],
                 ),
                 SizedBox(height: tokens.space(2)),
+
+                // The scoring ladder was on the completion step and
+                // missing here — so a learner who reopened their own
+                // receipt from history saw the conclusions and none of
+                // the scale they were judged against.
+                //
+                // No rung is marked. `Receipt` in the contract records
+                // the assessments but not the process level reached, so
+                // marking one would mean inferring it from the evidence
+                // reference count, which is not the same number. Shown
+                // as the reference it can honestly be.
+                if (rubric.isNotEmpty) ...[
+                  Text(s.ladderTitle,
+                      style: Theme.of(context).textTheme.titleLarge),
+                  const SectionRule(),
+                  Text(s.ladderIntro,
+                      style: Theme.of(context).textTheme.bodySmall),
+                  SizedBox(height: tokens.space(1.5)),
+                  LevelLadder(
+                    rungs: [
+                      for (final rung in rubric)
+                        LadderRung(
+                          level: rung.level,
+                          criteria: rung.criteria,
+                          xp: rung.xpGuidance,
+                        ),
+                    ],
+                    reached: null,
+                    levelLabel: s.ladderLevel,
+                    xpLabel: s.ladderXp,
+                  ),
+                  SizedBox(height: tokens.space(3)),
+                ],
 
                 Row(
                   children: [

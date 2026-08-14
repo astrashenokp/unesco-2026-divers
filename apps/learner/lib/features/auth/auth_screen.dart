@@ -1,10 +1,12 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/api_client.dart';
 import '../../data/audience.dart';
 import '../../data/connectivity.dart';
+import '../../data/mission_cache.dart';
 import '../../app_settings.dart';
 import '../../data/demo_fixtures.dart';
 import '../../data/mission_repository.dart';
@@ -78,8 +80,9 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  void _continueAsGuest() {
+  Future<void> _continueAsGuest() async {
     final connectivity = ConnectivityScope.of(context);
+    final settings = AppSettingsScope.of(context);
     final client = EvidenceGymApiClient(
       baseUrl: Uri.parse(_apiBaseUrl),
       authTokenProvider: _guestTokenProvider,
@@ -89,7 +92,23 @@ class _AuthScreenState extends State<AuthScreen> {
       // must never lock out a learner who is in fact online.
       ..onReachability = ({required bool reachable}) =>
           connectivity.report(reachable: reachable);
-    _open(LiveMissionRepository(client));
+
+    // Storage may be unavailable — private browsing, a locked-down
+    // profile. The cache is then simply absent and everything still
+    // works online, which is the right failure for a convenience.
+    SharedPreferences? store;
+    try {
+      store = await SharedPreferences.getInstance();
+    } catch (_) {
+      store = null;
+    }
+    if (!mounted) return;
+
+    _open(LiveMissionRepository(
+      client,
+      cache: MissionCache(store),
+      prefetch: settings.prefetchMissions,
+    ));
   }
 
   void _enterDemoKey() {

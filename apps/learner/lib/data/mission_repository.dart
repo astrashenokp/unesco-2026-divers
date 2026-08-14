@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'api_client.dart';
 import 'audience.dart';
 import 'demo_fixtures.dart';
 import 'gameplay.dart';
 import 'models.dart';
+import 'mission_cache.dart';
 import '../features/leaderboard/leaderboard_screen.dart';
 
 /// Screens depend on this, never on [EvidenceGymApiClient] or the demo
@@ -567,7 +569,33 @@ class LiveMissionRepository implements MissionRepository {
   @override
   void resumeStreak() {}
 
-  LiveMissionRepository(this._client);
+  LiveMissionRepository(this._client, {MissionCache? cache, bool prefetch = true})
+      : _cache = cache,
+        _prefetch = prefetch {
+    // Published content is written to the cache as it arrives, so the
+    // cache fills from ordinary use rather than from a separate download
+    // the learner did not ask for.
+    _client.onCacheable = (kind, id, json) {
+      if (!_prefetch) return;
+      if (kind == 'path') {
+        _cache?.writePath(json);
+      } else {
+        _cache?.writeMission(id, json);
+      }
+    };
+  }
+
+  final MissionCache? _cache;
+  bool _prefetch;
+
+  /// Turning the setting off stops caching *and* drops what is held.
+  /// A switch that only stops adding has not really been turned off.
+  Future<void> setPrefetch(bool value) async {
+    _prefetch = value;
+    if (!value) await _cache?.clear();
+  }
+
+  int get cachedMissionCount => _cache?.storedCount ?? 0;
   final EvidenceGymApiClient _client;
 
   /// One idempotency key per *logical action*, not per call.
@@ -594,10 +622,53 @@ class LiveMissionRepository implements MissionRepository {
   bool get isDemo => false;
 
   @override
-  Future<LearningPath> getLearningPath() => _client.getLearningPath();
+  Future<LearningPath> getLearningPath() async {
+    try {
+      final path = await _client.getLearningPath();
+      // Warm the next few missions in the background. Failures are
+      // ignored on purpose: a prefetch that surfaces an error would
+      // interrupt a learner over content they had not asked for yet.
+      if (_prefetch) unawaited(_warm(path));
+      return path;
+    } on EvidenceGymApiException catch (e) {
+      final cached = e.isOffline ? _cache?.readPath() : null;
+      if (cached != null) return cached;
+      rethrow;
+    }
+  }
+
+  /// Fetches the next few missions so they are there if the connection
+  /// is not.
+  Future<void> _warm(LearningPath path) async {
+    final ahead = path.nodes
+        .where((n) => n.state != 'completed')
+        .take(MissionCache.lookahead);
+    for (final node in ahead) {
+      if (_cache?.readMission(node.missionId) != null) continue;
+      try {
+        await _client.getMission(node.missionId);
+      } catch (_) {
+        // Nothing to report and nothing to retry: the learner has not
+        // asked for this mission yet.
+        return;
+      }
+    }
+  }
 
   @override
-  Future<Mission> getMission(String missionId) => _client.getMission(missionId);
+  Future<Mission> getMission(String missionId) async {
+    try {
+      return await _client.getMission(missionId);
+    } on EvidenceGymApiException catch (e) {
+      // Only a transport failure falls back. A 404 means this mission is
+      // genuinely gone and showing a cached copy of withdrawn content
+      // would be worse than an error — content can be withdrawn for
+      // safety reasons, and ADR-005 makes corrections a new version.
+      final cached = e.isOffline ? _cache?.readMission(missionId) : null;
+      if (cached != null) return cached;
+      rethrow;
+    }
+  }
 
   @override
   Future<Attempt> startAttempt(String missionId, String missionVersion) =>

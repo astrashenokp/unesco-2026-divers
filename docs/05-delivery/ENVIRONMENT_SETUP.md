@@ -8,6 +8,16 @@ Git, Flutter stable pinned by project config, Dart, supported Python, dependency
 
 One documented command should eventually validate tool versions, create local config from `.env.example`, start PostgreSQL/emulators, apply migrations, load two fixtures, run API, run Flutter web and execute smoke tests. It must never download unverified binaries or print secrets.
 
+## Local PostgreSQL
+
+The local container may publish PostgreSQL on a non-default port (for example `127.0.0.1:5433` in `eg-postgres`). `packages/data_access/.env.example` and `packages/data_access/alembic.ini` default to `5432`, which matches CI; for local work override with `DATABASE_URL` (Alembic reads it via `migrations/env.py`) or update `.env`:
+
+```bash
+DATABASE_URL=postgresql+asyncpg://evidence_gym:evidence_gym@127.0.0.1:5433/evidence_gym
+```
+
+Keep the local database migrated to head before running PostgreSQL integration tests: `python -m alembic -c alembic.ini upgrade head` from `packages/data_access`.
+
 ## Environment separation
 
 `local`, `dev`, `staging`, `prod` use distinct Firebase apps, GCP projects, service accounts, databases, buckets, keys, budgets and callback URLs. Production data is never copied to local/test.

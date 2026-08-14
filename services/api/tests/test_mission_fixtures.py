@@ -34,14 +34,14 @@ def test_p0_demo_manifest_hashes_match_mission_files() -> None:
         assert digest == mission["sha256"], mission["id"]
 
 
-def test_p0_demo_manifest_does_not_claim_public_review() -> None:
+def test_p0_demo_manifest_is_in_review_without_public_approval() -> None:
     manifest = load_json(MANIFEST_PATH)
     review = manifest["review"]
 
-    assert review["status"] == "draft"
+    assert review["status"] == "review"
     assert "draftedAt" in review
     assert "reviewedAt" not in review
-    assert review["reviewerIds"] == []
+    assert review["reviewerIds"] == ["evidence-guardian"]
 
 
 def test_p0_missions_have_explicit_critical_ignoring_policy() -> None:
@@ -52,15 +52,15 @@ def test_p0_missions_have_explicit_critical_ignoring_policy() -> None:
         assert isinstance(mission["testsCriticalIgnoring"], bool), mission["id"]
 
 
-def test_draft_p0_missions_do_not_claim_review_completion() -> None:
+def test_review_p0_missions_do_not_claim_public_approval() -> None:
     for path in mission_paths():
         mission = load_json(path)
         review = mission["review"]
 
-        assert review["status"] == "draft", mission["id"]
+        assert review["status"] == "review", mission["id"]
         assert "draftedAt" in review, mission["id"]
         assert "reviewedAt" not in review, mission["id"]
-        assert review["reviewerIds"] == [], mission["id"]
+        assert review["reviewerIds"] == ["evidence-guardian"], mission["id"]
 
 
 def test_every_p0_evidence_action_has_deterministic_response() -> None:

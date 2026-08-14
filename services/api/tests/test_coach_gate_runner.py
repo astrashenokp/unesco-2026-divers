@@ -12,6 +12,7 @@ from conftest import REPOSITORY_ROOT
 
 SUITE_PATH = REPOSITORY_ROOT / "evals" / "coach" / "p0-eval-cases.json"
 RUNNER_PATH = REPOSITORY_ROOT / "evals" / "coach" / "run_gate.py"
+FIXTURE_RESULTS_PATH = REPOSITORY_ROOT / "evals" / "coach" / "p0-fixture-results.json"
 
 
 def load_suite() -> dict:
@@ -361,3 +362,10 @@ def test_coach_gate_runner_rejects_suite_missing_fallback_pair(
         "ai-citation-integrity/provider_timeout"
         in result.stderr
     )
+
+
+def test_checked_in_fixture_results_pass_the_release_gate() -> None:
+    result = run_gate(FIXTURE_RESULTS_PATH)
+
+    assert result.returncode == 0, result.stderr
+    assert "coach eval gate passed" in result.stdout

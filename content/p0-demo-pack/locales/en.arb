@@ -1,0 +1,7 @@
+{
+  "@@locale": "en",
+  "packTitle": "Evidence Gym P0 Demo Pack",
+  "packDescription": "Two deterministic review-stage missions for the hackathon vertical slice.",
+  "missionAuthenticMediaWrongContextTitle": "Real Image, Wrong Story",
+  "missionAiCitationIntegrityTitle": "The Citation That Sounds Real"
+}

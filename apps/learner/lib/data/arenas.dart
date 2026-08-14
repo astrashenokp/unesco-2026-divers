@@ -40,13 +40,8 @@ enum DisinfoArena {
 /// everywhere teaches nothing about where it belongs, and a learner who
 /// meets the same case in three rooms stops trusting the rooms.
 const demoArenaOf = <String, DisinfoArena>{
-  'viral-flood-photo': DisinfoArena.crisis,
-  'old-protest-clip': DisinfoArena.crisis,
-  'citation-hunt': DisinfoArena.healthAndScience,
-  'anonymous-claim': DisinfoArena.powerAndMoney,
-  'true-numbers-false-story': DisinfoArena.powerAndMoney,
-  'context-swap': DisinfoArena.syntheticAndRecycled,
-  'synthetic-but-real-topic': DisinfoArena.syntheticAndRecycled,
+  'authentic-media-wrong-context': DisinfoArena.crisis,
+  'ai-citation-integrity': DisinfoArena.healthAndScience,
 };
 
 /// Display order. Crisis first because it is the one people meet without

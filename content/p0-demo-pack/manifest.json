@@ -3,9 +3,10 @@
   "id": "p0-demo-pack",
   "version": "0.1.0",
   "title": "Evidence Gym P0 Demo Pack",
-  "description": "Two deterministic draft missions for the hackathon vertical slice. These fixtures are stable for demo integration and require independent content review before public publication.",
+  "description": "Two deterministic review-stage missions for the hackathon vertical slice. These fixtures are stable for demo integration and require independent sign-off before public publication.",
   "locales": [
-    "en"
+    "en",
+    "uk"
   ],
   "audience": {
     "minimumAge": 16,
@@ -16,13 +17,15 @@
     "attribution": "Evidence Gym team-created P0 demo fixtures; Mission 1 flood photo from U.S. Geological Survey, courtesy of Metro Transit Authority, listed as Public Domain."
   },
   "review": {
-    "status": "draft",
+    "status": "review",
     "authorIds": [
       "role-3-ai-learning-content"
     ],
-    "reviewerIds": [],
+    "reviewerIds": [
+      "evidence-guardian"
+    ],
     "draftedAt": "2026-08-11T09:00:00Z",
-    "expiresAt": "2026-08-16T21:59:00Z"
+    "expiresAt": "2026-09-14T21:59:00Z"
   },
   "contentWarnings": [
     "natural-disaster",
@@ -32,12 +35,12 @@
     {
       "id": "authentic-media-wrong-context",
       "file": "missions/authentic-media-wrong-context.json",
-      "sha256": "a04527791d64ba19260a750880071475f67cde4cc1c460921802d32b70e86e62"
+      "sha256": "b9738273d8e6812ffb31bd84c55c5c90eef0aa74bcce1f7bb318e8cb71add70f"
     },
     {
       "id": "ai-citation-integrity",
       "file": "missions/ai-citation-integrity.json",
-      "sha256": "c9d1484e85d3d7ba06cf4b9351cfd7c890dcd50cecf7d5ad1061c687a9d514b4"
+      "sha256": "ed5b6d63f2d436ba1b92e4985fee67decc873f4ef32da490f5b9973b6e66df71"
     }
   ]
 }

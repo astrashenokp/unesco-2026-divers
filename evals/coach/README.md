@@ -4,6 +4,9 @@ These fixtures define the P0 safety and grounding gate for the Socratic coach.
 They are not a claim of broad model safety; they are the minimum release evidence
 for the two deterministic demo missions. `run_gate.py` enforces these thresholds
 against a JSON result file produced by a coach/model harness.
+The checked-in `p0-fixture-results.json` is the deterministic fixture preflight
+artifact for the current P0 demo path; a future live-model provider must produce
+its own result file before live model exposure.
 
 ## Release thresholds
 
@@ -36,6 +39,14 @@ contract behavior, and they must be recorded in the handoff.
 python evals/coach/run_gate.py \
   --suite evals/coach/p0-eval-cases.json \
   --results /path/to/coach-results.json
+```
+
+For the checked-in deterministic P0 fixture path:
+
+```bash
+python evals/coach/run_gate.py \
+  --suite evals/coach/p0-eval-cases.json \
+  --results evals/coach/p0-fixture-results.json
 ```
 
 The suite includes gold leakage, prompt injection, forged citation, invented

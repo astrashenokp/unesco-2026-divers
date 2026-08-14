@@ -19,7 +19,9 @@ Future<void> _settle(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('onboarding shows the first slide in the selected language', (tester) async {
+  testWidgets('onboarding shows the first slide in the selected language', (
+    tester,
+  ) async {
     await tester.pumpWidget(EvidenceGymApp(settings: _english()));
     await _settle(tester);
 
@@ -45,7 +47,9 @@ void main() {
     expect(find.text('Enter demo'), findsOneWidget);
   });
 
-  testWidgets('a wrong demo key is rejected and does not navigate', (tester) async {
+  testWidgets('a wrong demo key is rejected and does not navigate', (
+    tester,
+  ) async {
     await tester.pumpWidget(EvidenceGymApp(settings: _english()));
     await _settle(tester);
     await tester.tap(find.text('Skip'));
@@ -77,17 +81,20 @@ void main() {
 
     await _chooseEverything(tester);
     expect(find.text('Your path'), findsOneWidget);
-    expect(find.text('The flood photo'), findsWidgets);
+    expect(find.text('Real Image, Wrong Story'), findsWidgets);
   });
 
   test('the demo pack advances the path as missions are completed', () {
     // The path must actually move: exactly one mission open at a time,
     // everything before it done, everything after it locked.
-    for (var done = 0; done <= 3; done++) {
+    for (var done = 0; done < demoMissionsFor('uk').length; done++) {
       final path = demoLearningPathFor('uk', completed: done);
       expect(path.nodes.where((n) => n.state == 'completed').length, done);
-      expect(path.nodes.where((n) => n.state == 'available').length, 1,
-          reason: 'exactly one mission should be open at $done completed');
+      expect(
+        path.nodes.where((n) => n.state == 'available').length,
+        1,
+        reason: 'exactly one mission should be open at $done completed',
+      );
     }
   });
 
@@ -130,9 +137,13 @@ void main() {
     // The primary action has to be there on arrival. hitTestable() is
     // the check that matters: a widget can be in the tree, and laid out,
     // and still be somewhere a finger cannot land.
-    expect(find.text('Continue as guest').hitTestable(), findsOneWidget,
-        reason: 'the main way in is not reachable at 360x640 without '
-            'scrolling');
+    expect(
+      find.text('Continue as guest').hitTestable(),
+      findsOneWidget,
+      reason:
+          'the main way in is not reachable at 360x640 without '
+          'scrolling',
+    );
 
     // The demo route may sit below the fold — it is the secondary path,
     // and the privacy notice and audience choice legitimately come
@@ -144,44 +155,55 @@ void main() {
     await tester.tap(find.text('Enter demo'));
     await _settle(tester);
     await _chooseEverything(tester);
-    expect(find.text('Your path'), findsOneWidget,
-        reason: 'the demo entry did not actually work at phone size');
+    expect(
+      find.text('Your path'),
+      findsOneWidget,
+      reason: 'the demo entry did not actually work at phone size',
+    );
   });
 
-  testWidgets('choosing an arena narrows the path, and it can be changed back',
-      (tester) async {
-    await tester.pumpWidget(EvidenceGymApp(settings: _english()));
-    await _settle(tester);
-    await tester.tap(find.text('Skip'));
-    await _settle(tester);
-    await tester.enterText(find.byType(TextField), demoAccessKey);
-    await tester.ensureVisible(find.text('Enter demo'));
-    await tester.pump();
-    await tester.tap(find.text('Enter demo'));
-    await _settle(tester);
+  testWidgets(
+    'choosing an arena narrows the path, and it can be changed back',
+    (tester) async {
+      await tester.pumpWidget(EvidenceGymApp(settings: _english()));
+      await _settle(tester);
+      await tester.tap(find.text('Skip'));
+      await _settle(tester);
+      await tester.enterText(find.byType(TextField), demoAccessKey);
+      await tester.ensureVisible(find.text('Enter demo'));
+      await tester.pump();
+      await tester.tap(find.text('Enter demo'));
+      await _settle(tester);
 
-    // Crisis holds the flood photo and the protest clip; the AI citation
-    // belongs to health and science and must not follow the learner in.
-    await tester.ensureVisible(find.text('Crisis and emergency'));
-    await tester.pump();
-    await tester.tap(find.text('Crisis and emergency'));
-    await _settle(tester);
+      // Crisis holds the media-context mission; the AI citation belongs to
+      // health and science and must not follow the learner in.
+      await tester.ensureVisible(find.text('Crisis and emergency'));
+      await tester.pump();
+      await tester.tap(find.text('Crisis and emergency'));
+      await _settle(tester);
 
-    expect(find.text('Your path'), findsOneWidget);
-    expect(find.text('The flood photo'), findsWidgets,
-        reason: 'the arena is missing a mission that belongs to it');
-    expect(find.text('The suspicious citation'), findsNothing,
-        reason: 'a mission from another arena leaked into this one');
+      expect(find.text('Your path'), findsOneWidget);
+      expect(
+        find.text('Real Image, Wrong Story'),
+        findsWidgets,
+        reason: 'the arena is missing a mission that belongs to it',
+      );
+      expect(
+        find.text('The Citation That Sounds Real'),
+        findsNothing,
+        reason: 'a mission from another arena leaked into this one',
+      );
 
-    // A filter nobody can undo is a trap: a learner who wonders where
-    // the other missions went needs the way back to be on the screen.
-    expect(find.textContaining('Change subject'), findsOneWidget);
-    await tester.ensureVisible(find.textContaining('Change subject'));
-    await tester.pump();
-    await tester.tap(find.textContaining('Change subject'));
-    await _settle(tester);
-    expect(find.text('What are you up against?'), findsOneWidget);
-  });
+      // A filter nobody can undo is a trap: a learner who wonders where
+      // the other missions went needs the way back to be on the screen.
+      expect(find.textContaining('Change subject'), findsOneWidget);
+      await tester.ensureVisible(find.textContaining('Change subject'));
+      await tester.pump();
+      await tester.tap(find.textContaining('Change subject'));
+      await _settle(tester);
+      expect(find.text('What are you up against?'), findsOneWidget);
+    },
+  );
 }
 
 /// Entering the demo now lands on the arena grid — the choice of which
@@ -189,8 +211,11 @@ void main() {
 /// in. Tests that want the path say so explicitly rather than pretending
 /// the screen order did not change.
 Future<void> _chooseEverything(WidgetTester tester) async {
-  expect(find.text('What are you up against?'), findsOneWidget,
-      reason: 'the arena grid should be the first thing after entering');
+  expect(
+    find.text('What are you up against?'),
+    findsOneWidget,
+    reason: 'the arena grid should be the first thing after entering',
+  );
   await tester.ensureVisible(find.text('Everything'));
   await tester.pump();
   await tester.tap(find.text('Everything'));

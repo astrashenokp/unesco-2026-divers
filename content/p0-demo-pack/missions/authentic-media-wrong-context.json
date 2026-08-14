@@ -586,13 +586,15 @@
     }
   },
   "review": {
-    "status": "draft",
+    "status": "review",
     "authorIds": [
       "role-3-ai-learning-content"
     ],
-    "reviewerIds": [],
+    "reviewerIds": [
+      "evidence-guardian"
+    ],
     "draftedAt": "2026-08-11T09:00:00Z",
-    "expiresAt": "2026-08-16T21:59:00Z",
-    "correctionPolicy": "Keep USGS public-domain photo attribution with the pack; replace or re-review if the source page, license status, or context metadata changes before publication."
+    "expiresAt": "2026-09-14T21:59:00Z",
+    "correctionPolicy": "Review packet is present but not a publication approval. Keep USGS public-domain photo attribution with the pack; replace or re-review if the source page, license status, or context metadata changes before publication."
   }
 }

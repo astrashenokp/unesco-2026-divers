@@ -307,10 +307,14 @@ def test_draft_review_metadata_is_schema_rejected_when_claiming_review() -> None
     )
 
     manifest = deepcopy(load_json(P0_MANIFEST_PATH))
+    manifest["review"]["status"] = "draft"
+    manifest["review"]["reviewerIds"] = []
     manifest["review"]["reviewedAt"] = "2026-08-11T09:00:00Z"
     assert list(manifest_validator.iter_errors(manifest))
 
     mission = deepcopy(load_json(sorted(P0_MISSIONS_PATH.glob("*.json"))[0]))
+    mission["review"]["status"] = "draft"
+    mission["review"]["reviewerIds"] = []
     mission["review"]["reviewedAt"] = "2026-08-11T09:00:00Z"
     assert list(mission_validator.iter_errors(mission))
 

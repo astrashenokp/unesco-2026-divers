@@ -1,0 +1,6 @@
+UNSIGNED-REVIEW-PACKET
+
+This P0 demo pack is in review state and is not cryptographically signed for
+public distribution. The manifest SHA-256 mission hashes remain the integrity
+check for local/demo integration. Replace this file with a real pack signature
+before treating the pack as a published artifact.

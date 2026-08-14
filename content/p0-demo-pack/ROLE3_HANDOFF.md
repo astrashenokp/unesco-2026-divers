@@ -2,10 +2,11 @@
 
 ## Goal / status
 
-Integration-ready draft - Role 3 has created schema-first P0 mission fixtures,
-deterministic evidence responses, a bounded coach output contract and an eval
-gate for the two demo missions. The branch has been merged with `origin/main`
-through ADR-009 and the deterministic fixture reader/provider work.
+Integration-ready review packet - Role 3 has created schema-first P0 mission
+fixtures, deterministic evidence responses, a bounded coach output contract and
+an eval gate for the two demo missions. The pack is in `review` state with an
+Evidence Guardian review lane assigned; it is not marked `approved` until human
+sign-off records `reviewedAt`.
 
 ## Changed
 
@@ -31,15 +32,19 @@ through ADR-009 and the deterministic fixture reader/provider work.
   `GET /catalog/path` and `GET /missions/{missionId}`. These projections expose
   only OpenAPI-safe mission fields and do not leak gold evidence, deterministic
   responses, hints, rubric or eval hooks.
-- `content/p0-demo-pack/manifest.json`: draft P0 demo pack manifest with
-  mission SHA-256 hashes and draft-only review metadata.
+- `content/p0-demo-pack/manifest.json`: review-stage P0 demo pack manifest with
+  mission SHA-256 hashes and explicit review metadata.
+- `content/p0-demo-pack/REVIEW_PACKET.md`, `locales/en.arb`, `sources/` and
+  `SIGNATURE`: review packet, source packets, locale stubs and unsigned review
+  marker for pack-completeness review without pretending the pack is publicly
+  signed.
 - `content/p0-demo-pack/media/flood-context-card.jpg`: checked-in
   public-domain flood photo from USGS, courtesy of Metro Transit Authority, used
   by Mission 1.
-- `content/p0-demo-pack/missions/authentic-media-wrong-context.json`: draft
-  mission for authentic media used in misleading context.
-- `content/p0-demo-pack/missions/ai-citation-integrity.json`: draft mission for
-  AI-suggested academic citation checking.
+- `content/p0-demo-pack/missions/authentic-media-wrong-context.json`:
+  review-stage mission for authentic media used in misleading context.
+- `content/p0-demo-pack/missions/ai-citation-integrity.json`: review-stage
+  mission for AI-suggested academic citation checking.
 - `contracts/coach-output.schema.json`: structured output contract for coach
   responses before mapping to the public Hint API.
 - `content/p0-demo-pack/coach-policy.md`: P0 Socratic coach policy and fallback
@@ -47,6 +52,9 @@ through ADR-009 and the deterministic fixture reader/provider work.
 - `evals/coach/p0-eval-cases.json`: release thresholds and critical eval cases.
 - `evals/coach/run_gate.py`: executable threshold gate for coach/model run
   results.
+- `evals/coach/p0-fixture-results.json`: checked-in deterministic fixture
+  preflight result artifact that passes the release gate for the P0 fallback
+  path. It is not a broad live-model safety claim.
 - `services/api/tests/test_contract.py`, `test_catalog_api.py`,
   `test_mission_fixtures.py`, `test_mission_fixture_reader.py`,
   `test_deterministic_evidence_provider.py` and `test_coach_evals.py`:
@@ -203,8 +211,9 @@ deploy, mutate learner state or approve content alone.
 
 ## Safety and data
 
-- Fixtures are `draft`; they are stable for integration but not public
-  publication approval.
+- Fixtures are `review`; they are stable for integration and submission demo
+  review, but they are not public publication approval until a human reviewer
+  adds `reviewedAt`.
 - Mission 1 uses a real public-domain USGS flood photo as checked-in media, but
   the Munich claim and supporting demo context are not live emergency claims.
   Mission 2 remains a team-created deterministic citation fixture, not a live
@@ -225,6 +234,8 @@ deploy, mutate learner state or approve content alone.
 - `python3 -m json.tool content/p0-demo-pack/missions/authentic-media-wrong-context.json`
 - `python3 -m json.tool content/p0-demo-pack/missions/ai-citation-integrity.json`
 - `python3 -m json.tool evals/coach/p0-eval-cases.json`
+- `python3 -m json.tool evals/coach/p0-fixture-results.json`
+- `python3 evals/coach/run_gate.py --suite evals/coach/p0-eval-cases.json --results evals/coach/p0-fixture-results.json`
 - `PYTHONPATH=/tmp/evidence-gym-pydeps:services/api/src:packages/data_access/src:packages/gameplay/src python3 -m pytest services/api/tests/test_contract.py services/api/tests/test_mission_fixtures.py services/api/tests/test_deterministic_evidence_provider.py services/api/tests/test_learning_api.py services/api/tests/test_coach_evals.py services/api/tests/test_coach_gate_runner.py -q -p no:cacheprovider` - 86 passed.
 - `PYTHONPATH=/tmp/evidence-gym-pydeps:services/api/src:packages/data_access/src:packages/gameplay/src python3 -m pytest services/api packages/gameplay/tests -q -p no:cacheprovider` - 256 passed, 1 skipped.
 - `PYTHONPATH=/tmp/evidence-gym-pydeps:services/api/src:packages/data_access/src:packages/gameplay/src python3 -m pytest services/api packages/gameplay/tests --collect-only -q -p no:cacheprovider` - 257 tests collected.
@@ -233,11 +244,12 @@ deploy, mutate learner state or approve content alone.
 
 ## Risks / assumptions
 
-- The two missions are draft training fixtures. Public release still needs
-  independent fact/content/accessibility/license review, including a re-check of
-  the USGS public-domain source page and attribution for Mission 1.
-- The eval gate is executable against a result JSON file, but the model-run
-  harness that produces those results still needs to plug into it.
+- The two missions are review-stage training fixtures. Public release still
+  needs final human fact/content/accessibility/license sign-off, including a
+  re-check of the USGS public-domain source page and attribution for Mission 1.
+- The eval gate is executable against `evals/coach/p0-fixture-results.json` for
+  the deterministic fixture path. A future live-model harness must produce its
+  own result artifact before live model exposure.
 - Coach eval suite `coach-p0-gate` is now version `0.3.0`; result JSON files
   from earlier fixture sets should be regenerated before release review.
 - JSON Schema validation is wired through the `services/api[test]` dependency
@@ -266,8 +278,10 @@ deploy, mutate learner state or approve content alone.
   P0 mission.
 - Eval result files must match the suite ID and use strict JSON booleans for
   `caseResults[].passed`; string values such as `"false"` are rejected.
-- Ukrainian learner-facing mission localization is not yet authored; one
-  Ukrainian hard-rule eval case is included for coach behavior.
+- Flutter offline demo now renders the same two P0 mission IDs and evidence
+  action IDs as the checked-in Role 3 pack, with Ukrainian and English
+  learner-facing strings. The canonical mission fixtures remain English until a
+  schema-reviewed multi-locale pack format is added.
 
 ## Next
 
@@ -275,9 +289,9 @@ deploy, mutate learner state or approve content alone.
   `FixtureDeterministicEvidenceProvider` while reviewing any future provider
   adapter. Acceptance: P0 demo mode continues to read checked-in fixtures, pins
   mission version, returns `attemptVersion`, and never calls a live provider.
-- Role 1: render mission claim/media/actions from the public catalog API and
-  hints from the coach boundary. Acceptance: both missions are playable with
-  accessible alt text and no binary truth cues.
+- Role 1: keep the demo-key path aligned to the checked-in P0 pack mission IDs,
+  action IDs and minimum-evidence policy. Acceptance: both P0 missions are
+  playable with accessible alt text and no binary truth cues.
 - Role 4: preserve rubric/skill-tag XP/progression rules without letting AI
   award XP. Acceptance: completion remains idempotent, process XP is
   server-side, and any future semantic action-quality scorer is a schema-first

@@ -10,11 +10,11 @@ import 'models.dart';
 /// has no server to do that, so everything here is a function of the
 /// language code.
 ///
-/// The seven missions are ordered so each one teaches a distinct trap:
-/// real media in a false context, a fabricated citation, a stripped
-/// caption, an anonymous source, a chart that lies with true numbers, a
-/// synthetic image that is nonetheless about something real, and a case
-/// where the honest answer is that there is not enough to say.
+/// The offline demo mirrors `content/p0-demo-pack`: two Role 3 P0
+/// missions, the same stable mission IDs, the same evidence action IDs
+/// and the same minimum-evidence policy. It intentionally does not carry
+/// extra local-only missions, because the judge-facing demo should show
+/// the same pack that the API validates.
 const demoAccessKey = 'EVIDENCE-GYM-DEMO';
 
 bool _uk(String code) => code == 'uk';
@@ -33,77 +33,70 @@ bool _uk(String code) => code == 'uk';
 /// reviewed rubric would be showing a judge numbers the product does
 /// not actually award.
 List<ProcessLevel> demoRubric(String code) => [
-      ProcessLevel(
-        level: 0,
-        xpGuidance: 1,
-        criteria: _uk(code)
+  ProcessLevel(
+    level: 0,
+    xpGuidance: 1,
+    criteria:
+        _uk(code)
             ? 'Висновок лише з відчуття або з вигляду.'
             : 'Concludes from instinct or visual appearance only.',
-      ),
-      ProcessLevel(
-        level: 1,
-        xpGuidance: 2,
-        criteria: _uk(code)
+  ),
+  ProcessLevel(
+    level: 1,
+    xpGuidance: 2,
+    criteria:
+        _uk(code)
             ? 'Перевірено джерело чи походження, але не контекст.'
             : 'Checks source identity or provenance but does not test context.',
-        skillTags: const ['source_identity', 'provenance'],
-      ),
-      ProcessLevel(
-        level: 2,
-        xpGuidance: 4,
-        criteria: _uk(code)
+    skillTags: const ['source_identity', 'provenance'],
+  ),
+  ProcessLevel(
+    level: 2,
+    xpGuidance: 4,
+    criteria:
+        _uk(code)
             ? 'Знайдено раніше джерело або розбіжність у даті чи місці.'
             : 'Finds the earlier source or date/place mismatch.',
-        skillTags: const ['primary_source', 'context_time_place'],
-      ),
-      ProcessLevel(
-        level: 3,
-        xpGuidance: 6,
-        criteria: _uk(code)
+    skillTags: const ['primary_source', 'context_time_place'],
+  ),
+  ProcessLevel(
+    level: 3,
+    xpGuidance: 6,
+    criteria:
+        _uk(code)
             ? 'Контекст підтверджено незалежно; медіа відокремлено від підпису.'
             : 'Corroborates context independently and separates media from caption.',
-        skillTags: const ['corroboration', 'claim_decomposition'],
-      ),
-      ProcessLevel(
-        level: 4,
-        xpGuidance: 8,
-        criteria: _uk(code)
+    skillTags: const ['corroboration', 'claim_decomposition'],
+  ),
+  ProcessLevel(
+    level: 4,
+    xpGuidance: 8,
+    criteria:
+        _uk(code)
             ? 'Калібрований висновок за трьома осями і відповідальне рішення про поширення.'
             : 'Makes a calibrated three-axis conclusion and chooses a responsible sharing decision.',
-        skillTags: const ['uncertainty', 'responsible_sharing'],
-      ),
-    ];
+    skillTags: const ['uncertainty', 'responsible_sharing'],
+  ),
+];
 
 enum DemoChapter { whoSaidIt, whenAndWhere, howItIsFramed }
 
 const demoChapterOf = <String, DemoChapter>{
-  'viral-flood-photo': DemoChapter.whoSaidIt,
-  'anonymous-claim': DemoChapter.whoSaidIt,
-  'citation-hunt': DemoChapter.whoSaidIt,
-  'context-swap': DemoChapter.whenAndWhere,
-  'old-protest-clip': DemoChapter.whenAndWhere,
-  'true-numbers-false-story': DemoChapter.howItIsFramed,
-  'synthetic-but-real-topic': DemoChapter.howItIsFramed,
+  'authentic-media-wrong-context': DemoChapter.whenAndWhere,
+  'ai-citation-integrity': DemoChapter.whoSaidIt,
 };
 
 String demoChapterTitle(DemoChapter chapter, String code) => switch (chapter) {
-      DemoChapter.whoSaidIt => _uk(code) ? 'Хто це сказав?' : 'Who said it?',
-      DemoChapter.whenAndWhere => _uk(code) ? 'Коли й де?' : 'When and where?',
-      DemoChapter.howItIsFramed =>
-        _uk(code) ? 'Як це подано?' : 'How is it framed?',
-    };
+  DemoChapter.whoSaidIt => _uk(code) ? 'Хто це сказав?' : 'Who said it?',
+  DemoChapter.whenAndWhere => _uk(code) ? 'Коли й де?' : 'When and where?',
+  DemoChapter.howItIsFramed =>
+    _uk(code) ? 'Як це подано?' : 'How is it framed?',
+};
 
-const _order = [
-  'viral-flood-photo',
-  'anonymous-claim',
-  'citation-hunt',
-  'context-swap',
-  'old-protest-clip',
-  'true-numbers-false-story',
-  'synthetic-but-real-topic',
-];
+const _order = ['authentic-media-wrong-context', 'ai-citation-integrity'];
 
-LearningPath demoLearningPathFor(String code, {int completed = 0}) => LearningPath(
+LearningPath demoLearningPathFor(String code, {int completed = 0}) =>
+    LearningPath(
       version: '2026.08.0-demo',
       locale: code,
       nodes: [
@@ -111,174 +104,173 @@ LearningPath demoLearningPathFor(String code, {int completed = 0}) => LearningPa
           LearningPathNode(
             missionId: _order[i],
             title: demoMissionsFor(code)[_order[i]]!.title,
-            state: i < completed
-                ? 'completed'
-                : i == completed
+            state:
+                i < completed
+                    ? 'completed'
+                    : i == completed
                     ? 'available'
                     : 'locked',
           ),
       ],
     );
 
-EvidenceActionSpec _action(String id, String type, String en, String uk, String code) =>
-    EvidenceActionSpec(id: id, type: type, label: _uk(code) ? uk : en);
+EvidenceActionSpec _action(
+  String id,
+  String type,
+  String en,
+  String uk,
+  String code,
+) => EvidenceActionSpec(id: id, type: type, label: _uk(code) ? uk : en);
 
 Map<String, Mission> demoMissionsFor(String code) {
-  final source = _action('check_source', 'source', 'Check the source', 'Перевірити джерело', code);
-  final date = _action('check_date', 'date', 'Check the date', 'Перевірити дату', code);
-  final reverse = _action('reverse_search', 'provenance', 'Reverse image search', 'Зворотний пошук фото', code);
-  final others = _action('check_corroboration', 'corroboration', 'Find other reports', 'Знайти інші повідомлення', code);
-  final citation = _action('check_citation', 'citation', 'Look up the paper', 'Знайти публікацію', code);
-  final numbers = _action('check_numbers', 'uncertainty', 'Read the numbers', 'Прочитати цифри', code);
+  final mediaSource = _action(
+    'action-source-identity',
+    'source_identity',
+    'Check original poster',
+    'Перевірити першоджерело',
+    code,
+  );
+  final mediaProvenance = _action(
+    'action-provenance-scan',
+    'provenance',
+    'Scan provenance',
+    'Перевірити походження',
+    code,
+  );
+  final mediaPrimary = _action(
+    'action-primary-source',
+    'primary_source',
+    'Trace earliest source',
+    'Знайти найраніше джерело',
+    code,
+  );
+  final mediaContext = _action(
+    'action-context-check',
+    'context_time_place',
+    'Check time and place',
+    'Перевірити час і місце',
+    code,
+  );
+  final mediaCorroboration = _action(
+    'action-corroboration',
+    'corroboration',
+    'Look for independent confirmation',
+    'Знайти незалежне підтвердження',
+    code,
+  );
+  final claimParts = _action(
+    'action-decompose-claim',
+    'claim_decomposition',
+    'Split citation and claim',
+    'Розділити цитату й твердження',
+    code,
+  );
+  final doiShape = _action(
+    'action-doi-normalization',
+    'citation_integrity',
+    'Normalize DOI',
+    'Нормалізувати DOI',
+    code,
+  );
+  final registry = _action(
+    'action-registry-lookup',
+    'citation_integrity',
+    'Query demo registries',
+    'Перевірити демо-реєстри',
+    code,
+  );
+  final journalAuthors = _action(
+    'action-journal-author-check',
+    'source_identity',
+    'Check journal and authors',
+    'Перевірити журнал і авторів',
+    code,
+  );
+  final support = _action(
+    'action-support-check',
+    'primary_source',
+    'Check support for 68%',
+    'Перевірити доказ для 68%',
+    code,
+  );
 
   return {
-    'viral-flood-photo': Mission(
-      id: 'viral-flood-photo',
-      version: '1.0.0',
-      title: _uk(code) ? 'Фото повені' : 'The flood photo',
-      claim: _uk(code)
-          ? 'Фото, що поширюється в мережі, нібито показує затоплення у твоєму '
-              'регіоні після цьоготижневої зливи.'
-          : 'A photo circulating online claims to show flooding in your region '
-              'from this week\'s storm.',
+    'authentic-media-wrong-context': Mission(
+      id: 'authentic-media-wrong-context',
+      version: '0.1.0',
+      title:
+          _uk(code)
+              ? 'Справжнє фото, хибна історія'
+              : 'Real Image, Wrong Story',
+      claim:
+          _uk(code)
+              ? 'Терміново: центр Мюнхена нібито затоплює прямо зараз після прориву дамби, є сотні постраждалих.'
+              : 'Breaking: central Munich is flooding right now after a dam failure, with hundreds injured.',
       media: MissionMedia(
         type: 'image',
-        altText: _uk(code)
-            ? 'Драматичне фото затопленої міської вулиці з наполовину зануреним автомобілем.'
-            : 'A dramatic photo of a flooded city street with a partially submerged car.',
+        url: 'asset://p0-demo-pack/media/flood-context-card.jpg',
+        altText:
+            _uk(code)
+                ? 'Червоний автомобіль та інші машини частково занурені на затопленій міській вулиці після сильної зливи.'
+                : 'A red car and other vehicles are partly submerged on a flooded city street during heavy rain.',
       ),
       reactions: const ['trust', 'suspicious', 'investigate'],
-      evidenceActions: [source, date, reverse, others],
-      skillTags: const ['source_identity', 'context_time_place', 'provenance'],
+      evidenceActions: [
+        mediaSource,
+        mediaProvenance,
+        mediaPrimary,
+        mediaContext,
+        mediaCorroboration,
+      ],
+      skillTags: const [
+        'source_identity',
+        'primary_source',
+        'corroboration',
+        'context_time_place',
+        'provenance',
+        'uncertainty',
+        'responsible_sharing',
+      ],
       contentWarnings: const ['natural-disaster'],
       rubric: demoRubric(code),
     ),
-    'anonymous-claim': Mission(
-      id: 'anonymous-claim',
-      version: '1.0.0',
-      title: _uk(code) ? 'Кажуть посадовці' : 'Officials say',
-      claim: _uk(code)
-          ? 'Допис стверджує: «посадовці підтвердили», що з наступного місяця '
-              'зміняться правила. Жодного імені, жодного відомства.'
-          : 'A post says "officials have confirmed" that the rules change next '
-              'month. No name, no department.',
+    'ai-citation-integrity': Mission(
+      id: 'ai-citation-integrity',
+      version: '0.1.0',
+      title:
+          _uk(code)
+              ? 'Цитата, що звучить справжньо'
+              : 'The Citation That Sounds Real',
+      claim:
+          _uk(code)
+              ? 'Чатбот стверджує, що стаття Koval, Hrytsenko і Meyer (2025) з DOI 10.4242/jamr.2025.0199 доводить: 10-хвилинна гра з медіаграмотності зменшує вразливість українських студентів до дипфейків на 68%.'
+              : 'A chatbot says this paper proves that one 10-minute media literacy game reduces deepfake susceptibility in Ukrainian students by 68%: Koval, Hrytsenko, and Meyer (2025), Cognitive Inoculation Against Deepfake Propaganda in Ukrainian Students, Journal of Applied Media Resilience, doi:10.4242/jamr.2025.0199.',
       media: MissionMedia(
         type: 'text',
-        altText: _uk(code)
-            ? 'Скріншот допису без вказаного автора чи відомства.'
-            : 'A screenshot of a post with no named author or department.',
+        altText:
+            _uk(code)
+                ? 'Відповідь у стилі чатбота з академічною цитатою та DOI-подібним ідентифікатором.'
+                : 'A chatbot-style answer containing a polished academic citation with a DOI-shaped identifier.',
       ),
       reactions: const ['trust', 'suspicious', 'investigate'],
-      evidenceActions: [source, others, date],
-      skillTags: const ['source_identity', 'corroboration', 'claim_decomposition'],
-      contentWarnings: const ['impersonation'],
-      rubric: demoRubric(code),
-    ),
-    'citation-hunt': Mission(
-      id: 'citation-hunt',
-      version: '1.0.0',
-      title: _uk(code) ? 'Підозріле посилання' : 'The suspicious citation',
-      claim: _uk(code)
-          ? 'ШІ-відповідь посилається на дослідження 2021 року з переконливою '
-              'назвою, авторами й номером DOI.'
-          : 'An AI answer cites a 2021 study with a convincing title, authors '
-              'and a DOI.',
-      media: MissionMedia(
-        type: 'text',
-        altText: _uk(code)
-            ? 'Абзац тексту з академічним посиланням у дужках.'
-            : 'A paragraph of text with an academic citation in brackets.',
-      ),
-      reactions: const ['trust', 'suspicious', 'investigate'],
-      evidenceActions: [citation, source, others],
-      skillTags: const ['citation_integrity', 'primary_source', 'uncertainty'],
+      evidenceActions: [
+        claimParts,
+        doiShape,
+        registry,
+        journalAuthors,
+        support,
+      ],
+      skillTags: const [
+        'citation_integrity',
+        'claim_decomposition',
+        'source_identity',
+        'primary_source',
+        'uncertainty',
+        'responsible_sharing',
+      ],
       contentWarnings: const ['academic-integrity'],
       rubric: demoRubric(code),
       minimumCompletionEvidence: 3,
-    ),
-    'context-swap': Mission(
-      id: 'context-swap',
-      version: '1.0.0',
-      title: _uk(code) ? 'Старе відео, новий підпис' : 'Old clip, new caption',
-      claim: _uk(code)
-          ? 'Відео черги до магазину підписане як зняте вчора у твоєму місті.'
-          : 'A clip of a queue outside a shop is captioned as filmed yesterday '
-              'in your city.',
-      media: MissionMedia(
-        type: 'video',
-        altText: _uk(code)
-            ? 'Коротке відео довгої черги людей уздовж вулиці.'
-            : 'A short clip of a long queue of people along a street.',
-      ),
-      reactions: const ['trust', 'suspicious', 'investigate'],
-      evidenceActions: [date, reverse, others],
-      skillTags: const ['context_time_place', 'provenance', 'corroboration'],
-      contentWarnings: const [],
-      rubric: demoRubric(code),
-    ),
-    'old-protest-clip': Mission(
-      id: 'old-protest-clip',
-      version: '1.0.0',
-      title: _uk(code) ? 'Кадри не звідти' : 'Footage from elsewhere',
-      claim: _uk(code)
-          ? 'Кадри великого зібрання людей подані як події цього тижня в сусідній країні.'
-          : 'Footage of a large gathering is presented as this week, in a '
-              'neighbouring country.',
-      media: MissionMedia(
-        type: 'video',
-        altText: _uk(code)
-            ? 'Зйомка з висоти великого натовпу на площі.'
-            : 'Aerial footage of a large crowd in a square.',
-      ),
-      reactions: const ['trust', 'suspicious', 'investigate'],
-      evidenceActions: [reverse, date, source, others],
-      skillTags: const ['context_time_place', 'provenance', 'responsible_sharing'],
-      contentWarnings: const ['civil-unrest'],
-      rubric: demoRubric(code),
-    ),
-    'true-numbers-false-story': Mission(
-      id: 'true-numbers-false-story',
-      version: '1.0.0',
-      title: _uk(code) ? 'Правдиві цифри, хибна історія' : 'True numbers, false story',
-      claim: _uk(code)
-          ? 'Графік показує різкий стрибок. Цифри взяті з офіційного джерела '
-              'і не змінені.'
-          : 'A chart shows a dramatic jump. The numbers come from an official '
-              'source and have not been altered.',
-      media: MissionMedia(
-        type: 'image',
-        altText: _uk(code)
-            ? 'Стовпчикова діаграма, де вісь значень починається не з нуля.'
-            : 'A bar chart whose value axis does not start at zero.',
-      ),
-      reactions: const ['trust', 'suspicious', 'investigate'],
-      evidenceActions: [numbers, source, date],
-      skillTags: const ['claim_decomposition', 'uncertainty', 'context_time_place'],
-      contentWarnings: const ['statistics-misuse'],
-      rubric: demoRubric(code),
-    ),
-    'synthetic-but-real-topic': Mission(
-      id: 'synthetic-but-real-topic',
-      version: '1.0.0',
-      title: _uk(code) ? 'Згенероване — і все ж про справжнє' : 'Generated, and still about something real',
-      claim: _uk(code)
-          ? 'Зображення майже напевно згенероване. Подія, яку воно ілюструє, '
-              'справді сталася.'
-          : 'The image is almost certainly generated. The event it illustrates '
-              'did happen.',
-      media: MissionMedia(
-        type: 'image',
-        altText: _uk(code)
-            ? 'Гладке, надто досконале зображення сцени в місті.'
-            : 'A smooth, unnaturally perfect image of a scene in a city.',
-      ),
-      reactions: const ['trust', 'suspicious', 'investigate'],
-      evidenceActions: [reverse, others, source],
-      // The point of the pack: synthetic does not mean false, and the
-      // three axes must be allowed to disagree with one another.
-      skillTags: const ['provenance', 'corroboration', 'responsible_sharing'],
-      contentWarnings: const ['ai-generated-media'],
-      rubric: demoRubric(code),
     ),
   };
 }
@@ -323,9 +315,10 @@ Hint demoHintFor({
 /// which is a legitimate result the learner has to reason about rather
 /// than a gap in the demo.
 Map<String, EvidenceResult> demoEvidenceResultsFor(String code) {
-  final onlyDemo = _uk(code)
-      ? 'Демонстраційні дані — це не справжній запит.'
-      : 'Demo fixture — not a live lookup.';
+  final onlyDemo =
+      _uk(code)
+          ? 'Демонстраційні дані — це не справжній запит.'
+          : 'Demo fixture — not a live lookup.';
   final demoSource = EvidenceSource(
     sourceType: 'team_fixture',
     publisher: 'Evidence Gym P0 demo source packet',
@@ -338,89 +331,142 @@ Map<String, EvidenceResult> demoEvidenceResultsFor(String code) {
     limitations: [onlyDemo],
   );
 
-  EvidenceResult ok(String actionId, String id, String type, String en, String uk,
-          String status, {List<String> extra = const []}) =>
-      EvidenceResult(
-        actionId: actionId,
-        status: 'ok',
-        // Overwritten by the repository, which owns the real value.
-        attemptVersion: 1,
-        items: [
-          EvidenceItem(
-            evidenceId: id,
-            type: type,
-            title: _uk(code) ? uk : en,
-            source: demoSource,
-            retrievedAt: DateTime.utc(2026, 8, 10, 9),
-            verificationStatus: status,
-          ),
-        ],
-        limitations: [onlyDemo, ...extra],
-      );
+  EvidenceResult ok(
+    String actionId,
+    String id,
+    String type,
+    String en,
+    String uk,
+    String status, {
+    List<String> extra = const [],
+  }) => EvidenceResult(
+    actionId: actionId,
+    status: 'ok',
+    // Overwritten by the repository, which owns the real value.
+    attemptVersion: 1,
+    items: [
+      EvidenceItem(
+        evidenceId: id,
+        type: type,
+        title: _uk(code) ? uk : en,
+        source: demoSource,
+        retrievedAt: DateTime.utc(2026, 8, 10, 9),
+        verificationStatus: status,
+      ),
+    ],
+    limitations: [onlyDemo, ...extra],
+  );
 
   return {
-    'viral-flood-photo:check_source': ok('check_source', 'ev-001', 'source_profile',
-        'Account created 6 days ago, no prior posts',
-        'Акаунт створено 6 днів тому, попередніх дописів немає', 'curated'),
-    'viral-flood-photo:check_date': ok('check_date', 'ev-002', 'metadata',
-        'Image metadata date is 3 years old',
-        'Дата у метаданих зображення — трирічної давності', 'verified_metadata'),
-    'viral-flood-photo:reverse_search': ok('reverse_search', 'ev-003', 'provenance',
-        'The same image was published in 2023, in a different country',
-        'Те саме зображення публікували 2023 року в іншій країні', 'curated'),
-    'viral-flood-photo:check_corroboration': EvidenceResult(
-      actionId: 'check_corroboration',
-      status: 'not_found',
-      attemptVersion: 1,
-      items: const [],
-      limitations: [
-        onlyDemo,
+    'authentic-media-wrong-context:action-source-identity': ok(
+      'action-source-identity',
+      'E-POST-REPOST',
+      'post',
+      'Repost account with no original media attribution',
+      'Акаунт перепостив зображення без посилання на першоджерело',
+      'curated',
+      extra: [
         _uk(code)
-            ? 'Жодне місцеве видання не повідомляло про затоплення цього тижня. '
-                'Відсутність повідомлень — не доказ, але це варте уваги.'
-            : 'No local outlet reported flooding this week. Absence of reports '
-                'is not proof, but it is worth noticing.',
+            ? 'Сам перепост не доводить хибність твердження, але послаблює ідентичність джерела.'
+            : 'A repost alone does not prove the claim false, but it weakens source identity.',
       ],
     ),
-    'anonymous-claim:check_source': ok('check_source', 'ev-010', 'source_profile',
-        'No department is named anywhere in the post or its replies',
-        'Ні в дописі, ні у відповідях не названо жодного відомства', 'curated'),
-    'anonymous-claim:check_corroboration': ok('check_corroboration', 'ev-011', 'corroboration',
-        'The official register lists no rule change for that date',
-        'В офіційному реєстрі немає змін правил на цю дату', 'verified_metadata'),
-    'citation-hunt:check_citation': ok('check_citation', 'ev-020', 'citation',
-        'The DOI resolves to a different paper, on an unrelated topic',
-        'DOI веде до іншої статті на непов\'язану тему', 'verified_metadata',
-        extra: [
-          _uk(code)
-              ? 'Правдоподібне формулювання — не доказ існування джерела.'
-              : 'Fluent wording is not evidence that a source exists.',
-        ]),
-    'context-swap:check_date': ok('check_date', 'ev-030', 'metadata',
-        'The clip was first uploaded two winters ago',
-        'Відео вперше завантажили дві зими тому', 'verified_metadata'),
-    'old-protest-clip:reverse_search': ok('reverse_search', 'ev-040', 'provenance',
-        'The same footage appears in coverage from another country',
-        'Ті самі кадри є в матеріалах з іншої країни', 'curated'),
-    'true-numbers-false-story:check_numbers': ok('check_numbers', 'ev-050', 'analysis',
-        'The axis starts at 94, not 0 — the jump is under two per cent',
-        'Вісь починається з 94, а не з 0 — стрибок менший за два відсотки', 'curated',
-        extra: [
-          _uk(code)
-              ? 'Цифри справжні. Оманливе саме подання.'
-              : 'The numbers are real. The framing is what misleads.',
-        ]),
-    'synthetic-but-real-topic:reverse_search': ok('reverse_search', 'ev-060', 'provenance',
-        'Generation artefacts in the hands and signage; no camera metadata',
-        'Артефакти генерації на руках і вивісках; метаданих камери немає', 'curated'),
-    'synthetic-but-real-topic:check_corroboration': ok(
-        'check_corroboration', 'ev-061', 'corroboration',
-        'Three independent outlets reported the event itself',
-        'Три незалежні видання повідомили про саму подію', 'verified_metadata',
-        extra: [
-          _uk(code)
-              ? 'Синтетичне зображення не робить подію вигаданою.'
-              : 'A synthetic image does not make the event invented.',
-        ]),
+    'authentic-media-wrong-context:action-provenance-scan': ok(
+      'action-provenance-scan',
+      'E-MEDIA-METADATA',
+      'metadata',
+      'Camera-origin metadata from the checked-in USGS photo asset',
+      'Метадані походження для перевіреного фото USGS у demo pack',
+      'verified_metadata',
+      extra: [
+        _uk(code)
+            ? 'Метадані підтримують історію походження, але не доводять правдивість підпису.'
+            : 'Metadata supports origin history, not whether the caption is true.',
+      ],
+    ),
+    'authentic-media-wrong-context:action-primary-source': ok(
+      'action-primary-source',
+      'E-ORIGINAL-CAPTION',
+      'source_note',
+      'USGS source page places the photo in Brooklyn, NY, September 2023',
+      'Сторінка USGS розміщує фото у Брукліні, Нью-Йорк, у вересні 2023 року',
+      'curated',
+    ),
+    'authentic-media-wrong-context:action-context-check': ok(
+      'action-context-check',
+      'E-MUNICH-NO-MATCH',
+      'source_note',
+      'Demo municipal bulletin has no matching Munich flood alert',
+      'У демо-бюлетені немає відповідного попередження про повінь у Мюнхені',
+      'curated',
+      extra: [
+        _uk(code)
+            ? 'Відсутність в одному бюлетені не є універсальним доказом; її треба зважувати з першоджерелом.'
+            : 'Absence in one curated bulletin is not universal proof; weigh it with the original source trace.',
+      ],
+    ),
+    'authentic-media-wrong-context:action-corroboration': ok(
+      'action-corroboration',
+      'E-INDEPENDENT-CONTEXT',
+      'source_note',
+      'Independent demo context supports the Brooklyn 2023 explanation',
+      'Незалежний демо-контекст підтримує пояснення про Бруклін 2023 року',
+      'curated',
+    ),
+    'ai-citation-integrity:action-decompose-claim': ok(
+      'action-decompose-claim',
+      'E-CITATION-PARTS',
+      'source_note',
+      'Citation has three claims to verify separately',
+      'У цитаті є три окремі твердження для перевірки',
+      'curated',
+    ),
+    'ai-citation-integrity:action-doi-normalization': ok(
+      'action-doi-normalization',
+      'E-DOI-SHAPE',
+      'metadata',
+      'DOI-shaped string normalized as 10.4242/jamr.2025.0199',
+      'DOI-подібний рядок нормалізовано як 10.4242/jamr.2025.0199',
+      'curated',
+      extra: [
+        _uk(code)
+            ? 'Синтаксис сам по собі не є доказом реєстрації.'
+            : 'Syntax alone is not evidence of registration.',
+      ],
+    ),
+    'ai-citation-integrity:action-registry-lookup': ok(
+      'action-registry-lookup',
+      'E-DOI-NOT-FOUND',
+      'registry_record',
+      'Queried demo registries returned no record for DOI 10.4242/jamr.2025.0199',
+      'У перевірених демо-реєстрах немає запису для DOI 10.4242/jamr.2025.0199',
+      'curated',
+      extra: [
+        _uk(code)
+            ? 'Not found означає не знайдено в перевірених джерелах, а не сфабриковано.'
+            : 'Not found in queried demo registries does not prove fabrication.',
+      ],
+    ),
+    'ai-citation-integrity:action-journal-author-check': ok(
+      'action-journal-author-check',
+      'E-JOURNAL-MISMATCH',
+      'registry_record',
+      'Demo registry has no matching journal title or author cluster',
+      'У демо-реєстрі немає відповідного журналу або групи авторів',
+      'curated',
+    ),
+    'ai-citation-integrity:action-support-check': ok(
+      'action-support-check',
+      'E-SUPPORT-UNDETERMINED',
+      'source_note',
+      'No demo source in the fixture supports the exact 68% claim',
+      'Жодне демо-джерело у fixture не підтримує точне твердження про 68%',
+      'curated',
+      extra: [
+        _uk(code)
+            ? 'Це підтримує обережний висновок про unsupported або insufficient evidence, не універсальну заяву.'
+            : 'This supports an unsupported or insufficient-evidence conclusion, not a universal statement.',
+      ],
+    ),
   };
 }

@@ -170,16 +170,28 @@ class EvidenceGymApiClient {
     throw EvidenceGymApiException(Problem.fromJson(body));
   }
 
+  /// Called with the raw body of published, cacheable content.
+  ///
+  /// Raw rather than parsed, so the cache stores what the server said
+  /// instead of this build's interpretation of it — a client that
+  /// re-serialises its own model would quietly drop any field it does
+  /// not yet know about.
+  void Function(String kind, String id, Map<String, dynamic> json)? onCacheable;
+
   Future<LearningPath> getLearningPath() async {
     final res = await _send(() async => _client.get(_uri('/catalog/path')));
     if (res.statusCode != 200) _throwProblem(res);
-    return LearningPath.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    onCacheable?.call('path', 'path', json);
+    return LearningPath.fromJson(json);
   }
 
   Future<Mission> getMission(String missionId) async {
     final res = await _send(() async => _client.get(_uri('/missions/$missionId')));
     if (res.statusCode != 200) _throwProblem(res);
-    return Mission.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+    final json = jsonDecode(res.body) as Map<String, dynamic>;
+    onCacheable?.call('mission', missionId, json);
+    return Mission.fromJson(json);
   }
 
   Future<Attempt> startAttempt({

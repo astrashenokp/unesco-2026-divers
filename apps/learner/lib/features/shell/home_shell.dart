@@ -72,7 +72,15 @@ class _HomeShellState extends State<HomeShell> {
       ),
       LeaderboardTab(repository: widget.repository),
       ProfileScreen(repository: widget.repository),
-      const SettingsScreen(),
+      SettingsScreen(
+        cachedCount: widget.repository is LiveMissionRepository
+            ? (widget.repository as LiveMissionRepository).cachedMissionCount
+            : 0,
+        onPrefetchChanged: (on) {
+          final repo = widget.repository;
+          if (repo is LiveMissionRepository) repo.setPrefetch(on);
+        },
+      ),
     ];
 
     // Keyed so switching tabs rebuilds the body but Flutter still reuses

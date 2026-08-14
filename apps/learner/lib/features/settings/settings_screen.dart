@@ -12,7 +12,18 @@ import 'language_picker.dart';
 /// profile menu: for the learners who need these controls, finding them
 /// is the difference between using the app and closing it.
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({
+    super.key,
+    this.cachedCount = 0,
+    this.onPrefetchChanged,
+  });
+
+  /// Missions currently held on the device.
+  final int cachedCount;
+
+  /// Lets the shell tell the repository to start or stop caching, and to
+  /// drop what it holds.
+  final ValueChanged<bool>? onPrefetchChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -114,10 +125,27 @@ class SettingsScreen extends StatelessWidget {
           SizedBox(height: tokens.space(1)),
           SwitchListTile(
             value: settings.prefetchMissions,
-            onChanged: (v) => settings.prefetchMissions = v,
+            onChanged: (v) {
+              settings.prefetchMissions = v;
+              // Turning it off drops what is already held, rather than
+              // merely stopping new downloads. A switch that leaves the
+              // old cache on disk has not been turned off.
+              onPrefetchChanged?.call(v);
+            },
             title: Text(s.prefetchLabel),
             subtitle: Text(s.prefetchHint),
             contentPadding: EdgeInsets.zero,
+          ),
+          // What is actually on the device, not what the setting intends.
+          // The switch shipped before the cache did, and a promise with
+          // nothing behind it is the thing this product exists to argue
+          // against.
+          Padding(
+            padding: EdgeInsets.only(left: tokens.space(0.5)),
+            child: Text(
+              cachedCount > 0 ? s.prefetchReady(cachedCount) : s.prefetchNone,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
           SizedBox(height: tokens.space(3)),
 

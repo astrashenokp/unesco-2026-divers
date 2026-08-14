@@ -36,6 +36,9 @@ this document is the Role 4 → Role 2 review handoff.
   + `DatabaseReadinessProbe` + `ServicesFactory`; unset → previous in-memory
   composition unchanged.
 - `services/api/pyproject.toml`: added `evidence-gym-data-access>=0.1,<0.2` dependency.
+- `.github/workflows/pr.yml` and `.github/workflows/security.yml`: install
+  `packages/data_access` before `services/api` so the API's editable build can
+  resolve the local `evidence-gym-data-access` dependency.
 - `services/api/tests/test_persistence_wiring.py` (new, skipif no
   `DATABASE_URL`): full `/v1` flow over the wired app — ready probe, start,
   predict, evidence action, conclude, owned receipt 200, foreign receipt 404,
@@ -96,9 +99,9 @@ Local run (repo root, `.venv`):
 - The three dependency functions changed from plain `def` to async generators;
   the explicit-services branch (all existing tests) is untouched, but Role 2
   review should confirm the per-request session lifecycle matches API intent.
-- `services/api` now declares an `evidence-gym-data-access` dependency; CI installs all three
-  editable packages in one step, so ordering is not an issue, but the wheel
-  dependency is now real.
+- `services/api` now declares an `evidence-gym-data-access` dependency; the CI
+  workflows install `data_access` before `services/api` so the editable build
+  resolves the local package (see `pr.yml` and `security.yml` install steps).
 - The local dev database had to be reset from `0005_reports` (reports work is on
   a separate PR) back to this branch's head so the integration tests run on
   schema 0001–0004. No production impact.

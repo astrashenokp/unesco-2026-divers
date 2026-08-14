@@ -1,6 +1,7 @@
 import asyncio
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from data_access.attempts import SqlAlchemyAttemptRepository
@@ -10,7 +11,12 @@ from data_access.idempotency import (
     SqlAlchemyIdempotencyRepository,
     cleanup_expired_idempotency,
 )
-from data_access.schema import metadata
+from data_access.reports import (
+    SqlAlchemyReportRepository,
+    StoredReportResult,
+    SubmittedReport,
+)
+from data_access.schema import metadata, outbox, reports
 from evidence_gym_api.learning.attempt import Attempt
 from evidence_gym_api.learning.attempt import Confidence, Prediction, Reaction
 from evidence_gym_api.learning.errors import RepositoryConflict
@@ -155,6 +161,72 @@ def test_completion_idempotency_round_trips_response_snapshot() -> None:
                 await repository.put_completion(scope, stored)
             replay = await repository.get_completion(scope, at=now)
             assert replay == stored
+        await engine.dispose()
+
+    run(scenario())
+
+
+def make_report(report_id: str = "report-1") -> SubmittedReport:
+    return SubmittedReport(
+        report_id=report_id,
+        reporter_id="learner-1",
+        mission_id="mission-1",
+        mission_version="v1",
+        reason="harmful",
+        detail="learner-supplied detail",
+        submitted_at=datetime.now(UTC),
+    )
+
+
+def test_report_repository_commits_report_idempotency_and_outbox_atomically() -> None:
+    async def scenario() -> None:
+        engine, sessions = await session_factory()
+        scope = IdempotencyScope(
+            LearnerId("learner-1"), "/v1/reports", IdempotencyKey("report-key-123")
+        )
+        now = datetime.now(UTC)
+        stored = StoredReportResult("report-fingerprint", make_report(), now + timedelta(hours=24))
+        async with sessions() as session:
+            repository = SqlAlchemyReportRepository(session)
+            async with session.begin():
+                await repository.put(scope, stored)
+            replay = await repository.get(scope, at=now)
+            assert replay is not None
+            assert replay.request_fingerprint == stored.request_fingerprint
+            assert replay.report.report_id == stored.report.report_id
+            assert replay.report.detail == stored.report.detail
+            report_count = int(
+                (await session.execute(select(func.count()).select_from(reports))).scalar_one()
+            )
+            event_count = int(
+                (await session.execute(select(func.count()).select_from(outbox))).scalar_one()
+            )
+            assert report_count == 1
+            assert event_count == 1
+            await session.commit()
+
+            async with session.begin():
+                try:
+                    await repository.put(
+                        scope,
+                        StoredReportResult("other-fingerprint", make_report(), stored.expires_at),
+                    )
+                except RepositoryConflict:
+                    pass
+                else:
+                    raise AssertionError("report fingerprint conflict was not raised")
+
+            async with session.begin():
+                await repository.put(scope, stored)
+            async with session.begin():
+                report_count = int(
+                    (await session.execute(select(func.count()).select_from(reports))).scalar_one()
+                )
+                event_count = int(
+                    (await session.execute(select(func.count()).select_from(outbox))).scalar_one()
+                )
+            assert report_count == 1
+            assert event_count == 1
         await engine.dispose()
 
     run(scenario())

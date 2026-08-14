@@ -1,0 +1,79 @@
+name: Coach eval suite
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'evals/**'
+      - 'content/**'
+      - 'contracts/**'
+      - 'services/api/src/evidence_gym_api/**'
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: evals-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coach-evals:
+    name: Deterministic coach harness and gate
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Python
+        uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install local packages
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e 'packages/gameplay[test]'
+          python -m pip install -e 'services/api[test]'
+
+      - name: Check the harness contract
+        run: python -m pytest evals/coach/tests -q -p no:cacheprovider
+
+      - name: Run the deterministic harness
+        run: python evals/coach/run_deterministic_harness.py \
+          --suite evals/coach/p0-eval-cases.json \
+          --out coach-harness-results.json
+
+      - name: Enforce the P0 gate (non-blocking signal)
+        id: gate
+        continue-on-error: true
+        run: |
+          python evals/coach/run_gate.py \
+            --suite evals/coach/p0-eval-cases.json \
+            --results coach-harness-results.json
+        env:
+          RUN_ID: ${{ github.run_id }}
+
+      - name: Record gate verdict
+        if: always()
+        run: |
+          verdict="${{ steps.gate.outcome }}"
+          if [ "$verdict" = "success" ]; then
+            echo "Gate verdict: PASS (blocking when the coach closes all P0 gaps)" >> gate-verdict.txt
+          else
+            echo "Gate verdict: FAIL (non-blocking signal for the coach owner)" >> gate-verdict.txt
+          fi
+          echo "Case results and gate log are attached as an artifact." >> gate-verdict.txt
+
+      - name: Upload results artifact
+        if: always()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
+        with:
+          name: coach-eval-results-${{ github.run_id }}
+          path: |
+            coach-harness-results.json
+            gate-verdict.txt
+          if-no-files-found: error

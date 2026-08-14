@@ -55,6 +55,7 @@ def test_mission_projection_exposes_accessibility_and_no_gold_material() -> None
     assert body["id"] == "authentic-media-wrong-context"
     assert body["version"] == "0.1.0"
     assert body["minimumCompletionEvidence"] == 1
+    assert body["contentWarnings"] == ["natural-disaster"]
     assert body["media"] == {
         "type": "image",
         "url": "asset://p0-demo-pack/media/flood-context-card.jpg",
@@ -80,6 +81,8 @@ def test_mission_projection_exposes_accessibility_and_no_gold_material() -> None
     assert "deterministicResponse" not in serialized
     assert "hintLadder" not in serialized
     assert "rubric" not in serialized
+    assert "riskNotes" not in serialized
+    assert "privacyNotes" not in serialized
     assert "E-ORIGINAL-CAPTION" not in serialized
 
 
@@ -91,6 +94,7 @@ def test_citation_mission_projection_exposes_minimum_completion_evidence() -> No
     body = response.json()
     assert body["id"] == "ai-citation-integrity"
     assert body["minimumCompletionEvidence"] == 3
+    assert body["contentWarnings"] == ["academic-integrity"]
 
 
 def test_unknown_public_mission_returns_problem_404() -> None:

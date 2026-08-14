@@ -32,6 +32,10 @@ class IllegalAttemptTransition(DomainError):
     """Raised when a command is not valid in the attempt's current state."""
 
 
+class EvidenceActionAlreadyUsed(DomainError):
+    """Raised when a curated action has already advanced this attempt."""
+
+
 class AttemptState(StrEnum):
     READY = "ready"
     PREDICTED = "predicted"
@@ -198,6 +202,8 @@ class Attempt:
         self._require_state(AttemptState.PREDICTED, AttemptState.INVESTIGATING)
         if not action_ref or not action_ref.strip():
             raise DomainError("evidence action reference must not be blank")
+        if action_ref in self.evidence_action_refs:
+            raise EvidenceActionAlreadyUsed("evidence action already advanced attempt")
         self.evidence_action_refs = (*self.evidence_action_refs, action_ref)
         self.state = AttemptState.INVESTIGATING
         self.version += 1

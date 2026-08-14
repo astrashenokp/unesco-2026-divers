@@ -11,3 +11,4 @@ Status: proposed/accepted/superseded. Change lasting architecture through a new 
 - [ADR-007 Curated MVP before open URL/upload](ADR-007-CURATED-FIRST.md)
 - [ADR-008 Attempt contract clarifications](ADR-008-ATTEMPT-CONTRACT-CLARIFICATIONS.md) — decision 5 superseded by ADR-009
 - [ADR-009 Atomic completion and evidence version](ADR-009-ATOMIC-COMPLETION-AND-EVIDENCE-VERSION.md)
+- [ADR-010 Durable persistence for learner content reports](ADR-010-REPORTS-PERSISTENCE.md)

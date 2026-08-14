@@ -24,6 +24,7 @@ Events are facts in past tense. Consumers deduplicate by `eventId`. At-least-onc
 | `attempt.started.v1` | attempt, mission/version, pseudonymous learner | analytics |
 | `evidence.action_completed.v1` | attempt, action type, status, duration bucket | analytics, quality |
 | `mission.completed.v1` | attempt, mission/version, skill deltas, calibration bucket | analytics, scheduler |
+| `report.submitted.v1` | report/version/reason/mission — no `detail`, no reporter identity | moderation |
 | `receipt.created.v1` | receipt, attempt, hash | audit |
 | `pack.published.v1` | pack/version/hash/locale/review expiry | CDN/cache, audit |
 | `mission.quarantined.v1` | mission/version/reason code | catalog, trust |

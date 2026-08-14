@@ -140,6 +140,28 @@ receipts = Table(
     UniqueConstraint("attempt_id", name="uq_receipts_attempt"),
 )
 
+reports = Table(
+    "reports",
+    metadata,
+    Column("id", String(128), primary_key=True),
+    Column("reporter_id", String(128), nullable=False),
+    Column("mission_id", String(128), nullable=False),
+    Column("mission_version", String(128), nullable=True),
+    Column("reason", String(32), nullable=False),
+    Column("detail", String(1000), nullable=True),
+    Column("status", String(32), nullable=False, server_default="pending"),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    CheckConstraint(
+        "reason IN ('incorrect', 'harmful', 'outdated', 'copyright', 'accessibility', 'other')",
+        name="ck_reports_reason",
+    ),
+    CheckConstraint(
+        "status IN ('pending', 'under_review', 'resolved', 'dismissed')",
+        name="ck_reports_status",
+    ),
+    Index("ix_reports_status_created", "status", "created_at"),
+)
+
 outbox = Table(
     "outbox",
     metadata,
@@ -165,6 +187,7 @@ __all__ = [
     "learner_progress",
     "metadata",
     "outbox",
+    "reports",
     "skill_states",
     "xp_ledger",
 ]

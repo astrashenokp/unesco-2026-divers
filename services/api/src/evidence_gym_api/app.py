@@ -13,7 +13,11 @@ from evidence_gym_api.catalog.api import PublicCatalogReader, router as catalog_
 from evidence_gym_api.operational import ReadinessProbe, StaticReadinessProbe, router
 from evidence_gym_api.identity.ports import IdentityVerifier
 from evidence_gym_api.learning.api import LearningServices, router as learning_router
-from evidence_gym_api.learning.attempt import DomainError, IllegalAttemptTransition
+from evidence_gym_api.learning.attempt import (
+    DomainError,
+    EvidenceActionAlreadyUsed,
+    IllegalAttemptTransition,
+)
 from evidence_gym_api.learning.errors import (
     AttemptAccessDenied,
     AttemptNotFound,
@@ -194,6 +198,18 @@ def create_app(
             code="idempotency-key-conflict",
             title="Idempotency key conflict",
             detail="The idempotency key was already used for another request.",
+        )
+        return problem_response(problem, get_trace_id(request))
+
+    @app.exception_handler(EvidenceActionAlreadyUsed)
+    async def handle_evidence_action_already_used(
+        request: Request, exc: EvidenceActionAlreadyUsed
+    ) -> JSONResponse:
+        problem = ApiProblem(
+            status=409,
+            code="evidence-action-already-used",
+            title="Evidence action already used",
+            detail="This evidence action has already advanced the attempt.",
         )
         return problem_response(problem, get_trace_id(request))
 

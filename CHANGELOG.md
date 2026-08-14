@@ -8,6 +8,8 @@ This file records meaningful project-level changes. It does not replace Git hist
 
 - Added read-only pull-request quality gates for Python, Flutter, contracts, migrations, PostgreSQL integration, and security checks.
 - Added a deterministic health/readiness load probe for local and staging evidence.
+- Added PostgreSQL-backed learning services: receipt and progress readers, a database readiness probe, and a per-request session composition wired into the API when `DATABASE_URL` is set.
+- Added end-to-end API wiring tests that run the full learning flow against PostgreSQL in CI.
 - Added durable learner content report persistence: `reports` table, reversible `0005_reports` migration, single-transaction report + idempotency + `report.submitted.v1` outbox delivery, and concurrency/rollback/replay verification (ADR-010, issue #33).
 
 ### Security

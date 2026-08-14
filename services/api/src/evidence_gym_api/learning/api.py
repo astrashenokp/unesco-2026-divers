@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 
+from data_access.db import Database
 from evidence_gym_api.identity.dependencies import current_principal
 from evidence_gym_api.identity.model import Principal
 from evidence_gym_api.learning.attempt import (
@@ -35,6 +36,7 @@ from evidence_gym_api.learning.value_objects import (
     MissionId,
     MissionVersion,
 )
+from evidence_gym_api.persistence import ServicesFactory
 from evidence_gym_api.problem import ApiProblem
 
 router = APIRouter(tags=["learning"])
@@ -194,18 +196,26 @@ class AttemptResponse(BaseModel):
         )
 
 
-def learning_services(request: Request) -> LearningServices:
+async def learning_services(request: Request) -> LearningServices:
     services: LearningServices | None = getattr(
         request.app.state, "learning_services", None
     )
-    if services is None:
+    if services is not None:
+        yield services
+        return
+    factory: ServicesFactory | None = getattr(
+        request.app.state, "services_factory", None
+    )
+    database: Database | None = getattr(request.app.state, "database", None)
+    if factory is None or database is None:
         raise ApiProblem(
             status=503,
             code="learning-service-unavailable",
             title="Service not ready",
             detail="Learning services are unavailable.",
         )
-    return services
+    async with database.session() as session:
+        yield factory.learning(session)
 
 
 PrincipalDependency = Annotated[Principal, Depends(current_principal)]

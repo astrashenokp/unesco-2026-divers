@@ -37,8 +37,8 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install bandit pip-audit
           python -m pip install -e 'packages/gameplay[test]'
-          python -m pip install -e 'services/api[test]'
           python -m pip install -e 'packages/data_access[test]'
+          python -m pip install -e 'services/api[test]'
 
       - name: Bandit Python SAST
         run: bandit -q -r packages/gameplay/src services/api/src packages/data_access/src

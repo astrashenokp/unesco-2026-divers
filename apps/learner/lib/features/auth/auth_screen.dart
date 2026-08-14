@@ -21,12 +21,12 @@ const _apiBaseUrl = String.fromEnvironment(
 ///
 /// Empty in any build that does not pass it, so nothing ships with a
 /// credential baked in. Paired with the API's own opt-in dev verifier,
-/// which only accepts tokens named in `EVIDENCE_GYM_DEV_TOKENS`:
+/// which only accepts the token named in `EVIDENCE_GYM_DEV_IDENTITY_TOKEN`:
 ///
 ///     flutter run -d chrome ///       --dart-define=API_BASE_URL=http://localhost:8000/ ///       --dart-define=DEV_AUTH_TOKEN=dev-token
 ///
-/// TODO(Role 1): once Firebase is configured (`flutterfire configure`),
-/// replace this with `signInAnonymously()` and return the real ID token.
+/// Once Firebase is configured (`flutterfire configure`), replace this
+/// development-only path with `signInAnonymously()` and return the real ID token.
 /// ADR-008 already fixes guest auth as Firebase Anonymous Auth, verified
 /// server-side like any other principal — not a bespoke demo principal.
 const _devAuthToken = String.fromEnvironment('DEV_AUTH_TOKEN');

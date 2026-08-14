@@ -254,6 +254,29 @@ class Strings {
         "Ти вже робила цю перевірку. Її результат вище.",
       );
 
+  String get byArenaTitle => _s('Where your work went', 'Куди пішла робота');
+
+  // -------------------------------------------------------- level ladder
+  String get ladderTitle => _s('How this is scored', 'Як це оцінюється');
+  String get ladderIntro => _p(
+        'Five rungs, and not one of them asks whether you were right. '
+            'Investigating carefully and reaching the wrong conclusion '
+            'scores above guessing correctly — that is the whole point of '
+            'scoring the process.',
+        "П'ять сходинок, і жодна не питає, чи ти вгадала. Уважно перевірити "
+            "й дійти хибного висновку тут вартує більше, ніж вгадати "
+            "правильно. Саме для цього й оцінюється процес.",
+        'Five rungs. None of them asks if you were right — only how you '
+            'checked.',
+        "П'ять сходинок. Жодна не питає, чи ти вгадала, — лише як ти "
+            "перевіряла.",
+      );
+  String ladderLevel(int level, int total) =>
+      _s('Level $level of $total', 'Рівень $level з $total');
+  String ladderXp(int xp) => _s('$xp XP', '$xp XP');
+  String get ladderReached => _s('you reached this', 'ти тут');
+  String get ladderNext => _s('next', 'далі');
+
   // ------------------------------------------------------------ correction
   String get correctionTitle =>
       _s('This mission was corrected', 'Цю місію виправили');

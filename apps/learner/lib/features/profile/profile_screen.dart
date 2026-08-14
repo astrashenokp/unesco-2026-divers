@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../data/mission_repository.dart';
+import '../../data/arenas.dart';
+import '../../data/demo_fixtures.dart';
 import '../../data/models.dart';
 import '../../l10n/strings.dart';
 import '../common/failure_view.dart';
@@ -24,7 +26,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late Future<({Progress progress, List<Receipt> receipts})> _future;
+  late Future<({Progress progress, List<Receipt> receipts, LearningPath path})>
+      _future;
 
   @override
   void initState() {
@@ -34,10 +37,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _retry() => setState(() => _future = _load());
 
-  Future<({Progress progress, List<Receipt> receipts})> _load() async {
+  Future<({Progress progress, List<Receipt> receipts, LearningPath path})>
+      _load() async {
     final progress = await widget.repository.getMyProgress();
     final receipts = await widget.repository.listReceipts();
-    return (progress: progress, receipts: receipts);
+    final path = await widget.repository.getLearningPath();
+    return (progress: progress, receipts: receipts, path: path);
   }
 
   Future<void> _export(Progress progress, List<Receipt> receipts) async {
@@ -73,7 +78,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final s = Strings.of(context);
     final tokens = context.tokens;
 
-    return FutureBuilder<({Progress progress, List<Receipt> receipts})>(
+    return FutureBuilder<
+        ({Progress progress, List<Receipt> receipts, LearningPath path})>(
       future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -94,6 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         final progress = snapshot.data!.progress;
         final receipts = snapshot.data!.receipts;
+        final nodes = snapshot.data!.path.nodes;
 
         return ReadableWidth(
           child: ListView(
@@ -173,6 +180,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 );
               }),
+              SizedBox(height: tokens.space(3)),
+
+              // Where the work actually went. Total XP says how much;
+              // this says on what, which is the question someone opens
+              // their own profile to answer.
+              Text(s.byArenaTitle, style: Theme.of(context).textTheme.titleLarge),
+              SizedBox(height: tokens.space(1)),
+              for (final arena in kArenaOrder)
+                Builder(builder: (context) {
+                  final inArena = nodes
+                      .where((n) => demoArenaOf[n.missionId] == arena)
+                      .toList();
+                  if (inArena.isEmpty) return const SizedBox.shrink();
+                  final done =
+                      inArena.where((n) => n.state == 'completed').length;
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: tokens.space(1)),
+                    child: SkillMeter(
+                      label: s.arenaTitleOf(arena.name),
+                      mastery: done / inArena.length,
+                      masteryLabel: s.arenaProgress(done, inArena.length),
+                      segments: inArena.length,
+                    ),
+                  );
+                }),
+              SizedBox(height: tokens.space(3)),
+
+              // The ladder is here as a reference, with no rung marked:
+              // on a receipt it explains a score just given, and here it
+              // answers "what am I being measured on" before the next
+              // mission rather than after it.
+              Text(s.ladderTitle, style: Theme.of(context).textTheme.titleLarge),
+              SizedBox(height: tokens.space(0.5)),
+              Text(s.ladderIntro, style: Theme.of(context).textTheme.bodySmall),
+              SizedBox(height: tokens.space(1.5)),
+              LevelLadder(
+                rungs: [
+                  for (final rung in demoRubric(s.locale.languageCode))
+                    LadderRung(
+                      level: rung.level,
+                      criteria: rung.criteria,
+                      xp: rung.xpGuidance,
+                    ),
+                ],
+                reached: null,
+                levelLabel: s.ladderLevel,
+                xpLabel: s.ladderXp,
+              ),
               SizedBox(height: tokens.space(3)),
 
               Text(s.historyTitle, style: Theme.of(context).textTheme.titleLarge),

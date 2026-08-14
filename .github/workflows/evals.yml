@@ -44,9 +44,10 @@ jobs:
         run: python -m pytest evals/coach/tests -q -p no:cacheprovider
 
       - name: Run the deterministic harness
-        run: python evals/coach/run_deterministic_harness.py \
-          --suite evals/coach/p0-eval-cases.json \
-          --out coach-harness-results.json
+        run: |
+          python evals/coach/run_deterministic_harness.py \
+            --suite evals/coach/p0-eval-cases.json \
+            --out coach-harness-results.json
 
       - name: Enforce the P0 gate (non-blocking signal)
         id: gate

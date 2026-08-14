@@ -84,6 +84,18 @@ def test_public_mission_contract_exposes_completion_evidence_policy() -> None:
     assert minimum["maximum"] == 6
 
 
+def test_public_mission_contract_requires_unique_content_warnings() -> None:
+    mission_schema = load_contract()["components"]["schemas"]["Mission"]
+
+    assert "contentWarnings" in mission_schema["required"]
+    warnings = mission_schema["properties"]["contentWarnings"]
+    assert warnings == {
+        "type": "array",
+        "uniqueItems": True,
+        "items": {"type": "string"},
+    }
+
+
 def test_every_mutation_requires_idempotency_key() -> None:
     contract = load_contract()
     expected_reference = "#/components/parameters/IdempotencyKey"

@@ -145,6 +145,22 @@ def test_reader_loads_both_role3_missions_by_exact_version() -> None:
     assert citation.minimum_completion_evidence == 3
 
 
+def test_public_projection_preserves_reviewed_content_warning_tags() -> None:
+    reader = make_reader()
+
+    context = run(
+        reader.get_public_mission(MissionId("authentic-media-wrong-context"))
+    )
+    citation = run(reader.get_public_mission(MissionId("ai-citation-integrity")))
+
+    assert context is not None
+    assert citation is not None
+    assert context["contentWarnings"] == ["natural-disaster"]
+    assert citation["contentWarnings"] == ["academic-integrity"]
+    assert "riskNotes" not in context
+    assert "privacyNotes" not in context
+
+
 def test_reader_does_not_silently_upgrade_mission_version() -> None:
     reader = make_reader()
 

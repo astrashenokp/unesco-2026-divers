@@ -195,6 +195,7 @@ class FileMissionPolicyReader:
                 for action in mission["evidenceActions"]
             ],
             "skillTags": list(mission["learning"]["skillTags"]),
+            "contentWarnings": list(mission["safety"]["contentWarnings"]),
             "testsCriticalIgnoring": mission["testsCriticalIgnoring"],
             "minimumCompletionEvidence": mission["rubric"][
                 "minimumCompletionEvidence"

@@ -75,6 +75,32 @@ paths:
   /attempts/{attemptId}/evidence-actions:
     post:
       operationId: useEvidenceAction
+      description: |
+        Runs one curated evidence action and returns normalized evidence
+        or a safe degraded result.
+
+        **A curated action may advance an attempt once.** Replaying with
+        the same `Idempotency-Key` returns the original result;
+        repeating the same `actionId` with a new key returns
+        `evidence-action-already-used`. A rejected repeat advances
+        nothing — not `Attempt.version`, not hint progression, not
+        minimum completion evidence, not skill practice, not process XP.
+
+        Without this, one action could be replayed to inflate every
+        number the product scores by. It also matches the
+        `UNIQUE (attempt_id, action_ref)` constraint the persistence
+        layer already enforces (#25).
+
+        **Distinguish the `409` by `code`, never by the status alone.**
+        Three unrelated situations share it here and they call for
+        opposite responses from a client:
+
+        * `stale-attempt-version` — this client's `version` is behind
+          the server's; the attempt moved on elsewhere.
+        * `idempotency-key-conflict` — the same key was replayed with a
+          different body inside the retention window.
+        * `evidence-action-already-used` — as above; nothing was lost,
+          the learner already has this result.
       parameters:
         - $ref: '#/components/parameters/AttemptId'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -97,35 +123,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/EvidenceResult' }
         '404': { $ref: '#/components/responses/Problem' }
-        '409':
-          description: |
-            Conflict. Distinguish by `code`, never by the status alone —
-            several unrelated situations share 409 here and they call for
-            opposite responses from a client.
-
-            * `stale-attempt-version` — the client's `version` is behind
-              the server's. The attempt moved on elsewhere.
-            * `idempotency-key-conflict` — the same key was replayed with
-              a different body inside the retention window.
-            * `evidence-action-already-used` — this `actionId` has
-              already advanced this attempt.
-
-            Each curated evidence action may advance an attempt **once**.
-            Replaying with the same `Idempotency-Key` returns the
-            original result; repeating the same `actionId` with a new key
-            returns `evidence-action-already-used`. A rejected repeat
-            does not advance `Attempt.version`, and does not count toward
-            hint progression, minimum completion evidence, skill practice
-            or process XP.
-
-            Without this, one action could be replayed to inflate the
-            evidence count, the hint level, completion eligibility, skill
-            mastery and XP — all of the things this product scores. It
-            also matches the `UNIQUE (attempt_id, action_ref)` constraint
-            the persistence layer already enforces (#25).
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
         '429': { $ref: '#/components/responses/Problem' }
   /attempts/{attemptId}/hints:
     post:
@@ -229,6 +227,14 @@ paths:
         In demo mode nothing leaves the device and the client says so
         explicitly, rather than reusing the live confirmation.
 
+        **Failure codes.** `409 idempotency-key-conflict` when the same
+        key is reused with different content; a replay with the same key
+        and the same body returns the original acceptance rather than
+        creating a second report. `503` when the report could not be
+        durably stored or queued — returned in preference to a `202` the
+        service cannot stand behind, because a learner told their report
+        landed will not send it again.
+
         **Privacy.** The reporter is the verified principal; a client
         cannot report on behalf of another learner. Bearer tokens,
         request headers and device identifiers are not stored, and
@@ -256,25 +262,9 @@ paths:
             reviewer identity or queue position, and asserts nothing
             about review.
         '401': { $ref: '#/components/responses/Problem' }
-        '409':
-          description: |
-            `idempotency-key-conflict` — the same key was reused with
-            different content. A replay with the same key and the same
-            body returns the original acceptance rather than creating a
-            second report.
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
         '429': { $ref: '#/components/responses/Problem' }
-        '503':
-          description: |
-            The report could not be durably stored or queued, so it was
-            not accepted. Returned in preference to a `202` the service
-            cannot stand behind — a learner who is told their report
-            landed will not send it again.
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
 components:
   securitySchemes:
     firebaseBearer:

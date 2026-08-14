@@ -17,6 +17,7 @@ from evidence_gym_api.learning.attempt import (
     AxisAssessment,
     Conclusion,
     Confidence,
+    EvidenceActionAlreadyUsed,
     IllegalAttemptTransition,
     Prediction,
     Reaction,
@@ -277,6 +278,10 @@ class UseEvidenceAction:
                 raise AttemptAccessDenied("attempt belongs to another learner")
             if attempt.version != command.version:
                 raise StaleAttemptVersion("attempt version is stale")
+            if command.action_id in attempt.evidence_action_refs:
+                raise EvidenceActionAlreadyUsed(
+                    "evidence action already advanced this attempt"
+                )
 
             result = await self._evidence.get_result(
                 attempt.mission_id, attempt.mission_version, command.action_id

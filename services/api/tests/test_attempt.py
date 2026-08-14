@@ -10,6 +10,7 @@ from evidence_gym_api.learning import (
     Confidence,
     ConfidenceStatus,
     DomainError,
+    EvidenceActionAlreadyUsed,
     IdempotencyKey,
     IllegalAttemptTransition,
     InvalidConfidence,
@@ -131,15 +132,17 @@ def test_attempt_identity_and_mission_policy_are_pinned_at_creation(field: str) 
     )
 
 
-def test_repeated_evidence_action_is_recorded_as_a_distinct_use() -> None:
+def test_repeated_evidence_action_is_rejected_without_advancing_attempt() -> None:
     attempt = investigating_attempt()
     version = attempt.version
-    attempt.record_evidence_action("evidence-action-1")
-    assert attempt.evidence_action_refs == (
-        "evidence-action-1",
-        "evidence-action-1",
-    )
-    assert attempt.version == version + 1
+    state = attempt.state
+
+    with pytest.raises(EvidenceActionAlreadyUsed):
+        attempt.record_evidence_action("evidence-action-1")
+
+    assert attempt.evidence_action_refs == ("evidence-action-1",)
+    assert attempt.state is state
+    assert attempt.version == version
 
 
 def test_repeated_domain_completion_is_rejected() -> None:

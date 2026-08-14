@@ -97,6 +97,8 @@ assessment or rubric fields, and never calls a live provider. The
 `POST /attempts/{attemptId}/evidence-actions` endpoint validates ownership and
 optimistic versioning, records the action atomically, supports idempotent retries,
 and returns the updated `attemptVersion` required by the shared API contract.
+Each curated action may advance an attempt only once: a new key cannot repeat an
+already recorded `actionId`, and rejection leaves the attempt version unchanged.
 
 `POST /attempts/{attemptId}/hints` returns the reviewed deterministic fallback
 when no safe model provider is configured. It validates allowed actions,

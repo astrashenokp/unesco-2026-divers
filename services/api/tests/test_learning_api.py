@@ -307,6 +307,37 @@ def test_evidence_action_stale_version_and_changed_retry_return_409() -> None:
     assert changed.json()["code"] == "idempotency-key-conflict"
 
 
+def test_repeated_action_with_new_key_returns_stable_409_without_advancing() -> None:
+    with make_client() as client:
+        attempt_id = start_attempt(client).json()["id"]
+        client.post(
+            f"/attempts/{attempt_id}/prediction",
+            headers=auth_headers(key="predict-repeat-01"),
+            json={"reaction": "investigate", "confidence": 60, "version": 1},
+        )
+        first = client.post(
+            f"/attempts/{attempt_id}/evidence-actions",
+            headers=auth_headers(key="aaaaaaaa"),
+            json={"actionId": "inspect-source", "version": 2},
+        )
+        repeated = client.post(
+            f"/attempts/{attempt_id}/evidence-actions",
+            headers=auth_headers(key="bbbbbbbb"),
+            json={"actionId": "inspect-source", "version": 3},
+        )
+        different = client.post(
+            f"/attempts/{attempt_id}/evidence-actions",
+            headers=auth_headers(key="cccccccc"),
+            json={"actionId": "different-action", "version": 3},
+        )
+
+    assert first.status_code == 200
+    assert repeated.status_code == 409
+    assert repeated.json()["code"] == "evidence-action-already-used"
+    assert different.status_code == 200
+    assert different.json()["attemptVersion"] == 4
+
+
 def test_hint_returns_safe_fallback_without_advancing_attempt_version() -> None:
     with make_client() as client:
         attempt_id = start_attempt(client).json()["id"]

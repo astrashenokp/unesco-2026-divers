@@ -134,3 +134,14 @@ row returns `ProgressResult(total_xp=0, skills=())`, not `404`. Skill mastery
 and due dates must be returned from the stored Role 4 gameplay projection; the
 query must not recalculate XP, mastery, scheduling, or accept a learner ID from
 the client.
+
+### Repeated evidence-action follow-up
+
+The approved #25 rule is enforced before provider execution and persistence:
+one curated `actionId` may advance an attempt once. A same-key replay still
+returns the original result; the same action with a new key and current version
+raises `EvidenceActionAlreadyUsed`, leaves state/version unchanged, and maps to
+`409 evidence-action-already-used`. Keep `UNIQUE (attempt_id, action_ref)` and
+add PostgreSQL concurrency coverage proving simultaneous duplicate requests
+produce exactly one mutation. A uniqueness race must be translated without
+exposing SQL or constraint details.

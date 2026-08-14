@@ -13,6 +13,7 @@ from evidence_gym_api.learning import (
     AttemptId,
     AttemptState,
     Confidence,
+    EvidenceActionAlreadyUsed,
     IdempotencyKey,
     LearnerId,
     MissionId,
@@ -411,6 +412,50 @@ def test_use_evidence_action_checks_owner_version_and_idempotency_payload() -> N
                 evidence_command(predicted.id, action_id="different-action"),
             )
         )
+
+
+def test_new_key_cannot_repeat_action_or_advance_attempt() -> None:
+    attempts, start, submit = make_dependencies()
+    use_evidence = UseEvidenceAction(
+        attempts,
+        StubEvidenceProvider(),
+        InMemoryIdempotencyRepository(),
+        InMemoryTransactionManager(),
+        FixedClock(),
+    )
+    attempt = run(start.execute(LEARNER, start_command()))
+    predicted = run(submit.execute(LEARNER, prediction_command(attempt.id)))
+    first = run(use_evidence.execute(LEARNER, evidence_command(predicted.id)))
+
+    with pytest.raises(EvidenceActionAlreadyUsed):
+        run(
+            use_evidence.execute(
+                LEARNER,
+                evidence_command(
+                    predicted.id,
+                    key="evidence-key-002",
+                    version=first.attempt_version,
+                ),
+            )
+        )
+
+    unchanged = run(attempts.get(predicted.id))
+    assert unchanged is not None
+    assert unchanged.version == first.attempt_version
+    assert unchanged.evidence_action_refs == ("inspect-source",)
+
+    different = run(
+        use_evidence.execute(
+            LEARNER,
+            evidence_command(
+                predicted.id,
+                key="evidence-key-003",
+                version=first.attempt_version,
+                action_id="different-action",
+            ),
+        )
+    )
+    assert different.attempt_version == first.attempt_version + 1
 
 
 def test_evidence_provider_failure_does_not_mutate_attempt() -> None:

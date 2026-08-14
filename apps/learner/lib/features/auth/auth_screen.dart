@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/api_client.dart';
 import '../../data/audience.dart';
+import '../../data/connectivity.dart';
 import '../../app_settings.dart';
 import '../../data/demo_fixtures.dart';
 import '../../data/mission_repository.dart';
@@ -65,14 +66,17 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _continueAsGuest() {
-    _open(
-      LiveMissionRepository(
-        EvidenceGymApiClient(
-          baseUrl: Uri.parse(_apiBaseUrl),
-          authTokenProvider: _guestTokenProvider,
-        ),
-      ),
-    );
+    final connectivity = ConnectivityScope.of(context);
+    final client = EvidenceGymApiClient(
+      baseUrl: Uri.parse(_apiBaseUrl),
+      authTokenProvider: _guestTokenProvider,
+    )
+      // Every request reports whether the server answered, which is what
+      // drives the offline banner. Nothing is gated on it: a stale flag
+      // must never lock out a learner who is in fact online.
+      ..onReachability = ({required bool reachable}) =>
+          connectivity.report(reachable: reachable);
+    _open(LiveMissionRepository(client));
   }
 
   void _enterDemoKey() {

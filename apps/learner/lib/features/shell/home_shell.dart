@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 
 import '../../app_settings.dart';
 import '../../data/audience.dart';
+import '../../data/connectivity.dart';
 import '../../data/mission_repository.dart';
 import '../../l10n/strings.dart';
 import '../common/demo_banner.dart';
+import '../common/offline_banner.dart';
 import '../home/path_screen.dart';
+import '../leaderboard/leaderboard_tab.dart';
 import '../profile/profile_screen.dart';
 import '../profile/progress_screen.dart';
 import '../settings/settings_screen.dart';
@@ -45,6 +48,11 @@ class _HomeShellState extends State<HomeShell> {
         label: s.navProgress
       ),
       (
+        icon: Icons.leaderboard_outlined,
+        selectedIcon: Icons.leaderboard,
+        label: s.navBoard
+      ),
+      (
         icon: Icons.person_outline,
         selectedIcon: Icons.person,
         label: s.navProfile
@@ -58,7 +66,11 @@ class _HomeShellState extends State<HomeShell> {
 
     final pages = [
       PathScreen(repository: widget.repository),
-      ProgressScreen(repository: widget.repository),
+      ProgressScreen(
+        repository: widget.repository,
+        onGoToPath: () => setState(() => _index = 0),
+      ),
+      LeaderboardTab(repository: widget.repository),
       ProfileScreen(repository: widget.repository),
       const SettingsScreen(),
     ];
@@ -87,6 +99,8 @@ class _HomeShellState extends State<HomeShell> {
             child: Column(
               children: [
                 if (widget.repository.isDemo) const DemoBanner(),
+                if (!ConnectivityScope.of(context).isOnline)
+                  const OfflineBanner(),
                 Expanded(child: body),
               ],
             ),
@@ -195,6 +209,8 @@ class _HomeShellState extends State<HomeShell> {
                 child: Column(
                   children: [
                     if (widget.repository.isDemo) const DemoBanner(),
+                    if (!ConnectivityScope.of(context).isOnline)
+                      const OfflineBanner(),
                     Expanded(child: body),
                   ],
                 ),
@@ -231,53 +247,43 @@ class _RailFooter extends StatelessWidget {
     final streak = repository.streak;
     final paused = streak.isPaused(DateTime.now());
 
-    // One row per fact, aligned on a fixed icon column so the labels
-    // start at the same x whatever their length. The first version
-    // stacked icon over text and centred both, which left every item a
-    // different width and visibly ragged — and passed an empty string
-    // as the label for two of them, so those rendered a blank line and
-    // sat taller than the rest.
+    // A rail is 92dp wide. Two attempts at putting sentences in it both
+    // failed the same way: "not started" wrapped to two lines, "in a
+    // row" wrapped under it, and "DEMO DATA" broke across two — three
+    // ragged blocks of fragments where a glanceable fact was intended.
     //
-    // The second line is optional now rather than empty.
-    Widget fact(IconData icon, String value, String? label, Color tint) =>
-        Semantics(
-          label: label == null ? value : '$value $label',
-          child: ExcludeSemantics(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: tokens.space(0.75)),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 22,
-                    child: Icon(icon, size: 18, color: tint),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          value,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                height: 1.15,
-                              ),
-                        ),
-                        if (label != null && label.isNotEmpty)
-                          Text(
-                            label,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(height: 1.15),
+    // The column is too narrow for prose, so it carries none. Each fact
+    // is one short token, with the full sentence in its tooltip and its
+    // semantics label. That is the honest division of labour: the rail
+    // shows *that* there is a streak, and the profile says what it
+    // means.
+    Widget fact(IconData icon, String token, String spoken, Color tint) =>
+        Tooltip(
+          message: spoken,
+          child: Semantics(
+            label: spoken,
+            child: ExcludeSemantics(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: tokens.space(0.6)),
+                child: Column(
+                  children: [
+                    Icon(icon, size: 18, color: tint),
+                    SizedBox(height: tokens.space(0.25)),
+                    Text(
+                      token,
+                      maxLines: 1,
+                      // A number or a short tag never needs to shrink;
+                      // this only catches a translation that runs long,
+                      // and shrinking beats wrapping in a column this
+                      // narrow.
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            height: 1.1,
                           ),
-                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -292,19 +298,22 @@ class _RailFooter extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: tokens.space(1.25)),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Divider(color: tokens.textMuted.withValues(alpha: 0.2)),
               fact(
                 paused
                     ? Icons.pause_circle_outline
                     : Icons.local_fire_department_outlined,
+                // A bare number, or a dash when there is nothing yet.
+                // "not started" is a sentence and does not fit here.
                 paused
-                    ? s.streakPaused
+                    ? '‖'
+                    : (streak.current == 0 ? '—' : '${streak.current}'),
+                paused
+                    ? s.streakPausedExplain
                     : (streak.current == 0
                         ? s.streakNone
-                        : s.streakDays(streak.current)),
-                paused ? null : s.streakLabel,
+                        : '${s.streakDays(streak.current)} ${s.streakLabel}'),
                 paused ? tokens.textMuted : tokens.evidenceSecondary,
               ),
               // Named rather than assumed. Someone handing a laptop to a
@@ -312,10 +321,11 @@ class _RailFooter extends StatelessWidget {
               // settings, and someone who forgot they turned it on
               // should not have to wonder where the missions went.
               if (settings.audience == AudienceMode.child)
-                fact(Icons.child_care_outlined, s.audienceChild, null,
-                    tokens.evidencePrimary),
+                fact(Icons.child_care_outlined, s.audienceChildShort,
+                    s.audienceChild, tokens.evidencePrimary),
               if (repository.isDemo)
-                fact(Icons.science_outlined, s.demoBadge, null, tokens.action),
+                fact(Icons.science_outlined, s.demoBadgeShort, s.demoBadge,
+                    tokens.action),
             ],
           ),
         ),

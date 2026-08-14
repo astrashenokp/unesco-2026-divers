@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../app_settings.dart';
 import '../../data/audience.dart';
 import '../../l10n/strings.dart';
+import 'language_picker.dart';
 
 /// Accessibility and language settings.
 ///
@@ -29,15 +30,13 @@ class SettingsScreen extends StatelessWidget {
           // ------------------------------------------------------ language
           Text(s.languageLabel, style: Theme.of(context).textTheme.titleLarge),
           SizedBox(height: tokens.space(1)),
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'uk', label: Text('Українська')),
-              ButtonSegment(value: 'en', label: Text('English')),
-            ],
-            selected: {settings.locale.languageCode},
-            onSelectionChanged: (selection) =>
-                settings.locale = Locale(selection.first),
-          ),
+          // One button that opens the list, rather than one segment per
+          // language. A segmented control is fine at two and breaks at
+          // three — it grows sideways until it wraps, and every option
+          // costs horizontal space whether anyone wants it or not.
+          // Better to have the shape that scales before a third language
+          // arrives than after.
+          const LanguageButton(),
           SizedBox(height: tokens.space(3)),
 
           // -------------------------------------------------------- audience
@@ -108,6 +107,18 @@ class SettingsScreen extends StatelessWidget {
           ),
           SizedBox(height: tokens.space(0.5)),
           Text(s.themeHint, style: Theme.of(context).textTheme.bodySmall),
+          SizedBox(height: tokens.space(3)),
+
+          // ------------------------------------------------------- offline
+          Text(s.offlineLabel, style: Theme.of(context).textTheme.titleLarge),
+          SizedBox(height: tokens.space(1)),
+          SwitchListTile(
+            value: settings.prefetchMissions,
+            onChanged: (v) => settings.prefetchMissions = v,
+            title: Text(s.prefetchLabel),
+            subtitle: Text(s.prefetchHint),
+            contentPadding: EdgeInsets.zero,
+          ),
           SizedBox(height: tokens.space(3)),
 
           // --------------------------------------------- reading and motion

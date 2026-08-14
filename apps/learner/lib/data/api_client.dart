@@ -114,6 +114,16 @@ class EvidenceGymApiClient {
 
   Uri _uri(String path) => baseUrl.resolve('v1$path');
 
+  /// Notified after every request with whether the server answered at
+  /// all.
+  ///
+  /// Optional, so the client stays usable without one. Driven by request
+  /// outcomes rather than by a network-interface check, because a device
+  /// can be on wi-fi with no route out, behind a captive portal, or
+  /// facing a server that is down — and all three feel identical to a
+  /// learner.
+  void Function({required bool reachable})? onReachability;
+
   /// Runs an HTTP call and converts a transport failure into a Problem.
   ///
   /// Anything that is not already an [EvidenceGymApiException] — DNS
@@ -128,10 +138,15 @@ class EvidenceGymApiClient {
   /// telling someone their internet is down when their session expired.
   Future<http.Response> _send(Future<http.Response> Function() call) async {
     try {
-      return await call();
+      final response = await call();
+      // A 500 is the server answering, which is a different thing from
+      // being unreachable. Only transport failure counts as offline.
+      onReachability?.call(reachable: true);
+      return response;
     } on EvidenceGymApiException {
       rethrow;
     } catch (_) {
+      onReachability?.call(reachable: false);
       throw EvidenceGymApiException(
         const Problem(
           type: 'about:blank',

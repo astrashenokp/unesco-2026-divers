@@ -141,6 +141,10 @@ class Strings {
             "доречно показувати, — це не замок.",
       );
   String get audienceLabel => _s('Content for', 'Контент для');
+
+  /// Short forms for the navigation rail, which is 92dp wide and cannot
+  /// hold a phrase without breaking it into fragments.
+  String get audienceChildShort => _s('Teen', 'Підл.');
   String audienceHiddenNote(int n) => _s(
         n == 1
             ? '1 mission is hidden in this mode.'
@@ -255,6 +259,227 @@ class Strings {
       );
 
   String get byArenaTitle => _s('Where your work went', 'Куди пішла робота');
+
+  // --------------------------------------------------------------- admin
+  //
+  // Every figure is a cohort figure. The wording avoids anything that
+  // reads as a score for a person, because an operator who starts
+  // thinking of these as individual grades will start asking for the
+  // per-learner view this screen deliberately does not have.
+  String get adminTitle => _s('Cohort overview', 'Огляд групи');
+  String get adminScopeNote => _p(
+        'Aggregate only. This view answers questions about the group, not '
+            'about any individual — it cannot show what one person '
+            'concluded, believed, or how their confidence moved.',
+        "Лише агреговано. Цей екран відповідає на питання про групу, а не "
+            "про конкретну людину — він не може показати, що саме хтось "
+            "вирішив, у що вірив і як змінилася його впевненість.",
+        'Group figures only. Nothing here is about one person.',
+        "Лише групові цифри. Тут немає нічого про окрему людину.",
+      );
+  String get adminTooFewTitle =>
+      _s('Too few learners to report', 'Замало учасників для звіту');
+  String adminTooFewBody(int minimum) => _p(
+        'Below $minimum people, an average describes each of them. Figures '
+            'appear once the group is large enough that no single learner '
+            'can be read out of them.',
+        "Менш ніж $minimum людей — і середнє описує кожного з них окремо. "
+            "Цифри з'являться, коли група стане достатньою, щоб з них не "
+            "можна було вичитати конкретну людину.",
+        'With fewer than $minimum people, an average describes each one.',
+        "З менш ніж $minimum людьми середнє описує кожного окремо.",
+      );
+  String get adminLearners => _s('Learners active', 'Активних учасників');
+  String get adminLearnersMeaning => _s(
+        'Started at least one mission in the period.',
+        'Почали щонайменше одну місію за період.',
+      );
+  String get adminEvidenceFirst =>
+      _s('Concluded after checking', 'Висновок після перевірки');
+  String get adminEvidenceFirstMeaning => _p(
+        'Share of conclusions with at least one evidence check behind them. '
+            'The inverse is the exact habit this product exists to change, '
+            'so it is the number to watch.',
+        "Частка висновків, за якими стоїть хоча б одна перевірка. "
+            "Протилежне — саме та звичка, заради зміни якої існує продукт, "
+            "тож дивитися варто на це число.",
+        'How often people checked something before deciding.',
+        "Як часто люди щось перевіряли, перш ніж вирішити.",
+      );
+  String get adminUncertainty =>
+      _s('Said "not enough evidence"', 'Сказали «недостатньо доказів»');
+  String get adminUncertaintyMeaning => _p(
+        'Not an error rate. This is how often people were willing to say '
+            'the evidence did not settle it — a rise here is the product '
+            'working, not failing.',
+        "Це не частка помилок. Це те, як часто люди були готові сказати, "
+            "що докази не вирішують питання. Зростання тут означає, що "
+            "продукт працює, а не навпаки.",
+        'How often people said the evidence was not enough. Higher is good.',
+        "Як часто люди казали, що доказів бракує. Більше — краще.",
+      );
+  String get adminMedianLevel =>
+      _s('Typical process level', 'Типовий рівень процесу');
+  String get adminMedianLevelMeaning => _s(
+        'Median rung reached, from 0 to 4.',
+        'Медіанна сходинка, від 0 до 4.',
+      );
+  String get adminByArena => _s('By subject', 'За темами');
+  String get adminReports => _s('Content reports', 'Скарги на контент');
+  String adminReportsCount(int n) =>
+      _s('$n awaiting review', 'Очікують розгляду: $n');
+  String get adminReportsMeaning => _p(
+        'Reports learners filed about published content. Until a moderation '
+            'owner is named, this is a count and not a queue.',
+        "Скарги на опублікований контент. Доки не призначено відповідального "
+            "за модерацію, це лічильник, а не черга.",
+        'Reports about content. Nobody is assigned to review them yet.',
+        "Скарги на контент. Поки ніхто не призначений їх розглядати.",
+      );
+  String get adminNoIndividualsTitle =>
+      _s('There is no per-learner view', 'Погляду на окрему людину немає');
+  String get adminNoIndividualsBody => _p(
+        'This product records what someone believed before they checked and '
+            'how their mind changed. A screen replaying one named person\'s '
+            'beliefs is a different product from the one PRIVACY.md '
+            'describes, so it does not exist. A teacher who needs to know '
+            'how one learner is doing should ask them.',
+        "Цей продукт записує, у що людина вірила до перевірки і як змінила "
+            "думку. Екран, який відтворює переконання конкретної названої "
+            "людини, — це вже інший продукт, ніж описаний у PRIVACY.md, тож "
+            "його немає. Учителю, якому треба знати, як справи в конкретного "
+            "учня, варто запитати самого учня.",
+        'We do not show one person\'s answers to anyone else. Ask them '
+            'instead.',
+        "Ми не показуємо чиїсь відповіді іншим. Краще запитати саму людину.",
+      );
+
+  // --------------------------------------------------------- leaderboard
+  //
+  // The wording never praises being right, because the board does not
+  // measure it. Every phrase here is about how much was checked.
+  String get boardTitle => _s('Board', 'Дошка');
+  String get boardExplain => _p(
+        'Ranked by how much people investigated, not by how often they '
+            'turned out to be right. Nothing here can be won by guessing '
+            'well — the only way up is to check more.',
+        "Рейтинг за тим, скільки людина перевіряла, а не за тим, як часто "
+            "вгадувала. Тут нічого не виграти вдалою здогадкою — вгору веде "
+            "лише ретельніша перевірка.",
+        'Ranked by how much you checked, not by how often you were right.',
+        "Рейтинг за тим, скільки ти перевіряла, а не за влучністю.",
+      );
+  String get boardJoinTitle => _s('Join the board?', 'Долучитися до дошки?');
+  String get boardJoinBody => _p(
+        'You choose a handle. Your real name is never used, nothing about '
+            'your conclusions is shown to anyone, and you can leave at any '
+            'time.',
+        "Ти обираєш псевдонім. Справжнє ім'я не використовується, ніхто не "
+            "бачить твоїх висновків, і піти можна будь-коли.",
+        'You pick a nickname. Nobody sees your answers.',
+        "Ти обираєш псевдонім. Ніхто не бачить твоїх відповідей.",
+      );
+  String get boardJoin => _s('Choose a handle and join', 'Обрати псевдонім');
+  String get boardLeave => _s('Leave the board', 'Піти з дошки');
+  String get boardEmpty =>
+      _s('Nobody has joined yet.', 'Поки ніхто не долучився.');
+  String boardPlace(int place) => _s('place $place', 'місце $place');
+  String boardXpAndMissions(int xp, int missions) => _s(
+        '$xp XP from $missions missions',
+        '$xp XP за $missions місій',
+      );
+  String get boardThatIsYou => _s('this is you', 'це ти');
+  String get boardPrivacyNote => _p(
+        'The board shows a handle, process XP and a mission count. It never '
+            'shows what anyone concluded, how confident they were, or how '
+            'often they were right — those belong to the learner alone.',
+        "Дошка показує псевдонім, XP за процес і кількість місій. Вона "
+            "ніколи не показує, який висновок хтось зробив, наскільки був "
+            "упевнений і як часто мав рацію — це належить лише самій людині.",
+        'The board shows a nickname and XP. It never shows anyone\'s '
+            'answers.',
+        "Дошка показує псевдонім і XP. Чужих відповідей вона не показує.",
+      );
+  String get boardHandleLabel => _s('Handle', 'Псевдонім');
+  String get boardHandleHint => _s(
+        'Other learners will see this. Please do not use your real name.',
+        "Інші учасники це побачать. Будь ласка, не використовуй справжнє ім'я.",
+      );
+  String get navBoard => _s('Board', 'Дошка');
+
+  // ---------------------------------------------------------- connection
+  String get offlineBadge => _s('Offline', 'Офлайн');
+  String get offlineBannerText => _p(
+        'You are offline. Missions already downloaded still work, and '
+            'anything you finish is sent when the connection returns.',
+        "Ти офлайн. Уже завантажені місії працюють, а все завершене "
+            "надішлеться, щойно з'явиться зв'язок.",
+        'You are offline. Downloaded missions still work.',
+        "Ти офлайн. Завантажені місії працюють.",
+      );
+  String get onlineAgain => _s('Back online', "Зв'язок відновлено");
+
+  // ------------------------------------------------------- offline packs
+  String get offlineLabel => _s('Offline', 'Офлайн');
+  String get prefetchLabel =>
+      _s('Download missions ahead', 'Завантажувати місії наперед');
+  String get prefetchHint => _p(
+        'Keeps the next few missions on this device so a lost connection '
+            'does not stop you mid-path. Uses a little storage and a little '
+            'data.',
+        "Тримає кілька наступних місій на цьому пристрої, щоб втрачений "
+            "зв'язок не спиняв тебе посеред шляху. Витрачає трохи місця й "
+            "трохи трафіку.",
+        'Keeps the next missions on this device in case you lose signal.',
+        "Тримає наступні місії на пристрої на випадок втрати зв'язку.",
+      );
+  String prefetchReady(int n) => _s(
+        n == 1 ? '1 mission ready offline' : '$n missions ready offline',
+        n == 1 ? 'Офлайн готова 1 місія' : 'Офлайн готових місій: $n',
+      );
+  String get prefetchNone =>
+      _s('Nothing downloaded yet', 'Поки нічого не завантажено');
+
+  // ------------------------------------------------------ empty progress
+  //
+  // An empty screen that only reports zero is worse than no screen: it
+  // spends a whole destination telling someone they have done nothing.
+  // Before there is progress, this space explains what will be measured
+  // and offers the one action that starts it.
+  String get progressEmptyTitle =>
+      _s('Nothing measured yet', 'Поки нічого не виміряно');
+  String get progressEmptyBody => _p(
+        'Skills appear here once you have finished a mission. Each one is '
+            'built from the checks you actually ran, not from how many '
+            'answers you got right.',
+        "Навички з'являться тут після першої пройденої місії. Кожна "
+            "будується з перевірок, які ти справді зробила, а не з "
+            "кількості вгаданих відповідей.",
+        'Skills appear here after your first mission.',
+        "Навички з'являться тут після першої місії.",
+      );
+  String get progressEmptyAction =>
+      _s('Start your first mission', 'Почати першу місію');
+  String get progressWhatIsMeasured =>
+      _s('What gets measured', 'Що саме вимірюється');
+
+  /// Plain descriptions of the skills, shown before any exist so the
+  /// screen has something true to say from the first visit.
+  List<({String name, String what})> get skillPreview => _uk
+      ? const [
+          (name: 'Хто це сказав', what: 'Чи можна встановити джерело й автора.'),
+          (name: 'Коли й де', what: 'Чи збігаються час і місце з тим, що заявлено.'),
+          (name: 'Першоджерело', what: 'Чи існує оригінал, на який усі посилаються.'),
+          (name: 'Підтвердження', what: 'Чи каже це саме хтось незалежний.'),
+          (name: 'Невизначеність', what: 'Чи визнано те, чого докази не показують.'),
+        ]
+      : const [
+          (name: 'Who said it', what: 'Whether the source and author can be established.'),
+          (name: 'When and where', what: 'Whether time and place match the claim.'),
+          (name: 'Primary source', what: 'Whether the original everyone cites exists.'),
+          (name: 'Corroboration', what: 'Whether anyone independent says the same.'),
+          (name: 'Uncertainty', what: 'Whether what the evidence cannot show is named.'),
+        ];
 
   // -------------------------------------------------------- level ladder
   String get ladderTitle => _s('How this is scored', 'Як це оцінюється');
@@ -1167,6 +1392,7 @@ class Strings {
 
   // -------------------------------------------------------------- a11y/etc
   String get demoBadge => _s('DEMO DATA', 'ДЕМО-ДАНІ');
+  String get demoBadgeShort => _s('Demo', 'Демо');
   String get demoBannerText => _s(
         'Demo pack — offline, reviewed fixtures. Not live evidence.',
         'Демо-пак — офлайн, перевірені фікстури. Це не живі дані.',

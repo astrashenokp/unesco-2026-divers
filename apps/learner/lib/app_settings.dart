@@ -20,6 +20,7 @@ class AppSettings extends ChangeNotifier {
     double textScale = 1.0,
     ThemeMode themeMode = ThemeMode.system,
     AudienceMode audience = AudienceMode.adult,
+    bool prefetchMissions = true,
     SharedPreferences? store,
   })  : _locale = locale,
         _simpleLanguage = simpleLanguage,
@@ -27,6 +28,7 @@ class AppSettings extends ChangeNotifier {
         _textScale = textScale,
         _themeMode = themeMode,
         _audience = audience,
+        _prefetchMissions = prefetchMissions,
         _store = store;
 
   static const _kLocale = 'settings.locale';
@@ -35,6 +37,7 @@ class AppSettings extends ChangeNotifier {
   static const _kTextScale = 'settings.textScale';
   static const _kThemeMode = 'settings.themeMode';
   static const _kAudience = 'settings.audience';
+  static const _kPrefetch = 'settings.prefetchMissions';
 
   final SharedPreferences? _store;
 
@@ -44,6 +47,7 @@ class AppSettings extends ChangeNotifier {
   double _textScale;
   ThemeMode _themeMode;
   AudienceMode _audience;
+  bool _prefetchMissions;
 
   /// Loads saved choices. Falls back to defaults if storage is
   /// unavailable — a settings store that cannot be read must never stop
@@ -60,6 +64,7 @@ class AppSettings extends ChangeNotifier {
             ThemeMode.system,
         audience: AudienceMode.values.asNameMap()[store.getString(_kAudience)] ??
             AudienceMode.adult,
+        prefetchMissions: store.getBool(_kPrefetch) ?? true,
         store: store,
       );
     } catch (_) {
@@ -130,6 +135,23 @@ class AppSettings extends ChangeNotifier {
     if (_forceReduceMotion == value) return;
     _forceReduceMotion = value;
     _persist((s) => s.setBool(_kReduceMotion, value));
+    notifyListeners();
+  }
+
+  /// Keep the next few missions on the device.
+  ///
+  /// On by default, and the default is the argued part. A learner who
+  /// loses connection mid-path with nothing cached simply stops, and the
+  /// people most likely to lose connection are the ones this product is
+  /// most for. The cost is a little storage and a little data, which is
+  /// why it is a switch rather than a silent behaviour — someone paying
+  /// per megabyte is entitled to turn it off, and should be able to find
+  /// where.
+  bool get prefetchMissions => _prefetchMissions;
+  set prefetchMissions(bool value) {
+    if (_prefetchMissions == value) return;
+    _prefetchMissions = value;
+    _persist((s) => s.setBool(_kPrefetch, value));
     notifyListeners();
   }
 

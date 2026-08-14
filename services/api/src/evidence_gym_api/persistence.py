@@ -1,4 +1,4 @@
-"""PostgreSQL runtime composition for the learning, receipt and progress APIs.
+"""PostgreSQL runtime composition for learning, receipt, progress and reports.
 
 Each HTTP request binds exactly one use case, so every request opens its
 own ``AsyncSession`` and closes it once the response is sent. Heavy
@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     from evidence_gym_api.learning.api import LearningServices
     from evidence_gym_api.progress.api import ProgressServices
     from evidence_gym_api.receipt.api import ReceiptServices
+    from evidence_gym_api.trust.api import ReportServices
 
 
 class UuidAttemptIdGenerator:
@@ -59,6 +60,13 @@ class UuidAttemptIdGenerator:
 
     def new(self) -> AttemptId:
         return AttemptId(f"attempt-pg-{uuid4().hex}")
+
+
+class UuidReportIdGenerator:
+    """Globally unique identifiers for durable learner reports."""
+
+    def new(self) -> str:
+        return f"report-{uuid4().hex}"
 
 
 class ServicesFactory:
@@ -142,4 +150,21 @@ class ServicesFactory:
 
         return ProgressServices(
             get_my_progress=GetMyProgress(SqlAlchemyProgressReader(session))
+        )
+
+    def reports(self, session: AsyncSession) -> "ReportServices":
+        from data_access.db import SqlAlchemyTransactionManager
+        from data_access.reports import SqlAlchemyReportRepository
+        from evidence_gym_api.trust.api import ReportServices
+        from evidence_gym_api.trust.catalog_adapter import CatalogMissionVersionResolver
+        from evidence_gym_api.trust.use_cases import SubmitReport
+
+        return ReportServices(
+            submit_report=SubmitReport(
+                SqlAlchemyReportRepository(session),
+                CatalogMissionVersionResolver(self._policy_reader),
+                UuidReportIdGenerator(),
+                SqlAlchemyTransactionManager(session),
+                SystemClock(),
+            )
         )

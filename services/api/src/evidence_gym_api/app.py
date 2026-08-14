@@ -37,6 +37,8 @@ from evidence_gym_api.trace import TRACE_ID_HEADER, get_trace_id, normalize_trac
 from evidence_gym_api.receipt.api import ReceiptServices, router as receipt_router
 from evidence_gym_api.receipt.use_cases import ReceiptNotFound
 from evidence_gym_api.progress.api import ProgressServices, router as progress_router
+from evidence_gym_api.trust.api import ReportServices, router as report_router
+from evidence_gym_api.trust.errors import ReportPersistenceUnavailable
 from data_access.db import Database
 
 
@@ -65,6 +67,7 @@ def create_app(
     path_prefix: str = "",
     receipt_services: ReceiptServices | None = None,
     progress_services: ProgressServices | None = None,
+    report_services: ReportServices | None = None,
     database: Database | None = None,
     services_factory: ServicesFactory | None = None,
 ) -> FastAPI:
@@ -91,6 +94,7 @@ def create_app(
     app.state.catalog_reader = catalog_reader
     app.state.receipt_services = receipt_services
     app.state.progress_services = progress_services
+    app.state.report_services = report_services
     app.state.database = database
     app.state.services_factory = services_factory
     app.add_middleware(TraceIdMiddleware)
@@ -109,6 +113,7 @@ def create_app(
     app.include_router(learning_router, prefix=path_prefix)
     app.include_router(receipt_router, prefix=path_prefix)
     app.include_router(progress_router, prefix=path_prefix)
+    app.include_router(report_router, prefix=path_prefix)
 
     @app.exception_handler(ApiProblem)
     async def handle_api_problem(request: Request, exc: ApiProblem) -> JSONResponse:
@@ -259,6 +264,18 @@ def create_app(
             code="coach-unavailable",
             title="Coach unavailable",
             detail="A safe coaching response is temporarily unavailable.",
+        )
+        return problem_response(problem, get_trace_id(request))
+
+    @app.exception_handler(ReportPersistenceUnavailable)
+    async def handle_persistence_unavailable(
+        request: Request, exc: ReportPersistenceUnavailable
+    ) -> JSONResponse:
+        problem = ApiProblem(
+            status=503,
+            code="report-persistence-unavailable",
+            title="Report service unavailable",
+            detail="The report could not be durably accepted.",
         )
         return problem_response(problem, get_trace_id(request))
 

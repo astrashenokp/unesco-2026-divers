@@ -129,3 +129,30 @@ def test_pg_wired_app_readiness_and_completion_flow() -> None:
         assert progress.status_code == 200
         assert progress.json()["totalXp"] > 0
         assert isinstance(progress.json()["skills"], list)
+
+        report_headers = auth_headers("owner-token", f"wiring-report-{run_id}")
+        report_body = {
+            "missionId": MISSION_ID,
+            "reason": "outdated",
+            "detail": "The published context may need an update.",
+        }
+        reported = client.post(
+            "/v1/reports",
+            headers=report_headers,
+            json=report_body,
+        )
+        replayed = client.post(
+            "/v1/reports",
+            headers=report_headers,
+            json=report_body,
+        )
+        conflicting = client.post(
+            "/v1/reports",
+            headers=report_headers,
+            json={**report_body, "reason": "incorrect"},
+        )
+
+        assert reported.status_code == replayed.status_code == 202
+        assert reported.content == replayed.content == b""
+        assert conflicting.status_code == 409
+        assert conflicting.json()["code"] == "idempotency-key-conflict"

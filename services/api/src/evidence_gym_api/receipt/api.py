@@ -7,8 +7,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field
 
+from data_access.db import Database
 from evidence_gym_api.identity.dependencies import current_principal
 from evidence_gym_api.identity.model import Principal
+from evidence_gym_api.persistence import ServicesFactory
 from evidence_gym_api.problem import ApiProblem
 from evidence_gym_api.receipt.model import EvidenceReceipt
 from evidence_gym_api.receipt.use_cases import GetReceipt
@@ -60,18 +62,26 @@ class ReceiptResponse(BaseModel):
         )
 
 
-def receipt_services(request: Request) -> ReceiptServices:
+async def receipt_services(request: Request) -> ReceiptServices:
     services: ReceiptServices | None = getattr(
         request.app.state, "receipt_services", None
     )
-    if services is None:
+    if services is not None:
+        yield services
+        return
+    factory: ServicesFactory | None = getattr(
+        request.app.state, "services_factory", None
+    )
+    database: Database | None = getattr(request.app.state, "database", None)
+    if factory is None or database is None:
         raise ApiProblem(
             status=503,
             code="receipt-service-unavailable",
             title="Service not ready",
             detail="Receipt services are unavailable.",
         )
-    return services
+    async with database.session() as session:
+        yield factory.receipt(session)
 
 
 PrincipalDependency = Annotated[Principal, Depends(current_principal)]

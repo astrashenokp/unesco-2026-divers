@@ -63,6 +63,7 @@ jobs:
           python -m alembic -c alembic.ini upgrade head
           python -m alembic -c alembic.ini upgrade head
           python -m pytest -q -p no:cacheprovider
+          python -m pytest ../../services/api/tests/test_persistence_wiring.py -q -p no:cacheprovider
 
       - name: Validate JSON contracts
         run: |

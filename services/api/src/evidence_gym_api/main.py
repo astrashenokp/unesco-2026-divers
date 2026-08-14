@@ -3,6 +3,8 @@
 import os
 from pathlib import Path
 
+from data_access.db import Database
+from data_access.readiness import DatabaseReadinessProbe
 from evidence_gym_api.app import create_app
 from evidence_gym_api.catalog import FileMissionPolicyReader
 from evidence_gym_api.coach.fixture_provider import FixtureCoachProvider
@@ -25,6 +27,7 @@ from evidence_gym_api.learning.use_cases import (
     CompleteAttempt,
 )
 from evidence_gym_api.learning.gameplay_adapter import GameplayCompletionScorer
+from evidence_gym_api.persistence import ServicesFactory
 from evidence_gym_api.runtime import cors_allowed_origins, identity_verifier
 from evidence_gym_api.receipt.api import ReceiptServices
 from evidence_gym_api.receipt.use_cases import GetReceipt
@@ -39,59 +42,72 @@ fixture_reader = FileMissionPolicyReader(
     mission_schema_path=REPOSITORY_ROOT / "contracts" / "mission-fixture.schema.json",
 )
 
-attempts = InMemoryAttemptRepository()
-idempotency = InMemoryIdempotencyRepository()
-transactions = InMemoryTransactionManager()
-clock = SystemClock()
-completion_writer = InMemoryAtomicCompletionWriter(
-    attempts, GameplayCompletionScorer(fixture_reader)
-)
-
-learning_services = LearningServices(
-    start_attempt=StartAttempt(
-        attempts,
-        fixture_reader,
-        idempotency,
-        SequentialAttemptIdGenerator(prefix="attempt-local"),
-        transactions,
-        clock,
-    ),
-    submit_prediction=SubmitPrediction(attempts, idempotency, transactions, clock),
-    use_evidence_action=UseEvidenceAction(
-        attempts,
-        FixtureDeterministicEvidenceProvider(fixture_reader),
-        idempotency,
-        transactions,
-        clock,
-    ),
-    request_hint=RequestHint(
-        attempts,
-        fixture_reader,
-        FixtureCoachProvider(fixture_reader),
-        idempotency,
-        transactions,
-        clock,
-    ),
-    complete_attempt=CompleteAttempt(
-        attempts,
-        completion_writer,
-        idempotency,
-        transactions,
-        clock,
-    ),
-)
-
 # The contract declares `servers: https://…/v1`, so a conforming client
 # asks for `/v1/...`. Overridable, but the default matches the contract
 # rather than matching what the tests happen to call.
-app = create_app(
-    catalog_reader=fixture_reader,
-    learning_services=learning_services,
-    receipt_services=ReceiptServices(get_receipt=GetReceipt(completion_writer)),
-    progress_services=ProgressServices(
-        get_my_progress=GetMyProgress(InMemoryProgressReader(completion_writer))
-    ),
-    identity_verifier=identity_verifier(os.environ),
-    cors_allowed_origins=cors_allowed_origins(os.environ),
-    path_prefix=os.environ.get("EVIDENCE_GYM_PATH_PREFIX", "/v1"),
-)
+_runtime = {
+    "catalog_reader": fixture_reader,
+    "identity_verifier": identity_verifier(os.environ),
+    "cors_allowed_origins": cors_allowed_origins(os.environ),
+    "path_prefix": os.environ.get("EVIDENCE_GYM_PATH_PREFIX", "/v1"),
+}
+
+if os.environ.get("DATABASE_URL"):
+    database = Database()
+    app = create_app(
+        **_runtime,
+        database=database,
+        services_factory=ServicesFactory(fixture_reader),
+        readiness_probe=DatabaseReadinessProbe(database),
+    )
+else:
+    attempts = InMemoryAttemptRepository()
+    idempotency = InMemoryIdempotencyRepository()
+    transactions = InMemoryTransactionManager()
+    clock = SystemClock()
+    completion_writer = InMemoryAtomicCompletionWriter(
+        attempts, GameplayCompletionScorer(fixture_reader)
+    )
+
+    learning_services = LearningServices(
+        start_attempt=StartAttempt(
+            attempts,
+            fixture_reader,
+            idempotency,
+            SequentialAttemptIdGenerator(prefix="attempt-local"),
+            transactions,
+            clock,
+        ),
+        submit_prediction=SubmitPrediction(attempts, idempotency, transactions, clock),
+        use_evidence_action=UseEvidenceAction(
+            attempts,
+            FixtureDeterministicEvidenceProvider(fixture_reader),
+            idempotency,
+            transactions,
+            clock,
+        ),
+        request_hint=RequestHint(
+            attempts,
+            fixture_reader,
+            FixtureCoachProvider(fixture_reader),
+            idempotency,
+            transactions,
+            clock,
+        ),
+        complete_attempt=CompleteAttempt(
+            attempts,
+            completion_writer,
+            idempotency,
+            transactions,
+            clock,
+        ),
+    )
+
+    app = create_app(
+        **_runtime,
+        learning_services=learning_services,
+        receipt_services=ReceiptServices(get_receipt=GetReceipt(completion_writer)),
+        progress_services=ProgressServices(
+            get_my_progress=GetMyProgress(InMemoryProgressReader(completion_writer))
+        ),
+    )

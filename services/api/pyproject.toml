@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Evidence Gym FastAPI modular monolith"
 requires-python = ">=3.12,<3.14"
 dependencies = [
+  "data-access>=0.1,<0.2",
   "fastapi>=0.141,<0.142",
   "gameplay>=0.1,<0.2",
   "jsonschema>=4.23,<5",

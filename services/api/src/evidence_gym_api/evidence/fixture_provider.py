@@ -67,7 +67,8 @@ def _parse_datetime(value: str | None) -> datetime | None:
 
 def _required_datetime(value: str) -> datetime:
     parsed = _parse_datetime(value)
-    assert parsed is not None
+    if parsed is None:
+        raise ValueError("required date-time field is missing")
     return parsed
 
 
@@ -77,7 +78,8 @@ def _optional_string(document: dict[str, object], key: str) -> str | None:
 
 
 def _required_document(value: object) -> dict[str, object]:
-    assert isinstance(value, dict)
+    if not isinstance(value, dict):
+        raise ValueError("required document field must be an object")
     return value
 
 

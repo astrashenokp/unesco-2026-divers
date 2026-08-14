@@ -2,6 +2,7 @@ import 'package:evidence_gym_learner/data/api_client.dart';
 import 'package:evidence_gym_learner/data/audience.dart';
 import 'package:evidence_gym_learner/data/mission_repository.dart';
 import 'package:evidence_gym_learner/data/models.dart';
+import 'package:evidence_gym_learner/features/leaderboard/leaderboard_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// The board is built against `SCREEN_REFERENCE.md`, which lists "no
@@ -101,5 +102,46 @@ void main() {
     ));
     expect(await live.getLeaderboard(), isEmpty);
     expect(live.boardHandleSet, isFalse);
+  });
+
+  group('handle sanitising', () {
+    // The one string in this product that one user writes and another
+    // reads. Flutter renders it as text rather than markup so there is
+    // no injection here, but the other risks of user-supplied text are
+    // real and a client can do something about three of them.
+    test('a right-to-left override cannot rewrite the row around it', () {
+      // U+202E does not stop at the end of the string, so a handle
+      // containing one visually reverses the score beside it. Same
+      // trick as filename spoofing, same shape of target.
+      //
+      // Written as an escape rather than pasted: putting the real
+      // code point in the file makes this test source itself do the
+      // thing being tested, and the analyser flags it.
+      const attack = 'abc\u202Edef';
+      expect(sanitiseHandle(attack), 'abcdef');
+      expect(sanitiseHandle(attack).contains('\u202E'), isFalse);
+    });
+
+    test('zero-width characters cannot make two handles look identical', () {
+      // How impersonation on a board works: same rendering, different
+      // string, so the board shows what looks like one person twice.
+      expect(sanitiseHandle('Ma\u200Bria'), 'Maria');
+      expect(sanitiseHandle('Maria'), sanitiseHandle('Ma\u200Bria'));
+    });
+
+    test('newlines and runaway length cannot break the row', () {
+      expect(sanitiseHandle('two\nlines'), 'two lines');
+      expect(sanitiseHandle('   spaced   out   '), 'spaced out');
+      expect(sanitiseHandle('x' * 200).length, 24);
+    });
+
+    test('an ordinary handle is left alone, including non-Latin', () {
+      // The cleaning must not quietly mangle the languages this product
+      // ships in — stripping anything unfamiliar would be worse than
+      // the problem.
+      expect(sanitiseHandle('Олена'), 'Олена');
+      expect(sanitiseHandle('learner_42'), 'learner_42');
+      expect(sanitiseHandle('Ana Maria'), 'Ana Maria');
+    });
   });
 }

@@ -15,6 +15,18 @@ class BoardEntry {
   });
 
   /// A chosen handle, never a real name.
+  ///
+  /// Shown to other learners, so it is the one string in this product
+  /// that one user writes and another reads. Flutter renders it as text
+  /// rather than markup, so there is no injection to worry about — but
+  /// the other risks of user-supplied text are real, and [sanitiseHandle]
+  /// handles what a client can: length, invisible characters, and
+  /// right-to-left overrides that let a handle rewrite the row around
+  /// it.
+  ///
+  /// What a client cannot do is decide whether a handle is abusive or
+  /// whether it is someone's real name. That needs a server and a
+  /// person, and until the board is a real endpoint neither exists.
   final String handle;
   final int xp;
   final int missions;
@@ -89,25 +101,32 @@ class LeaderboardScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: tokens.surfaceRaised,
                 borderRadius: BorderRadius.circular(tokens.space(2)),
-                border:
-                    Border.all(color: tokens.textMuted.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: tokens.textMuted.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(s.boardJoinTitle,
-                      style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    s.boardJoinTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   SizedBox(height: tokens.space(1)),
-                  Text(s.boardJoinBody,
-                      style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    s.boardJoinBody,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   SizedBox(height: tokens.space(1.5)),
                   ElevatedButton(onPressed: onJoin, child: Text(s.boardJoin)),
                 ],
               ),
             ),
             SizedBox(height: tokens.space(2)),
-            Text(s.boardPrivacyNote,
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              s.boardPrivacyNote,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ] else ...[
             for (final (index, entry) in entries.indexed)
               RevealOnScroll(
@@ -117,8 +136,10 @@ class LeaderboardScreen extends StatelessWidget {
             if (entries.isEmpty)
               Text(s.boardEmpty, style: Theme.of(context).textTheme.bodyMedium),
             SizedBox(height: tokens.space(2)),
-            Text(s.boardPrivacyNote,
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              s.boardPrivacyNote,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             SizedBox(height: tokens.space(1)),
             Align(
               alignment: Alignment.centerLeft,
@@ -161,14 +182,16 @@ class _Row extends StatelessWidget {
             // The learner's own row is marked, and nobody else's is.
             // Podium colours for the top three would make the rest of
             // the board look like the losing part of it.
-            color: entry.isYou
-                ? tokens.action.withValues(alpha: 0.10)
-                : tokens.surfaceRaised,
+            color:
+                entry.isYou
+                    ? tokens.action.withValues(alpha: 0.10)
+                    : tokens.surfaceRaised,
             borderRadius: BorderRadius.circular(tokens.space(1.75)),
             border: Border.all(
-              color: entry.isYou
-                  ? tokens.action.withValues(alpha: 0.5)
-                  : tokens.textMuted.withValues(alpha: 0.18),
+              color:
+                  entry.isYou
+                      ? tokens.action.withValues(alpha: 0.5)
+                      : tokens.textMuted.withValues(alpha: 0.18),
               width: entry.isYou ? 1.5 : 1,
             ),
           ),
@@ -179,10 +202,9 @@ class _Row extends StatelessWidget {
                 child: Text(
                   '$place',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
               SizedBox(width: tokens.space(1)),
@@ -192,10 +214,9 @@ class _Row extends StatelessWidget {
                   children: [
                     Text(
                       entry.handle,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       s.boardXpAndMissions(entry.xp, entry.missions),
@@ -212,4 +233,47 @@ class _Row extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Cleans a learner-chosen handle before it is shown to anyone else.
+///
+/// Three specific problems, none of them hypothetical:
+///
+/// * **Bidirectional overrides.** U+202E and friends reverse rendering
+///   direction and do not stop at the end of the string, so a handle
+///   containing one can visually rewrite the score beside it. This is
+///   the classic filename-spoofing trick and a leaderboard row is the
+///   same shape of target.
+/// * **Zero-width and invisible characters.** They let two handles look
+///   identical while differing, which is how impersonation on a board
+///   works.
+/// * **Newlines and runaway length**, which break the row rather than
+///   the reader.
+///
+/// Deliberately not a profanity or real-name filter. Neither can be done
+/// honestly on a client — one needs a list nobody here is qualified to
+/// write, the other needs a human. The dialog asks people not to use
+/// their real name; enforcing that is a server's job.
+String sanitiseHandle(String raw) {
+  // Two passes, because the two kinds of character mean opposite
+  // things. A newline or a tab is a word boundary somebody typed, so
+  // it becomes a space; deleting it outright turns "two lines" into
+  // "twolines" and quietly renames the person. A zero-width or
+  // bidirectional character is not a boundary and not visible — it
+  // only exists to make two different handles render identically, or
+  // to reverse the text around them — so it is removed entirely.
+  //
+  // Raw strings, so the escapes reach the regular expression as text.
+  // In a normal literal they become the very code points being
+  // defended against, sitting in this file.
+  final invisible = RegExp(r'[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]');
+  final controls = RegExp(r'[\u0000-\u001F\u007F]');
+
+  final collapsed =
+      raw
+          .replaceAll(invisible, '')
+          .replaceAll(controls, ' ')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
+  return collapsed.length <= 24 ? collapsed : collapsed.substring(0, 24);
 }

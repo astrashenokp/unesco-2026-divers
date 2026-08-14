@@ -16,6 +16,9 @@ Only the server may transition `completed` and award XP. A client retry uses the
 
 ## Process XP rubric
 
+Normative scoring guidance lives in `docs/01-product/RUBRIC_AND_XP_GUIDANCE.md`.
+The short ladder below is the P0 shape every mission rubric must follow.
+
 | Level | Evidence behavior | XP guidance |
 |---|---|---|
 | 0 | instinct only | minimal completion XP |
@@ -25,6 +28,8 @@ Only the server may transition `completed` and award XP. A client retry uses the
 | 4 | calibrated conclusion and responsible share choice | +4 |
 
 Wrong initial predictions are not punished when the learner investigates well and updates rationally.
+`insufficient_evidence` can be the correct conclusion. XP is not a truth,
+intelligence, or trustworthiness score, and the AI coach never awards XP.
 
 ## Skill map
 

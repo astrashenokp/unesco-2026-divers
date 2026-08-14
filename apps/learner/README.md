@@ -6,9 +6,14 @@ Role 1 (Frontend & Experience) owned. Design rationale: `docs/06-design/DESIGN_S
 
 Verified on **Flutter 3.44.9 / Dart 3.12.2**:
 
-- `flutter analyze` — no issues, in both `apps/learner` and `packages/design_system`
-- `flutter test` — 41 passing (21 here, 20 in `design_system`)
+- `dart analyze` — no issues in `apps/learner` and `packages/design_system`
+- `flutter test` — 55 passing in `apps/learner`, 42 passing in `design_system`
 - `flutter build web --release` — succeeds
+
+Local note: `flutter analyze` can hit an internal analysis-server
+`FormatException` from this Unicode workspace path before it reports code
+diagnostics. `dart analyze` is the local analyzer check for this workspace; CI
+or a plain ASCII checkout may still run `flutter analyze`.
 
 Those tests include a WCAG contrast audit over every token pair that renders together, text-scale checks at 100% and 200% in both languages on phone and laptop widths, and semantics tests that activate controls the way assistive technology does rather than by tapping pixels.
 
@@ -23,7 +28,9 @@ Still unchecked by hand: real-device behaviour and a pass with a live screen rea
    - Phone or emulator: `flutter run`, after adding that platform once with
      `flutter create --platforms=android,ios .`
 4. On the auth screen choose one:
-   - **Enter demo** with the key below — fully offline, nothing else needed. This is the path to demo to judges.
+   - **Enter demo** with the key below — fully offline, nothing else needed.
+     This path now mirrors the two checked-in Role 3 P0 missions from
+     `content/p0-demo-pack`.
      ```
      EVIDENCE-GYM-DEMO
      ```

@@ -15,10 +15,11 @@ library;
 
 /// The subjects the demo pack covers.
 ///
-/// Kept few and wide on purpose. Ten thin categories would be a menu of
-/// empty rooms; four with real missions in them is a choice worth
-/// making. The real taxonomy belongs to Role 3 along with the content —
-/// this is the client's working set, matched to the missions that exist.
+/// Kept few and wide on purpose. P0 has two populated arenas; the other two
+/// remain disabled/empty presentation affordances until Role 3 adds matching
+/// reviewed missions. The real taxonomy belongs to Role 3 along with the
+/// content — this is the client's working set, matched to the missions that
+/// exist.
 enum DisinfoArena {
   /// Floods, fires, attacks, unrest — anything urgent, where the pull to
   /// share first and check later is strongest.
@@ -40,13 +41,8 @@ enum DisinfoArena {
 /// everywhere teaches nothing about where it belongs, and a learner who
 /// meets the same case in three rooms stops trusting the rooms.
 const demoArenaOf = <String, DisinfoArena>{
-  'viral-flood-photo': DisinfoArena.crisis,
-  'old-protest-clip': DisinfoArena.crisis,
-  'citation-hunt': DisinfoArena.healthAndScience,
-  'anonymous-claim': DisinfoArena.powerAndMoney,
-  'true-numbers-false-story': DisinfoArena.powerAndMoney,
-  'context-swap': DisinfoArena.syntheticAndRecycled,
-  'synthetic-but-real-topic': DisinfoArena.syntheticAndRecycled,
+  'authentic-media-wrong-context': DisinfoArena.crisis,
+  'ai-citation-integrity': DisinfoArena.healthAndScience,
 };
 
 /// Display order. Crisis first because it is the one people meet without

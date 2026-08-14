@@ -1,8 +1,9 @@
 # P0 Socratic coach policy
 
-Status: draft for Role 3 implementation and evals. This policy binds the P0 demo
-coach to draft mission fixtures and deterministic evidence. It does not grant
-the model permission to score, publish, browse, mutate state, or decide truth.
+Status: review-stage policy for Role 3 implementation and evals. This policy
+binds the P0 demo coach to review-stage mission fixtures and deterministic
+evidence. It does not grant the model permission to score, publish, browse,
+mutate state, or decide truth.
 
 ## Inputs
 

@@ -1256,7 +1256,7 @@ class _EvidenceCardState extends State<_EvidenceCard> {
       children: [
         SourceCard(
           title: item.title,
-          publisher: item.sourceUrl,
+          publisher: item.source.publisher,
           standing: switch (item.verificationStatus) {
             'verified_metadata' => SourceStanding.verified,
             'curated' => SourceStanding.curated,

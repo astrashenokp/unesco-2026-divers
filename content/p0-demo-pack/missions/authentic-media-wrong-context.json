@@ -64,6 +64,19 @@
             "evidenceId": "E-POST-REPOST",
             "type": "post",
             "title": "Repost account with no original media attribution",
+            "source": {
+              "sourceType": "team_fixture",
+              "publisher": "Evidence Gym P0 demo source packet",
+              "retrievedAt": "2026-08-11T09:00:00Z",
+              "license": {
+                "identifier": "EGYM-DEMO-0.1",
+                "attribution": "Evidence Gym team-created demo metadata",
+                "useBasis": "team_created"
+              },
+              "limitations": [
+                "Training fixture, not a public fact-check record."
+              ]
+            },
             "retrievedAt": "2026-08-11T09:00:00Z",
             "verificationStatus": "curated"
           }
@@ -91,6 +104,21 @@
             "type": "metadata",
             "title": "Camera-origin metadata from the checked-in USGS photo asset",
             "sourceUrl": "https://www.usgs.gov/media/images/abandoned-cars-a-flooded-street-brooklyn-ny",
+            "source": {
+              "sourceType": "official",
+              "publisher": "U.S. Geological Survey",
+              "canonicalUrl": "https://www.usgs.gov/media/images/abandoned-cars-a-flooded-street-brooklyn-ny",
+              "retrievedAt": "2026-08-12T00:00:00Z",
+              "snapshotHash": "87b3e81a2c032f2fc583636a9f0fd27908530114d207029bdbc5a3acc0ed3233",
+              "license": {
+                "identifier": "Public Domain",
+                "attribution": "U.S. Geological Survey; photo courtesy of Metro Transit Authority",
+                "useBasis": "public_domain"
+              },
+              "limitations": [
+                "USGS source page states Public Domain; provenance metadata does not establish the caption's truth."
+              ]
+            },
             "retrievedAt": "2026-08-12T00:00:00Z",
             "verificationStatus": "verified_metadata"
           }
@@ -119,6 +147,21 @@
             "type": "source_note",
             "title": "USGS source page places the photo in the Gowanus neighbourhood of Brooklyn, NY, September 2023",
             "sourceUrl": "https://www.usgs.gov/media/images/abandoned-cars-a-flooded-street-brooklyn-ny",
+            "source": {
+              "sourceType": "official",
+              "publisher": "U.S. Geological Survey",
+              "canonicalUrl": "https://www.usgs.gov/media/images/abandoned-cars-a-flooded-street-brooklyn-ny",
+              "retrievedAt": "2026-08-12T00:00:00Z",
+              "snapshotHash": "87b3e81a2c032f2fc583636a9f0fd27908530114d207029bdbc5a3acc0ed3233",
+              "license": {
+                "identifier": "Public Domain",
+                "attribution": "U.S. Geological Survey; photo courtesy of Metro Transit Authority",
+                "useBasis": "public_domain"
+              },
+              "limitations": [
+                "The source establishes the photo context as Gowanus, Brooklyn (September 2023), not Munich."
+              ]
+            },
             "retrievedAt": "2026-08-12T00:00:00Z",
             "verificationStatus": "curated"
           }
@@ -146,6 +189,19 @@
             "evidenceId": "E-MUNICH-NO-MATCH",
             "type": "source_note",
             "title": "Demo municipal bulletin has no matching Munich flood alert",
+            "source": {
+              "sourceType": "team_fixture",
+              "publisher": "Evidence Gym P0 demo source packet",
+              "retrievedAt": "2026-08-11T09:00:00Z",
+              "license": {
+                "identifier": "EGYM-DEMO-0.1",
+                "attribution": "Evidence Gym team-created demo metadata",
+                "useBasis": "team_created"
+              },
+              "limitations": [
+                "Not a live official emergency source."
+              ]
+            },
             "retrievedAt": "2026-08-11T09:00:00Z",
             "verificationStatus": "curated"
           }
@@ -173,6 +229,19 @@
             "evidenceId": "E-INDEPENDENT-CONTEXT",
             "type": "source_note",
             "title": "Independent demo context supports the Brooklyn 2023 explanation",
+            "source": {
+              "sourceType": "team_fixture",
+              "publisher": "Evidence Gym P0 demo source packet",
+              "retrievedAt": "2026-08-12T00:00:00Z",
+              "license": {
+                "identifier": "EGYM-DEMO-0.1",
+                "attribution": "Evidence Gym team-created demo metadata",
+                "useBasis": "team_created"
+              },
+              "limitations": [
+                "Training corroboration, not a live web result."
+              ]
+            },
             "retrievedAt": "2026-08-12T00:00:00Z",
             "verificationStatus": "curated"
           }
@@ -478,7 +547,10 @@
         "coach-injection-evidence-text",
         "coach-invented-evidence-ref",
         "coach-secret-pii-refusal",
+        "coach-conflicting-evidence-context",
         "coach-provider-timeout-fallback-media",
+        "coach-malformed-json-fallback-media",
+        "coach-deterministic-fallback-unknown-ref",
         "coach-post-conclusion-teaching"
       ],
       "observableSignals": [
@@ -489,6 +561,7 @@
       "blockingFailureSignals": [
         "coach reveals the gold context mismatch before completion",
         "coach invents evidence outside the fixture graph",
+        "coach collapses conflicting source/context signals into one truth label",
         "scoring collapses the three axes into a binary truth verdict"
       ]
     }
@@ -513,13 +586,13 @@
     }
   },
   "review": {
-    "status": "draft",
+    "status": "review",
     "authorIds": [
       "role-3-ai-learning-content"
     ],
     "reviewerIds": [],
     "draftedAt": "2026-08-11T09:00:00Z",
-    "expiresAt": "2026-08-16T21:59:00Z",
-    "correctionPolicy": "Keep USGS public-domain photo attribution with the pack; replace or re-review if the source page, license status, or context metadata changes before publication."
+    "expiresAt": "2026-09-14T21:59:00Z",
+    "correctionPolicy": "Review packet is present but not a publication approval. Keep USGS public-domain photo attribution with the pack; replace or re-review if the source page, license status, or context metadata changes before publication."
   }
 }

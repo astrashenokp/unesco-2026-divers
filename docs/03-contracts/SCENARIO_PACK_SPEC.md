@@ -11,16 +11,19 @@ pack/
   manifest.json
   missions/<mission-id>.json
   media/<licensed-assets>
-  locales/en.arb
-  locales/uk.arb
+  locales/<manifest-locale>.arb
+  locales/<ui-or-draft-locale>.arb
   sources/<optional-lawful-snapshots-or-metadata>
+  SIGNATURE.UNSIGNED
   SIGNATURE
 ```
 
 ## Manifest minimum
 
 - unique `id`, semantic `version`, `schemaVersion`;
-- title/description and BCP 47 locales;
+- title/description and BCP 47 locales for canonical pack content; UI-only or
+  draft locale stubs must not be listed in `manifest.locales` until the mission
+  prose itself is reviewed in that locale;
 - primary audience/age band, license and draft/review status;
 - author IDs, drafted date, review-expiry date, and reviewer sign-off only for
   approved/restricted packs;
@@ -40,7 +43,9 @@ pack/
 - gold evidence graph with source identity/retrieval/license metadata;
 - accepted three-axis assessments, including uncertainty ranges;
 - Socratic hint ladder and forbidden leakage terms;
-- rubric with eval hooks, correction/history metadata, reviewer sign-off;
+- rubric with process levels 0-4, skill tags, confidence calibration,
+  responsible-sharing and uncertainty guidance, eval hooks,
+  correction/history metadata, reviewer sign-off;
 - explicit `testsCriticalIgnoring` boolean in P0 fixtures. Mission fixture
   `schemaVersion: 2` requires this field; legacy/pre-v2 importers may only
   default an omitted value to `false` during migration before validating as v2.
@@ -56,9 +61,19 @@ release gate, `observableSignals` for process-scoring instrumentation, and
 `blockingFailureSignals` for failures that should stop publication or demo
 promotion.
 
+Rubric semantics are defined in
+`docs/01-product/RUBRIC_AND_XP_GUIDANCE.md`. XP is server-awarded from the
+version-pinned rubric and must never be treated as a truth, intelligence or
+trustworthiness score. The AI coach may explain the reviewed rubric after
+completion but must not award XP or decide score.
+
 ## Publication gates
 
-Schema valid; hashes valid; sources reachable or lawfully snapshotted; media license recorded; accessibility assets present; bias/harm review complete; two reviewers for real/sensitive cases; expiry date present; deterministic offline path passes.
+Schema valid; hashes valid; sources reachable or lawfully snapshotted; media
+license recorded; accessibility assets present; bias/harm review complete; two
+reviewers for real/sensitive cases; expiry date present; deterministic offline
+path passes; published packs replace any `SIGNATURE.UNSIGNED` marker with a real
+`SIGNATURE` artifact.
 
 ## Trust
 

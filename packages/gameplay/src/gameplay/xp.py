@@ -7,7 +7,9 @@ the XP value always comes from the rubric, never from a hard-coded table.
 Rule: process level = ``min(used_evidence_actions, 4)``. Zero actions is level
 0 (instinct only). XP never depends on whether the conclusion was correct —
 process is rewarded, not being right, and a wrong initial prediction is not
-punished when the learner investigates well.
+punished when the learner investigates well. ``insufficient_evidence`` can earn
+top process XP when it follows a strong investigation. AI/model output is not an
+input to this module.
 """
 
 from __future__ import annotations

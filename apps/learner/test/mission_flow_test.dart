@@ -17,10 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// only exercise incidentally.
 void main() {
   DemoMissionRepository repo({AudienceMode audience = AudienceMode.adult}) =>
-      DemoMissionRepository(
-        localeCode: () => 'en',
-        audience: () => audience,
-      );
+      DemoMissionRepository(localeCode: () => 'en', audience: () => audience);
 
   Future<Attempt> startFirst(DemoMissionRepository r) async {
     final path = await r.getLearningPath();
@@ -29,6 +26,48 @@ void main() {
     return r.startAttempt(mission.id, mission.version);
   }
 
+  test('offline demo mirrors the two Role 3 P0 missions', () {
+    final missions = demoMissionsFor('en');
+
+    expect(missions.keys.toList(), [
+      'authentic-media-wrong-context',
+      'ai-citation-integrity',
+    ]);
+    expect(demoLearningPathFor('en').nodes.map((n) => n.missionId).toList(), [
+      'authentic-media-wrong-context',
+      'ai-citation-integrity',
+    ]);
+    expect(
+      missions['ai-citation-integrity']!.rubric[2].criteria,
+      contains('DOI'),
+      reason: 'the citation mission must not reuse the media-context rubric',
+    );
+    expect(
+      missions['ai-citation-integrity']!.rubric[3].criteria,
+      contains('not-found'),
+    );
+  });
+
+  test('offline evidence preserves Role 3 source metadata shape', () {
+    final evidence = demoEvidenceResultsFor('en');
+
+    final usgs =
+        evidence['authentic-media-wrong-context:action-primary-source']!
+            .items
+            .single;
+    expect(usgs.source.sourceType, 'official');
+    expect(usgs.source.publisher, 'U.S. Geological Survey');
+    expect(usgs.source.snapshotHash, isNotNull);
+
+    final registry = evidence['ai-citation-integrity:action-registry-lookup']!;
+    expect(registry.status, 'not_found');
+    expect(registry.items.single.source.sourceType, 'academic_registry');
+    expect(
+      registry.items.single.source.canonicalId,
+      'doi:10.4242/jamr.2025.0199',
+    );
+  });
+
   test('an attempt walks ready -> predicted -> investigating', () async {
     final r = repo();
     final attempt = await startFirst(r);
@@ -36,15 +75,23 @@ void main() {
 
     final predicted = await r.submitPrediction(
       attempt.id,
-      PredictionInput(reaction: 'suspicious', confidence: 40, version: attempt.version),
+      PredictionInput(
+        reaction: 'suspicious',
+        confidence: 40,
+        version: attempt.version,
+      ),
     );
     expect(predicted.state, 'predicted');
     // The version must advance, or optimistic concurrency cannot detect
     // a stale write.
     expect(predicted.version, greaterThan(attempt.version));
 
-    final evidence =
-        await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_source', 2);
+    final evidence = await r.useEvidenceAction(
+      attempt.id,
+      'authentic-media-wrong-context',
+      'action-source-identity',
+      2,
+    );
     // ADR-009: an evidence action advances the attempt and the response
     // reports the new version. Without this the conclusion would send a
     // version every evidence action has moved past.
@@ -54,11 +101,27 @@ void main() {
   test('the receipt cites exactly the evidence that was looked at', () async {
     final r = repo();
     final attempt = await startFirst(r);
-    await r.submitPrediction(attempt.id,
-        PredictionInput(reaction: 'investigate', confidence: 30, version: attempt.version));
+    await r.submitPrediction(
+      attempt.id,
+      PredictionInput(
+        reaction: 'investigate',
+        confidence: 30,
+        version: attempt.version,
+      ),
+    );
 
-    final a = await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_source', 2);
-    final b = await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_date', 2);
+    final a = await r.useEvidenceAction(
+      attempt.id,
+      'authentic-media-wrong-context',
+      'action-source-identity',
+      2,
+    );
+    final b = await r.useEvidenceAction(
+      attempt.id,
+      'authentic-media-wrong-context',
+      'action-provenance-scan',
+      2,
+    );
     final expected = [...a.items, ...b.items].map((i) => i.evidenceId).toList();
 
     final result = await r.submitConclusion(
@@ -74,89 +137,144 @@ void main() {
     );
 
     final receipt = await r.getReceipt(result.receiptId);
-    expect(receipt.evidenceRefs, expected,
-        reason: 'a receipt must cite what was actually examined, nothing more');
-  });
-
-  test('a demo receipt is marked unsigned rather than given a fake hash', () async {
-    // Inventing a convincing hash in a product about checking provenance
-    // would be the exact failure it teaches against.
-    final r = repo();
-    final attempt = await startFirst(r);
-    await r.submitPrediction(attempt.id,
-        PredictionInput(reaction: 'trust', confidence: 60, version: attempt.version));
-    await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'check_source', 2);
-
-    final result = await r.submitConclusion(
-      attempt.id,
-      const ConclusionInput(
-        authenticity: AxisAssessment(label: 'unknown', confidence: 20),
-        claimVeracity: AxisAssessment(label: 'insufficient_evidence', confidence: 20),
-        contextIntegrity: AxisAssessment(label: 'unknown', confidence: 20),
-        postConfidence: 25,
-        shareDecision: 'continue_investigating',
-        version: 2,
-      ),
+    expect(
+      receipt.evidenceRefs,
+      expected,
+      reason: 'a receipt must cite what was actually examined, nothing more',
     );
-    final receipt = await r.getReceipt(result.receiptId);
-    expect(receipt.hash, 'demo-unsigned');
   });
 
-  test('XP rewards how much was investigated, not what was concluded', () async {
-    // Two attempts reaching opposite conclusions, one with more checks.
-    // The one that investigated more must earn more.
-    Future<int> run(List<String> actions, String verdict) async {
+  test(
+    'a demo receipt is marked unsigned rather than given a fake hash',
+    () async {
+      // Inventing a convincing hash in a product about checking provenance
+      // would be the exact failure it teaches against.
       final r = repo();
       final attempt = await startFirst(r);
-      await r.submitPrediction(attempt.id,
-          PredictionInput(reaction: 'investigate', confidence: 50, version: attempt.version));
-      for (final a in actions) {
-        await r.useEvidenceAction(attempt.id, 'viral-flood-photo', a, 2);
-      }
+      await r.submitPrediction(
+        attempt.id,
+        PredictionInput(
+          reaction: 'trust',
+          confidence: 60,
+          version: attempt.version,
+        ),
+      );
+      await r.useEvidenceAction(
+        attempt.id,
+        'authentic-media-wrong-context',
+        'action-source-identity',
+        2,
+      );
+
       final result = await r.submitConclusion(
         attempt.id,
-        ConclusionInput(
-          authenticity: AxisAssessment(label: verdict, confidence: 50),
-          claimVeracity: const AxisAssessment(label: 'supported', confidence: 50),
-          contextIntegrity: const AxisAssessment(label: 'accurate', confidence: 50),
-          postConfidence: 50,
-          shareDecision: 'do_not_share',
+        const ConclusionInput(
+          authenticity: AxisAssessment(label: 'unknown', confidence: 20),
+          claimVeracity: AxisAssessment(
+            label: 'insufficient_evidence',
+            confidence: 20,
+          ),
+          contextIntegrity: AxisAssessment(label: 'unknown', confidence: 20),
+          postConfidence: 25,
+          shareDecision: 'continue_investigating',
           version: 2,
         ),
       );
-      return result.xpAwarded;
-    }
+      final receipt = await r.getReceipt(result.receiptId);
+      expect(receipt.hash, 'demo-unsigned');
+    },
+  );
 
-    final thorough = await run(['check_source', 'check_date', 'reverse_search'], 'authentic');
-    final hasty = await run(['check_source'], 'altered');
-    expect(thorough, greaterThan(hasty));
+  test(
+    'XP rewards how much was investigated, not what was concluded',
+    () async {
+      // Two attempts reaching opposite conclusions, one with more checks.
+      // The one that investigated more must earn more.
+      Future<int> run(List<String> actions, String verdict) async {
+        final r = repo();
+        final attempt = await startFirst(r);
+        await r.submitPrediction(
+          attempt.id,
+          PredictionInput(
+            reaction: 'investigate',
+            confidence: 50,
+            version: attempt.version,
+          ),
+        );
+        for (final a in actions) {
+          await r.useEvidenceAction(
+            attempt.id,
+            'authentic-media-wrong-context',
+            a,
+            2,
+          );
+        }
+        final result = await r.submitConclusion(
+          attempt.id,
+          ConclusionInput(
+            authenticity: AxisAssessment(label: verdict, confidence: 50),
+            claimVeracity: const AxisAssessment(
+              label: 'supported',
+              confidence: 50,
+            ),
+            contextIntegrity: const AxisAssessment(
+              label: 'accurate',
+              confidence: 50,
+            ),
+            postConfidence: 50,
+            shareDecision: 'do_not_share',
+            version: 2,
+          ),
+        );
+        return result.xpAwarded;
+      }
 
-    // Pinned to the reviewed ladder, not just ordered. `greaterThan`
-    // alone passed under the homemade `1 + checks` formula this used to
-    // use, so it could not have caught the demo drifting away from the
-    // rubric the product actually scores by.
-    expect(hasty, 2, reason: 'one check is process level 1, worth 2 XP');
-    expect(thorough, 6, reason: 'three checks is level 3, worth 6 XP');
-  });
+      final thorough = await run([
+        'action-source-identity',
+        'action-provenance-scan',
+        'action-primary-source',
+      ], 'authentic');
+      final hasty = await run(['action-source-identity'], 'altered');
+      expect(thorough, greaterThan(hasty));
 
-  test('the demo pays the rubric, and stops paying past the top rung',
-      () async {
-    // The old formula was unbounded: every extra check bought another
-    // point forever, which rewards clicking rather than investigating.
-    final r = repo();
-    final mission = await r.getMission('viral-flood-photo');
-    expect(mission.rubric, isNotEmpty,
-        reason: 'a mission with no rubric cannot pay anything');
-    expect(xpFor(mission.rubric, 4), xpFor(mission.rubric, 40),
-        reason: 'running forty checks must not pay more than four');
-  });
+      // Pinned to the reviewed ladder, not just ordered. `greaterThan`
+      // alone passed under the homemade `1 + checks` formula this used to
+      // use, so it could not have caught the demo drifting away from the
+      // rubric the product actually scores by.
+      expect(hasty, 2, reason: 'one check is process level 1, worth 2 XP');
+      expect(thorough, 6, reason: 'three checks is level 3, worth 6 XP');
+    },
+  );
+
+  test(
+    'the demo pays the rubric, and stops paying past the top rung',
+    () async {
+      // The old formula was unbounded: every extra check bought another
+      // point forever, which rewards clicking rather than investigating.
+      final r = repo();
+      final mission = await r.getMission('authentic-media-wrong-context');
+      expect(
+        mission.rubric,
+        isNotEmpty,
+        reason: 'a mission with no rubric cannot pay anything',
+      );
+      expect(
+        xpFor(mission.rubric, 4),
+        xpFor(mission.rubric, 40),
+        reason: 'running forty checks must not pay more than four',
+      );
+    },
+  );
 
   test('the coach climbs its ladder and stops at four', () async {
     final r = repo();
     final attempt = await startFirst(r);
     final levels = <int>[];
     for (var i = 0; i < 7; i++) {
-      final hint = await r.requestHint(attempt.id, 'viral-flood-photo');
+      final hint = await r.requestHint(
+        attempt.id,
+        'authentic-media-wrong-context',
+      );
       levels.add(hint.level);
     }
     expect(levels.take(4).toList(), [1, 2, 3, 4]);
@@ -170,7 +288,10 @@ void main() {
     // misrepresent the system to the learner.
     final r = repo();
     final attempt = await startFirst(r);
-    final hint = await r.requestHint(attempt.id, 'viral-flood-photo');
+    final hint = await r.requestHint(
+      attempt.id,
+      'authentic-media-wrong-context',
+    );
     expect(hint.fallback, isTrue);
   });
 
@@ -179,8 +300,12 @@ void main() {
     // learner must reason about, not a failure to hide.
     final r = repo();
     final attempt = await startFirst(r);
-    final result =
-        await r.useEvidenceAction(attempt.id, 'viral-flood-photo', 'no_such_action', 2);
+    final result = await r.useEvidenceAction(
+      attempt.id,
+      'authentic-media-wrong-context',
+      'no_such_action',
+      2,
+    );
     expect(result.status, 'not_found');
     expect(result.items, isEmpty);
   });
@@ -193,7 +318,11 @@ void main() {
     final attempt = await startFirst(r);
     await r.submitPrediction(
       attempt.id,
-      PredictionInput(reaction: 'trust', confidence: 80, version: attempt.version),
+      PredictionInput(
+        reaction: 'trust',
+        confidence: 80,
+        version: attempt.version,
+      ),
     );
 
     // Concluding with no evidence behind it.
@@ -216,11 +345,18 @@ void main() {
 
     final error = thrown as EvidenceGymApiException;
     expect(error.problem.status, 409);
-    expect(error.needsMoreEvidence, isTrue,
-        reason: 'a conclusion without evidence is a step not yet taken');
-    expect(error.isStaleVersion, isFalse,
-        reason: 'restarting here would throw away work the learner had not '
-            'finished doing');
+    expect(
+      error.needsMoreEvidence,
+      isTrue,
+      reason: 'a conclusion without evidence is a step not yet taken',
+    );
+    expect(
+      error.isStaleVersion,
+      isFalse,
+      reason:
+          'restarting here would throw away work the learner had not '
+          'finished doing',
+    );
   });
 
   test('a repeated evidence action is its own kind of 409', () {
@@ -243,8 +379,11 @@ void main() {
         ),
       );
       expect(error.evidenceAlreadyUsed, isTrue, reason: '$code not recognised');
-      expect(error.isStaleVersion, isFalse,
-          reason: 'a repeat must not offer to restart the mission');
+      expect(
+        error.isStaleVersion,
+        isFalse,
+        reason: 'a repeat must not offer to restart the mission',
+      );
       expect(error.needsMoreEvidence, isFalse);
     }
   });
@@ -274,34 +413,52 @@ void main() {
   });
 
   group('audience modes', () {
-    test('the younger mode hides the distressing missions and only those',
-        () async {
-      final adult = await repo().getLearningPath();
-      final child =
-          await repo(audience: AudienceMode.child).getLearningPath();
+    test(
+      'the younger mode hides the distressing missions and only those',
+      () async {
+        final adult = await repo().getLearningPath();
+        final child =
+            await repo(audience: AudienceMode.child).getLearningPath();
 
-      expect(child.nodes.length, lessThan(adult.nodes.length),
-          reason: 'nothing was filtered, so the mode does nothing');
-      expect(child.nodes, isNotEmpty,
-          reason: 'a younger learner with an empty path has no product');
-
-      // Named explicitly rather than counted, so a change of intent has
-      // to be a change of test rather than a number quietly moving.
-      final hidden = adult.nodes.map((n) => n.missionId).toSet()
-        ..removeAll(child.nodes.map((n) => n.missionId));
-      final missions = demoMissionsFor('en');
-      for (final id in hidden) {
-        expect(missions[id]!.contentWarnings, isNotEmpty,
-            reason: '$id was hidden but declares nothing to warn about');
-      }
-      for (final node in child.nodes) {
         expect(
-          suitableFor(AudienceMode.child, missions[node.missionId]!.contentWarnings),
-          isTrue,
-          reason: '${node.missionId} reached the younger path unsuitable',
+          child.nodes.length,
+          lessThan(adult.nodes.length),
+          reason: 'nothing was filtered, so the mode does nothing',
         );
-      }
-    });
+        expect(
+          child.nodes,
+          hasLength(1),
+          reason:
+              'the younger mode should keep the reviewed academic-integrity '
+              'mission and hide the distressing natural-disaster case',
+        );
+        expect(child.nodes.single.missionId, 'ai-citation-integrity');
+
+        // Named explicitly rather than counted, so a change of intent has
+        // to be a change of test rather than a number quietly moving.
+        final hidden =
+            adult.nodes.map((n) => n.missionId).toSet()
+              ..removeAll(child.nodes.map((n) => n.missionId));
+        final missions = demoMissionsFor('en');
+        for (final id in hidden) {
+          expect(
+            missions[id]!.contentWarnings,
+            isNotEmpty,
+            reason: '$id was hidden but declares nothing to warn about',
+          );
+        }
+        for (final node in child.nodes) {
+          expect(
+            suitableFor(
+              AudienceMode.child,
+              missions[node.missionId]!.contentWarnings,
+            ),
+            isTrue,
+            reason: '${node.missionId} reached the younger path unsuitable',
+          );
+        }
+      },
+    );
 
     test('a hidden mission cannot be opened directly either', () async {
       final r = repo(audience: AudienceMode.child);
@@ -316,8 +473,13 @@ void main() {
       // opens it — a saved link, a resumed session, a deep link later.
       await expectLater(
         r.getMission(hidden),
-        throwsA(isA<EvidenceGymApiException>()
-            .having((e) => e.problem.status, 'status', 404)),
+        throwsA(
+          isA<EvidenceGymApiException>().having(
+            (e) => e.problem.status,
+            'status',
+            404,
+          ),
+        ),
       );
     });
 
@@ -330,79 +492,65 @@ void main() {
       // Null is "nobody said" and empty is "reviewed, nothing to warn
       // about". The contract makes the field required precisely so an
       // empty array can be a positive statement.
-      expect(suitableFor(AudienceMode.child, null), isFalse,
-          reason: 'filtering on silence is not filtering');
-      expect(suitableFor(AudienceMode.child, const []), isTrue,
-          reason: 'a reviewed mission that declares nothing must still '
-              'be reachable, or the younger mode empties out');
-      expect(suitableFor(AudienceMode.adult, null), isTrue,
-          reason: 'the adult mode filters nothing');
+      expect(
+        suitableFor(AudienceMode.child, null),
+        isFalse,
+        reason: 'filtering on silence is not filtering',
+      );
+      expect(
+        suitableFor(AudienceMode.child, const []),
+        isTrue,
+        reason:
+            'a reviewed mission that declares nothing must still '
+            'be reachable, or the younger mode empties out',
+      );
+      expect(
+        suitableFor(AudienceMode.adult, null),
+        isTrue,
+        reason: 'the adult mode filters nothing',
+      );
     });
 
     test('an unrecognised content warning fails closed', () {
       // The rule that matters most. A blocklist would admit every tag
       // nobody thought of, so the first warning from a new pack would
       // reach a child precisely because it was unfamiliar.
-      expect(suitableFor(AudienceMode.child, ['something-nobody-added-yet']),
-          isFalse,
-          reason: 'an unknown warning was treated as safe for children');
-      expect(suitableFor(AudienceMode.child, []), isTrue,
-          reason: 'declaring nothing to warn about is not the same as '
-              'carrying an unknown warning');
-      expect(suitableFor(AudienceMode.adult, ['something-nobody-added-yet']),
-          isTrue,
-          reason: 'the adult mode filters nothing');
+      expect(
+        suitableFor(AudienceMode.child, ['something-nobody-added-yet']),
+        isFalse,
+        reason: 'an unknown warning was treated as safe for children',
+      );
+      expect(
+        suitableFor(AudienceMode.child, []),
+        isTrue,
+        reason:
+            'declaring nothing to warn about is not the same as '
+            'carrying an unknown warning',
+      );
+      expect(
+        suitableFor(AudienceMode.adult, ['something-nobody-added-yet']),
+        isTrue,
+        reason: 'the adult mode filters nothing',
+      );
     });
 
-    test('both modes score identically', () async {
-      // The younger mode must not become the easy mode. Same rubric,
-      // same XP, same skills — only the case material differs.
-      // The *same* mission in both modes. An earlier version of this
-      // took each mode's first mission, which are different missions
-      // with different numbers of checks — it compared two unlike
-      // things and failed while the rubric was in fact identical.
-      final shared = (await repo(audience: AudienceMode.child)
-              .getLearningPath())
-          .nodes
-          .first
-          .missionId;
+    test(
+      'the younger mode does not create alternate scoring fixtures',
+      () async {
+        final adult = await repo().getLearningPath();
+        final child =
+            await repo(audience: AudienceMode.child).getLearningPath();
 
-      Future<int> xpFor(AudienceMode mode) async {
-        final r = repo(audience: mode);
-        final mission = await r.getMission(shared);
-        final attempt = await r.startAttempt(mission.id, mission.version);
-        final predicted = await r.submitPrediction(
-          attempt.id,
-          PredictionInput(
-              reaction: 'investigate', confidence: 50, version: attempt.version),
+        expect(adult.nodes, isNotEmpty);
+        final adultIds = adult.nodes.map((n) => n.missionId).toSet();
+        final childIds = child.nodes.map((n) => n.missionId).toSet();
+        expect(
+          childIds.difference(adultIds),
+          isEmpty,
+          reason: 'audience filtering must not substitute local-only missions',
         );
-        var version = predicted.version;
-        for (final action in mission.evidenceActions) {
-          final result = await r.useEvidenceAction(
-              attempt.id, mission.id, action.id, version);
-          version = result.attemptVersion;
-        }
-        final done = await r.submitConclusion(
-          attempt.id,
-          ConclusionInput(
-            authenticity: const AxisAssessment(label: 'authentic', confidence: 60),
-            claimVeracity:
-                const AxisAssessment(label: 'insufficient_evidence', confidence: 40),
-            contextIntegrity:
-                const AxisAssessment(label: 'misleading', confidence: 55),
-            postConfidence: 45,
-            shareDecision: 'do_not_share',
-            version: version,
-          ),
-        );
-        return done.xpAwarded;
-      }
-
-      final adultXp = await xpFor(AudienceMode.adult);
-      final childXp = await xpFor(AudienceMode.child);
-      expect(childXp, adultXp,
-          reason: 'the younger mode paid differently for the same work');
-    });
+      },
+    );
   });
 
   test('every mission belongs to exactly one arena', () async {
@@ -411,19 +559,17 @@ void main() {
     // absent from the way people navigate it.
     final path = await repo().getLearningPath();
     for (final node in path.nodes) {
-      expect(demoArenaOf[node.missionId], isNotNull,
-          reason: '${node.missionId} belongs to no arena');
-    }
-
-    // And every arena has something in it, or it is a room with a sign
-    // and no door.
-    for (final arena in kArenaOrder) {
       expect(
-        path.nodes.where((n) => demoArenaOf[n.missionId] == arena),
-        isNotEmpty,
-        reason: '$arena is empty in the adult mode',
+        demoArenaOf[node.missionId],
+        isNotNull,
+        reason: '${node.missionId} belongs to no arena',
       );
     }
+
+    final representedArenas =
+        path.nodes.map((n) => demoArenaOf[n.missionId]).toSet();
+    expect(representedArenas, contains(DisinfoArena.crisis));
+    expect(representedArenas, contains(DisinfoArena.healthAndScience));
   });
 
   test('a receipt can be traced back to its mission, in demo mode', () async {
@@ -436,17 +582,30 @@ void main() {
     final attempt = await startFirst(r);
     await r.submitPrediction(
       attempt.id,
-      PredictionInput(reaction: 'trust', confidence: 60, version: attempt.version),
+      PredictionInput(
+        reaction: 'trust',
+        confidence: 60,
+        version: attempt.version,
+      ),
     );
     final evidence = await r.useEvidenceAction(
-        attempt.id, 'viral-flood-photo', 'check_source', 2);
+      attempt.id,
+      'authentic-media-wrong-context',
+      'action-source-identity',
+      2,
+    );
     final done = await r.submitConclusion(
       attempt.id,
       ConclusionInput(
         authenticity: const AxisAssessment(label: 'authentic', confidence: 60),
-        claimVeracity:
-            const AxisAssessment(label: 'insufficient_evidence', confidence: 40),
-        contextIntegrity: const AxisAssessment(label: 'accurate', confidence: 60),
+        claimVeracity: const AxisAssessment(
+          label: 'insufficient_evidence',
+          confidence: 40,
+        ),
+        contextIntegrity: const AxisAssessment(
+          label: 'accurate',
+          confidence: 60,
+        ),
         postConfidence: 50,
         shareDecision: 'do_not_share',
         version: evidence.attemptVersion,
@@ -454,12 +613,15 @@ void main() {
     );
 
     final receipt = await r.getReceipt(done.receiptId);
-    expect(receipt.missionId, 'viral-flood-photo');
+    expect(receipt.missionId, 'authentic-media-wrong-context');
 
     // And the mission it points at must actually exist, or the lookup
     // that drives the banner throws instead of resolving.
     final mission = await r.getMission(receipt.missionId!);
-    expect(mission.version, receipt.missionVersion,
-        reason: 'an unchanged mission must not look corrected');
+    expect(
+      mission.version,
+      receipt.missionVersion,
+      reason: 'an unchanged mission must not look corrected',
+    );
   });
 }

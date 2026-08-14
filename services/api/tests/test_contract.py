@@ -21,6 +21,10 @@ SCENARIO_PACK_SCHEMA_PATH = REPOSITORY_ROOT / "contracts" / "scenario-pack.schem
 COACH_EVALS_PATH = REPOSITORY_ROOT / "evals" / "coach" / "p0-eval-cases.json"
 P0_MANIFEST_PATH = REPOSITORY_ROOT / "content" / "p0-demo-pack" / "manifest.json"
 P0_MISSIONS_PATH = REPOSITORY_ROOT / "content" / "p0-demo-pack" / "missions"
+ROLE3_HANDOFF_PATH = REPOSITORY_ROOT / "content" / "p0-demo-pack" / "ROLE3_HANDOFF.md"
+RUBRIC_XP_GUIDANCE_PATH = (
+    REPOSITORY_ROOT / "docs" / "01-product" / "RUBRIC_AND_XP_GUIDANCE.md"
+)
 
 
 def load_contract() -> dict:
@@ -31,6 +35,11 @@ def load_contract() -> dict:
 def load_json(path: Path) -> dict:
     with path.open(encoding="utf-8") as json_file:
         return json.load(json_file)
+
+
+def load_text(path: Path) -> str:
+    with path.open(encoding="utf-8") as text_file:
+        return text_file.read()
 
 
 def operations(contract: dict):
@@ -82,6 +91,114 @@ def test_public_mission_contract_exposes_completion_evidence_policy() -> None:
     assert minimum["type"] == "integer"
     assert minimum["minimum"] == 0
     assert minimum["maximum"] == 6
+
+
+def test_rubric_xp_guidance_states_required_scoring_principles() -> None:
+    guidance = load_text(RUBRIC_XP_GUIDANCE_PATH)
+    normalized = " ".join(guidance.split())
+
+    for required in [
+        "wrong initial prediction is not punished",
+        "`insufficient_evidence` can be the correct conclusion",
+        "XP is not a truth score",
+        "The AI coach never awards XP",
+        "process level is derived from completed evidence-action count and capped at 4",
+        "server-side, deterministic/reviewable, and independent of the AI coach",
+    ]:
+        assert required in normalized
+
+    for skill_tag in [
+        "source_identity",
+        "primary_source",
+        "corroboration",
+        "context_time_place",
+        "provenance",
+        "citation_integrity",
+        "claim_decomposition",
+        "uncertainty",
+        "responsible_sharing",
+    ]:
+        assert f"`{skill_tag}`" in guidance
+
+
+def test_openapi_evidence_result_requires_source_metadata() -> None:
+    schemas = load_contract()["components"]["schemas"]
+    item = schemas["EvidenceResult"]["properties"]["items"]["items"]
+    source = item["properties"]["source"]
+
+    assert "source" in item["required"]
+    assert item["properties"]["sourceUrl"]["type"] == ["string", "null"]
+    assert source["additionalProperties"] is False
+    assert source["required"] == [
+        "sourceType",
+        "publisher",
+        "retrievedAt",
+        "license",
+        "limitations",
+    ]
+    assert source["properties"]["license"]["required"] == [
+        "identifier",
+        "attribution",
+        "useBasis",
+    ]
+    assert source["properties"]["limitations"]["minItems"] == 1
+    assert schemas["EvidenceResult"]["properties"]["limitations"]["minItems"] == 1
+
+
+def test_role3_handoff_routes_required_role_specific_inputs() -> None:
+    handoff = load_text(ROLE3_HANDOFF_PATH)
+    role1_section = handoff.split("### Role 1 - Frontend and experience", 1)[
+        1
+    ].split("### Role 2 - Backend and domain", 1)[0]
+
+    for heading in [
+        "### Role 1 - Frontend and experience",
+        "### Role 2 - Backend and domain",
+        "### Role 4 - Game, data, security and reliability",
+        "### Evidence Guardian",
+    ]:
+        assert heading in handoff
+
+    for required in [
+        "Fields to render",
+        "Evidence action labels",
+        "Hint levels",
+        "Alt text/transcripts",
+        "Localization notes",
+        "Mission fixture schema",
+        "`testsCriticalIgnoring`",
+        "Deterministic response format",
+        "Policy reader expectations",
+        "Rubric inputs",
+        "Skill tags",
+        "Progression/XP guidance",
+        "Demo deterministic assumptions",
+        "Eval thresholds",
+        "AI/content safety risks",
+        "Forbidden leakage",
+        "Source provenance requirements",
+    ]:
+        assert required in handoff
+
+    assert "does not absorb implementation responsibility" in handoff
+    assert "not proof of fabrication" in handoff
+
+    public_mission = load_contract()["components"]["schemas"]["Mission"]
+    for field_name in public_mission["required"]:
+        assert f"`{field_name}`" in role1_section
+
+    for action_field in ["id", "type", "label"]:
+        assert f"`evidenceActions[].{action_field}`" in role1_section
+
+    for fixture_only_field in [
+        "`locale`",
+        "`arena`",
+        "`presentation.context`",
+        "`evidenceActions[].description`",
+        "`evidenceActions[].cost`",
+        "`evidenceActions[].skillTags`",
+    ]:
+        assert fixture_only_field not in role1_section
 
 
 def test_public_mission_contract_requires_unique_content_warnings() -> None:
@@ -190,10 +307,14 @@ def test_draft_review_metadata_is_schema_rejected_when_claiming_review() -> None
     )
 
     manifest = deepcopy(load_json(P0_MANIFEST_PATH))
+    manifest["review"]["status"] = "draft"
+    manifest["review"]["reviewerIds"] = []
     manifest["review"]["reviewedAt"] = "2026-08-11T09:00:00Z"
     assert list(manifest_validator.iter_errors(manifest))
 
     mission = deepcopy(load_json(sorted(P0_MISSIONS_PATH.glob("*.json"))[0]))
+    mission["review"]["status"] = "draft"
+    mission["review"]["reviewerIds"] = []
     mission["review"]["reviewedAt"] = "2026-08-11T09:00:00Z"
     assert list(mission_validator.iter_errors(mission))
 
@@ -250,6 +371,18 @@ def test_mission_fixture_schema_is_strict_demo_contract() -> None:
         "items",
         "limitations",
     ]
+    assert deterministic_response["properties"]["limitations"]["minItems"] == 1
+    assert (
+        schema["properties"]["goldEvidenceGraph"]["properties"]["limitations"][
+            "minItems"
+        ]
+        == 1
+    )
+
+    evidence_result_item = schema["$defs"]["evidenceResultItem"]
+    assert "source" in evidence_result_item["required"]
+    assert evidence_result_item["properties"]["source"] == {"$ref": "#/$defs/sourceRef"}
+    assert schema["$defs"]["sourceRef"]["properties"]["limitations"]["minItems"] == 1
 
 
 def test_public_mission_projection_exposes_accessibility_contract() -> None:

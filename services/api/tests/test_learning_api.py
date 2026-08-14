@@ -1,5 +1,7 @@
 """HTTP contract tests for the first learning mutations."""
 
+from datetime import UTC, datetime
+
 from fastapi.testclient import TestClient
 
 from evidence_gym_api.app import create_app
@@ -22,8 +24,17 @@ from evidence_gym_api.learning.use_cases import (
     RequestHint,
     UseEvidenceAction,
 )
-from evidence_gym_api.evidence import EvidenceResult, EvidenceStatus
+from evidence_gym_api.evidence import (
+    EvidenceItem,
+    EvidenceLicense,
+    EvidenceResult,
+    EvidenceSource,
+    EvidenceStatus,
+    VerificationStatus,
+)
 from evidence_gym_api.coach import CoachHint, HintUncertainty
+from evidence_gym_api.learning.api import EvidenceResultResponse
+from evidence_gym_api.learning.ports import EvidenceActionResult
 from evidence_gym_api.learning.value_objects import (
     LearnerId,
     MissionId,
@@ -70,6 +81,62 @@ class UnsafeCoachProvider:
             safety_flags=("possible_leakage",),
             fallback=False,
         )
+
+
+def test_evidence_result_response_serializes_source_metadata() -> None:
+    result = EvidenceActionResult(
+        evidence=EvidenceResult(
+            action_id="inspect-source",
+            status=EvidenceStatus.OK,
+            items=(
+                EvidenceItem(
+                    evidence_id="E-SOURCE",
+                    type="official",
+                    title="Official source page",
+                    source=EvidenceSource(
+                        source_type="official",
+                        publisher="U.S. Geological Survey",
+                        canonical_url="https://example.test/source",
+                        retrieved_at=datetime(2026, 8, 12, tzinfo=UTC),
+                        snapshot_hash=(
+                            "87b3e81a2c032f2fc583636a9f0fd27908530114d207029b"
+                            "dbc5a3acc0ed3233"
+                        ),
+                        license=EvidenceLicense(
+                            identifier="Public Domain",
+                            attribution="U.S. Geological Survey",
+                            use_basis="public_domain",
+                        ),
+                        limitations=("Fixture limitation.",),
+                    ),
+                    source_url="https://example.test/source",
+                    retrieved_at=datetime(2026, 8, 12, tzinfo=UTC),
+                    verification_status=VerificationStatus.VERIFIED_METADATA,
+                ),
+            ),
+            limitations=("Demo fixture only.",),
+        ),
+        attempt_version=3,
+    )
+
+    payload = EvidenceResultResponse.from_domain(result).model_dump(mode="json")
+
+    assert payload["items"][0]["source"] == {
+        "sourceType": "official",
+        "publisher": "U.S. Geological Survey",
+        "retrievedAt": "2026-08-12T00:00:00Z",
+        "license": {
+            "identifier": "Public Domain",
+            "attribution": "U.S. Geological Survey",
+            "useBasis": "public_domain",
+        },
+        "limitations": ["Fixture limitation."],
+        "author": None,
+        "canonicalUrl": "https://example.test/source",
+        "canonicalId": None,
+        "publishedAt": None,
+        "snapshotHash": "87b3e81a2c032f2fc583636a9f0fd27908530114d207029bdbc5a3acc0ed3233",
+    }
 
 
 class StubCompletionScorer:

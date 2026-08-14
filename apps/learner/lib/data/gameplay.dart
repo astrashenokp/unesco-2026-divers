@@ -51,7 +51,9 @@ const kMasteryPerPractice = 0.25;
 ///
 /// `min(usedEvidenceActions, 4)`. Deliberately not a function of whether
 /// the conclusion was right: process is rewarded, and a wrong first
-/// instinct is not punished when the learner investigates well.
+/// instinct is not punished when the learner investigates well. An
+/// `insufficient_evidence` conclusion can earn top process XP if the
+/// investigation was strong enough to justify it.
 int processLevelFor(int usedEvidenceActions) {
   if (usedEvidenceActions < 0) {
     throw ArgumentError.value(

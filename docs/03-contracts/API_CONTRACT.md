@@ -37,6 +37,10 @@ The normative endpoint/shape subset is `contracts/openapi.yaml`. This document d
 - Evidence/hints accepted only in `predicted|investigating`.
 - Conclusion requires prediction and the pinned mission version's `minimumCompletionEvidence` actions unless the pinned mission version has `testsCriticalIgnoring: true` (ADR-008).
 - `POST /attempts/{id}/conclusion` is the only client call for the concluding phase: `ConclusionInput` carries the three axes plus `postConfidence` and `shareDecision`. In one transaction the server validates and scores the conclusion, records confidence and share decision, creates the receipt, awards XP, writes the outbox event and marks the attempt `completed`. There is no separate "reflection" endpoint (ADR-009).
+- XP is awarded only by server-side scoring from the pinned mission rubric.
+  It rewards investigation process, confidence calibration, uncertainty handling
+  and responsible sharing, not whether the first prediction was right. The AI
+  coach never awards XP or decides score.
 - `concluded` and `reflected` are logical stages of that endpoint, not separately durable states. No client may depend on observing them. An earlier version of this document described `reflected` as a resumable checkpoint; that was incorrect, because an intermediate state written inside a transaction does not survive its rollback (ADR-009 supersedes ADR-008 decision 5).
 - Completion is all-or-nothing. If the transaction does not commit, everything rolls back and a same-key retry re-runs the operation. If it commits, a same-key retry returns the original result — no duplicate XP, receipt or outbox event.
 - Evidence actions carry `version` like prediction and conclusion, and stale values return `409` (ADR-009).

@@ -66,6 +66,7 @@ class MissionResponse(BaseModel):
     reactions: list[str]
     evidenceActions: list[EvidenceActionResponse]
     skillTags: list[str]
+    contentWarnings: list[str]
     testsCriticalIgnoring: bool = False
     minimumCompletionEvidence: int = Field(ge=0, le=6)
 

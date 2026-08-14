@@ -56,7 +56,10 @@ Implemented public catalog endpoints:
 The public mission projection exposes only the OpenAPI mission fields and
 accessibility alternatives. It deliberately omits deterministic evidence
 responses, accepted assessments, gold evidence graphs, hints, rubric/eval hooks,
-and licensing notes. The default ASGI entry point wires these endpoints to the
+and licensing notes. It passes through Role 3's reviewed `contentWarnings`
+without interpreting or rewriting the tags, allowing Role 1 to apply the same
+fail-closed suitability filtering to live and demo missions. The default ASGI
+entry point wires these endpoints to the
 checked-in P0 demo pack through the hash-verifying `FileMissionPolicyReader`.
 
 Implemented learner mutations:

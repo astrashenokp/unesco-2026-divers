@@ -2,15 +2,19 @@
 
 Status: review-stage submission demo, not public publication approval.
 
-Review owner lane: Evidence Guardian. This packet exists so the team can review
-the same concrete evidence, limitations and test artifacts before submission.
-Do not change pack or mission status to `approved` or `restricted` until a human
-reviewer records sign-off with `reviewedAt`.
+Review owner lane: Evidence Guardian. The lane is recorded here, not in
+`review.reviewerIds`, because `reviewerIds` is reserved for actual human
+sign-off. This packet exists so the team can review the same concrete evidence,
+limitations and test artifacts before submission. Do not change pack or mission
+status to `approved` or `restricted` until a human reviewer records sign-off with
+`reviewedAt`.
 
 ## Scope
 
 - Pack: `p0-demo-pack` version `0.1.0`.
 - Missions: `authentic-media-wrong-context`, `ai-citation-integrity`.
+- Canonical pack locale: English mission prose. Ukrainian UI/demo strings are
+  present as review stubs but are not claimed as reviewed mission localization.
 - Intended use: deterministic hackathon/submission demo and local integration.
 - Not intended use: public content publication, live emergency verification, or
   a claim that model safety has been broadly proven.

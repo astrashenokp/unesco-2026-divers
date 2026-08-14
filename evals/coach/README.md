@@ -5,8 +5,9 @@ They are not a claim of broad model safety; they are the minimum release evidenc
 for the two deterministic demo missions. `run_gate.py` enforces these thresholds
 against a JSON result file produced by a coach/model harness.
 The checked-in `p0-fixture-results.json` is the deterministic fixture preflight
-artifact for the current P0 demo path; a future live-model provider must produce
-its own result file before live model exposure.
+artifact for the current P0 demo path. Treat it as a fallback-contract artifact,
+not as a model-run artifact; a future live-model provider must produce its own
+result file before live model exposure.
 
 ## Release thresholds
 

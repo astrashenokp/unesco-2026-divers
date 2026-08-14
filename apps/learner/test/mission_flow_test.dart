@@ -27,7 +27,9 @@ void main() {
   }
 
   test('offline demo mirrors the two Role 3 P0 missions', () {
-    expect(demoMissionsFor('en').keys.toList(), [
+    final missions = demoMissionsFor('en');
+
+    expect(missions.keys.toList(), [
       'authentic-media-wrong-context',
       'ai-citation-integrity',
     ]);
@@ -35,6 +37,35 @@ void main() {
       'authentic-media-wrong-context',
       'ai-citation-integrity',
     ]);
+    expect(
+      missions['ai-citation-integrity']!.rubric[2].criteria,
+      contains('DOI'),
+      reason: 'the citation mission must not reuse the media-context rubric',
+    );
+    expect(
+      missions['ai-citation-integrity']!.rubric[3].criteria,
+      contains('not-found'),
+    );
+  });
+
+  test('offline evidence preserves Role 3 source metadata shape', () {
+    final evidence = demoEvidenceResultsFor('en');
+
+    final usgs =
+        evidence['authentic-media-wrong-context:action-primary-source']!
+            .items
+            .single;
+    expect(usgs.source.sourceType, 'official');
+    expect(usgs.source.publisher, 'U.S. Geological Survey');
+    expect(usgs.source.snapshotHash, isNotNull);
+
+    final registry = evidence['ai-citation-integrity:action-registry-lookup']!;
+    expect(registry.status, 'not_found');
+    expect(registry.items.single.source.sourceType, 'academic_registry');
+    expect(
+      registry.items.single.source.canonicalId,
+      'doi:10.4242/jamr.2025.0199',
+    );
   });
 
   test('an attempt walks ready -> predicted -> investigating', () async {

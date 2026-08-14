@@ -23,16 +23,12 @@ bool _uk(String code) => code == 'uk';
 /// presentation of the ordered path the server already returns — no
 /// contract field is invented here.
 
-/// The process-level ladder, taken verbatim from the reviewed pack at
-/// `content/p0-demo-pack`.
+/// The process-level ladders, mirrored from each checked-in P0 mission.
 ///
-/// This offline demo uses one generic ladder across its local missions;
-/// checked-in P0 mission JSON can carry mission-specific criteria and
-/// skill tags. The invariant is the same in both places: XP must come
-/// from curated content, and a demo that pays differently from its
-/// reviewed rubric would be showing a judge numbers the product does
-/// not actually award.
-List<ProcessLevel> demoRubric(String code) => [
+/// XP remains curated content: each offline mission carries the same
+/// level/xp/skill-tag policy as its Role 3 fixture instead of sharing a
+/// generic local rubric.
+List<ProcessLevel> _mediaContextRubric(String code) => [
   ProcessLevel(
     level: 0,
     xpGuidance: 1,
@@ -76,6 +72,53 @@ List<ProcessLevel> demoRubric(String code) => [
             ? 'Калібрований висновок за трьома осями і відповідальне рішення про поширення.'
             : 'Makes a calibrated three-axis conclusion and chooses a responsible sharing decision.',
     skillTags: const ['uncertainty', 'responsible_sharing'],
+  ),
+];
+
+List<ProcessLevel> _citationIntegrityRubric(String code) => [
+  ProcessLevel(
+    level: 0,
+    xpGuidance: 1,
+    criteria:
+        _uk(code)
+            ? 'Приймає або відкидає цитату лише через її переконливий стиль.'
+            : 'Accepts or rejects the citation from fluency alone.',
+  ),
+  ProcessLevel(
+    level: 1,
+    xpGuidance: 2,
+    criteria:
+        _uk(code)
+            ? 'Відокремлює існування цитати від підтримки твердження.'
+            : 'Separates citation existence from claim support.',
+    skillTags: const ['claim_decomposition'],
+  ),
+  ProcessLevel(
+    level: 2,
+    xpGuidance: 4,
+    criteria:
+        _uk(code)
+            ? 'Нормалізує DOI і перевіряє реєстрові метадані.'
+            : 'Normalizes DOI and checks registry-like metadata.',
+    skillTags: const ['citation_integrity', 'source_identity'],
+  ),
+  ProcessLevel(
+    level: 3,
+    xpGuidance: 6,
+    criteria:
+        _uk(code)
+            ? 'Працює з not-found і mismatch без перебільшення.'
+            : 'Handles not-found and mismatch results without overstating them.',
+    skillTags: const ['uncertainty', 'citation_integrity'],
+  ),
+  ProcessLevel(
+    level: 4,
+    xpGuidance: 8,
+    criteria:
+        _uk(code)
+            ? 'Робить обережний висновок за трьома осями і не використовує непідтриману цитату.'
+            : 'Makes a cautious three-axis conclusion and avoids using unsupported citations.',
+    skillTags: const ['responsible_sharing', 'uncertainty'],
   ),
 ];
 
@@ -232,7 +275,7 @@ Map<String, Mission> demoMissionsFor(String code) {
         'responsible_sharing',
       ],
       contentWarnings: const ['natural-disaster'],
-      rubric: demoRubric(code),
+      rubric: _mediaContextRubric(code),
     ),
     'ai-citation-integrity': Mission(
       id: 'ai-citation-integrity',
@@ -269,7 +312,7 @@ Map<String, Mission> demoMissionsFor(String code) {
         'responsible_sharing',
       ],
       contentWarnings: const ['academic-integrity'],
-      rubric: demoRubric(code),
+      rubric: _citationIntegrityRubric(code),
       minimumCompletionEvidence: 3,
     ),
   };
@@ -319,29 +362,91 @@ Map<String, EvidenceResult> demoEvidenceResultsFor(String code) {
       _uk(code)
           ? 'Демонстраційні дані — це не справжній запит.'
           : 'Demo fixture — not a live lookup.';
-  final demoSource = EvidenceSource(
+
+  EvidenceSource teamSource(
+    DateTime retrievedAt,
+    String enLimit,
+    String ukLimit,
+  ) => EvidenceSource(
     sourceType: 'team_fixture',
     publisher: 'Evidence Gym P0 demo source packet',
-    retrievedAt: DateTime.utc(2026, 8, 10, 9),
+    retrievedAt: retrievedAt,
     license: const EvidenceLicense(
       identifier: 'EGYM-DEMO-0.1',
       attribution: 'Evidence Gym team-created demo metadata',
       useBasis: 'team_created',
     ),
-    limitations: [onlyDemo],
+    limitations: [_uk(code) ? ukLimit : enLimit],
   );
 
-  EvidenceResult ok(
+  final usgsSource = EvidenceSource(
+    sourceType: 'official',
+    publisher: 'U.S. Geological Survey',
+    canonicalUrl:
+        'https://www.usgs.gov/media/images/abandoned-cars-a-flooded-street-brooklyn-ny',
+    retrievedAt: DateTime.utc(2026, 8, 12),
+    snapshotHash:
+        '87b3e81a2c032f2fc583636a9f0fd27908530114d207029bdbc5a3acc0ed3233',
+    license: const EvidenceLicense(
+      identifier: 'Public Domain',
+      attribution:
+          'U.S. Geological Survey; photo courtesy of Metro Transit Authority',
+      useBasis: 'public_domain',
+    ),
+    limitations: [
+      _uk(code)
+          ? 'Сторінка USGS вказує Public Domain; походження фото не доводить правдивість підпису.'
+          : "USGS source page states Public Domain; provenance metadata does not establish the caption's truth.",
+    ],
+  );
+
+  final citationCheckerSource = EvidenceSource(
+    sourceType: 'team_fixture',
+    publisher: 'Evidence Gym deterministic citation checker',
+    retrievedAt: DateTime.utc(2026, 8, 11, 9),
+    license: const EvidenceLicense(
+      identifier: 'EGYM-DEMO-0.1',
+      attribution: 'Evidence Gym team-created demo metadata',
+      useBasis: 'metadata_only',
+    ),
+    limitations: [
+      _uk(code)
+          ? 'Синтаксис сам по собі не є доказом реєстрації.'
+          : 'Syntax alone is not evidence of registration.',
+    ],
+  );
+
+  EvidenceSource academicRegistrySource({
+    String? canonicalId,
+    required String enLimit,
+    required String ukLimit,
+  }) => EvidenceSource(
+    sourceType: 'academic_registry',
+    publisher: 'Evidence Gym deterministic Crossref/OpenAlex-like fixture',
+    canonicalId: canonicalId,
+    retrievedAt: DateTime.utc(2026, 8, 11, 9),
+    license: const EvidenceLicense(
+      identifier: 'EGYM-DEMO-0.1',
+      attribution: 'Evidence Gym team-created demo metadata',
+      useBasis: 'metadata_only',
+    ),
+    limitations: [_uk(code) ? ukLimit : enLimit],
+  );
+
+  EvidenceResult result(
     String actionId,
     String id,
     String type,
     String en,
     String uk,
-    String status, {
+    String verificationStatus, {
+    required EvidenceSource source,
+    String resultStatus = 'ok',
+    String? sourceUrl,
     List<String> extra = const [],
   }) => EvidenceResult(
     actionId: actionId,
-    status: 'ok',
+    status: resultStatus,
     // Overwritten by the repository, which owns the real value.
     attemptVersion: 1,
     items: [
@@ -349,119 +454,167 @@ Map<String, EvidenceResult> demoEvidenceResultsFor(String code) {
         evidenceId: id,
         type: type,
         title: _uk(code) ? uk : en,
-        source: demoSource,
-        retrievedAt: DateTime.utc(2026, 8, 10, 9),
-        verificationStatus: status,
+        source: source,
+        sourceUrl: sourceUrl,
+        retrievedAt: source.retrievedAt,
+        verificationStatus: verificationStatus,
       ),
     ],
     limitations: [onlyDemo, ...extra],
   );
 
   return {
-    'authentic-media-wrong-context:action-source-identity': ok(
+    'authentic-media-wrong-context:action-source-identity': result(
       'action-source-identity',
       'E-POST-REPOST',
       'post',
       'Repost account with no original media attribution',
       'Акаунт перепостив зображення без посилання на першоджерело',
       'curated',
+      source: teamSource(
+        DateTime.utc(2026, 8, 11, 9),
+        'Training fixture, not a public fact-check record.',
+        'Навчальний fixture, не публічний фактчек.',
+      ),
       extra: [
         _uk(code)
             ? 'Сам перепост не доводить хибність твердження, але послаблює ідентичність джерела.'
             : 'A repost alone does not prove the claim false, but it weakens source identity.',
       ],
     ),
-    'authentic-media-wrong-context:action-provenance-scan': ok(
+    'authentic-media-wrong-context:action-provenance-scan': result(
       'action-provenance-scan',
       'E-MEDIA-METADATA',
       'metadata',
       'Camera-origin metadata from the checked-in USGS photo asset',
       'Метадані походження для перевіреного фото USGS у demo pack',
       'verified_metadata',
+      source: usgsSource,
+      sourceUrl:
+          'https://www.usgs.gov/media/images/abandoned-cars-a-flooded-street-brooklyn-ny',
       extra: [
         _uk(code)
             ? 'Метадані підтримують історію походження, але не доводять правдивість підпису.'
             : 'Metadata supports origin history, not whether the caption is true.',
       ],
     ),
-    'authentic-media-wrong-context:action-primary-source': ok(
+    'authentic-media-wrong-context:action-primary-source': result(
       'action-primary-source',
       'E-ORIGINAL-CAPTION',
       'source_note',
       'USGS source page places the photo in Brooklyn, NY, September 2023',
       'Сторінка USGS розміщує фото у Брукліні, Нью-Йорк, у вересні 2023 року',
       'curated',
+      source: usgsSource,
+      sourceUrl:
+          'https://www.usgs.gov/media/images/abandoned-cars-a-flooded-street-brooklyn-ny',
     ),
-    'authentic-media-wrong-context:action-context-check': ok(
+    'authentic-media-wrong-context:action-context-check': result(
       'action-context-check',
       'E-MUNICH-NO-MATCH',
       'source_note',
       'Demo municipal bulletin has no matching Munich flood alert',
       'У демо-бюлетені немає відповідного попередження про повінь у Мюнхені',
       'curated',
+      source: teamSource(
+        DateTime.utc(2026, 8, 11, 9),
+        'Not a live official emergency source.',
+        'Не є живим офіційним джерелом екстрених повідомлень.',
+      ),
       extra: [
         _uk(code)
             ? 'Відсутність в одному бюлетені не є універсальним доказом; її треба зважувати з першоджерелом.'
             : 'Absence in one curated bulletin is not universal proof; weigh it with the original source trace.',
       ],
     ),
-    'authentic-media-wrong-context:action-corroboration': ok(
+    'authentic-media-wrong-context:action-corroboration': result(
       'action-corroboration',
       'E-INDEPENDENT-CONTEXT',
       'source_note',
       'Independent demo context supports the Brooklyn 2023 explanation',
       'Незалежний демо-контекст підтримує пояснення про Бруклін 2023 року',
       'curated',
+      source: teamSource(
+        DateTime.utc(2026, 8, 12),
+        'Training corroboration, not a live web result.',
+        'Навчальна коробація, не живий вебрезультат.',
+      ),
     ),
-    'ai-citation-integrity:action-decompose-claim': ok(
+    'ai-citation-integrity:action-decompose-claim': result(
       'action-decompose-claim',
       'E-CITATION-PARTS',
       'source_note',
       'Citation has three claims to verify separately',
       'У цитаті є три окремі твердження для перевірки',
       'curated',
+      source: teamSource(
+        DateTime.utc(2026, 8, 11, 9),
+        'Training fixture, not a live registry result.',
+        'Навчальний fixture, не живий результат реєстру.',
+      ),
     ),
-    'ai-citation-integrity:action-doi-normalization': ok(
+    'ai-citation-integrity:action-doi-normalization': result(
       'action-doi-normalization',
       'E-DOI-SHAPE',
       'metadata',
       'DOI-shaped string normalized as 10.4242/jamr.2025.0199',
       'DOI-подібний рядок нормалізовано як 10.4242/jamr.2025.0199',
       'curated',
+      source: citationCheckerSource,
       extra: [
         _uk(code)
             ? 'Синтаксис сам по собі не є доказом реєстрації.'
             : 'Syntax alone is not evidence of registration.',
       ],
     ),
-    'ai-citation-integrity:action-registry-lookup': ok(
+    'ai-citation-integrity:action-registry-lookup': result(
       'action-registry-lookup',
       'E-DOI-NOT-FOUND',
       'registry_record',
       'Queried demo registries returned no record for DOI 10.4242/jamr.2025.0199',
       'У перевірених демо-реєстрах немає запису для DOI 10.4242/jamr.2025.0199',
       'curated',
+      resultStatus: 'not_found',
+      source: academicRegistrySource(
+        canonicalId: 'doi:10.4242/jamr.2025.0199',
+        enLimit:
+            'Not found in queried registries is a limited lookup result, not proof that the citation was fabricated.',
+        ukLimit:
+            'Не знайдено в перевірених реєстрах - це обмежений результат пошуку, а не доказ фабрикації.',
+      ),
       extra: [
         _uk(code)
             ? 'Not found означає не знайдено в перевірених джерелах, а не сфабриковано.'
             : 'Not found in queried demo registries does not prove fabrication.',
       ],
     ),
-    'ai-citation-integrity:action-journal-author-check': ok(
+    'ai-citation-integrity:action-journal-author-check': result(
       'action-journal-author-check',
       'E-JOURNAL-MISMATCH',
       'registry_record',
       'Demo registry has no matching journal title or author cluster',
       'У демо-реєстрі немає відповідного журналу або групи авторів',
       'curated',
+      resultStatus: 'not_found',
+      source: academicRegistrySource(
+        enLimit:
+            'Not found in the queried fixture set does not prove fabrication.',
+        ukLimit:
+            'Не знайдено в перевіреному fixture-наборі не доводить фабрикацію.',
+      ),
     ),
-    'ai-citation-integrity:action-support-check': ok(
+    'ai-citation-integrity:action-support-check': result(
       'action-support-check',
       'E-SUPPORT-UNDETERMINED',
       'source_note',
       'No demo source in the fixture supports the exact 68% claim',
       'Жодне демо-джерело у fixture не підтримує точне твердження про 68%',
       'curated',
+      source: teamSource(
+        DateTime.utc(2026, 8, 11, 9),
+        'This fixture does not search the live web or every scholarly database.',
+        'Цей fixture не шукає в живому вебі чи в усіх академічних базах.',
+      ),
       extra: [
         _uk(code)
             ? 'Це підтримує обережний висновок про unsupported або insufficient evidence, не універсальну заяву.'

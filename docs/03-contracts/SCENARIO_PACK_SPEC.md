@@ -11,16 +11,19 @@ pack/
   manifest.json
   missions/<mission-id>.json
   media/<licensed-assets>
-  locales/en.arb
-  locales/uk.arb
+  locales/<manifest-locale>.arb
+  locales/<ui-or-draft-locale>.arb
   sources/<optional-lawful-snapshots-or-metadata>
+  SIGNATURE.UNSIGNED
   SIGNATURE
 ```
 
 ## Manifest minimum
 
 - unique `id`, semantic `version`, `schemaVersion`;
-- title/description and BCP 47 locales;
+- title/description and BCP 47 locales for canonical pack content; UI-only or
+  draft locale stubs must not be listed in `manifest.locales` until the mission
+  prose itself is reviewed in that locale;
 - primary audience/age band, license and draft/review status;
 - author IDs, drafted date, review-expiry date, and reviewer sign-off only for
   approved/restricted packs;
@@ -66,7 +69,11 @@ completion but must not award XP or decide score.
 
 ## Publication gates
 
-Schema valid; hashes valid; sources reachable or lawfully snapshotted; media license recorded; accessibility assets present; bias/harm review complete; two reviewers for real/sensitive cases; expiry date present; deterministic offline path passes.
+Schema valid; hashes valid; sources reachable or lawfully snapshotted; media
+license recorded; accessibility assets present; bias/harm review complete; two
+reviewers for real/sensitive cases; expiry date present; deterministic offline
+path passes; published packs replace any `SIGNATURE.UNSIGNED` marker with a real
+`SIGNATURE` artifact.
 
 ## Trust
 

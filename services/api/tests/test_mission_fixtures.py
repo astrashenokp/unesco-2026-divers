@@ -41,7 +41,7 @@ def test_p0_demo_manifest_is_in_review_without_public_approval() -> None:
     assert review["status"] == "review"
     assert "draftedAt" in review
     assert "reviewedAt" not in review
-    assert review["reviewerIds"] == ["evidence-guardian"]
+    assert review["reviewerIds"] == []
 
 
 def test_p0_missions_have_explicit_critical_ignoring_policy() -> None:
@@ -60,7 +60,7 @@ def test_review_p0_missions_do_not_claim_public_approval() -> None:
         assert review["status"] == "review", mission["id"]
         assert "draftedAt" in review, mission["id"]
         assert "reviewedAt" not in review, mission["id"]
-        assert review["reviewerIds"] == ["evidence-guardian"], mission["id"]
+        assert review["reviewerIds"] == [], mission["id"]
 
 
 def test_every_p0_evidence_action_has_deterministic_response() -> None:

@@ -7,7 +7,7 @@ Role 1 (Frontend & Experience) owned. Design rationale: `docs/06-design/DESIGN_S
 Verified on **Flutter 3.44.9 / Dart 3.12.2**:
 
 - `dart analyze` — no issues in `apps/learner` and `packages/design_system`
-- `flutter test` — 53 passing in `apps/learner`, 42 passing in `design_system`
+- `flutter test` — 55 passing in `apps/learner`, 42 passing in `design_system`
 - `flutter build web --release` — succeeds
 
 Local note: `flutter analyze` can hit an internal analysis-server

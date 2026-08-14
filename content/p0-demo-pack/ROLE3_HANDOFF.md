@@ -5,8 +5,9 @@
 Integration-ready review packet - Role 3 has created schema-first P0 mission
 fixtures, deterministic evidence responses, a bounded coach output contract and
 an eval gate for the two demo missions. The pack is in `review` state with an
-Evidence Guardian review lane assigned; it is not marked `approved` until human
-sign-off records `reviewedAt`.
+Evidence Guardian review lane documented in `REVIEW_PACKET.md`; it is not
+marked `approved` and `reviewerIds` remains empty until human sign-off records
+`reviewedAt`.
 
 ## Changed
 
@@ -34,10 +35,11 @@ sign-off records `reviewedAt`.
   responses, hints, rubric or eval hooks.
 - `content/p0-demo-pack/manifest.json`: review-stage P0 demo pack manifest with
   mission SHA-256 hashes and explicit review metadata.
-- `content/p0-demo-pack/REVIEW_PACKET.md`, `locales/en.arb`, `sources/` and
-  `SIGNATURE`: review packet, source packets, locale stubs and unsigned review
-  marker for pack-completeness review without pretending the pack is publicly
-  signed.
+- `content/p0-demo-pack/REVIEW_PACKET.md`, `locales/en.arb`,
+  `locales/uk.arb`, `sources/` and `SIGNATURE.UNSIGNED`: review packet, source
+  packets, canonical English locale metadata, Ukrainian UI/demo title stubs and
+  unsigned review marker for pack-completeness review without pretending the
+  pack is publicly signed.
 - `content/p0-demo-pack/media/flood-context-card.jpg`: checked-in
   public-domain flood photo from USGS, courtesy of Metro Transit Authority, used
   by Mission 1.
@@ -54,7 +56,8 @@ sign-off records `reviewedAt`.
   results.
 - `evals/coach/p0-fixture-results.json`: checked-in deterministic fixture
   preflight result artifact that passes the release gate for the P0 fallback
-  path. It is not a broad live-model safety claim.
+  path. It is a fallback-contract artifact, not a model-run artifact or broad
+  live-model safety claim.
 - `services/api/tests/test_contract.py`, `test_catalog_api.py`,
   `test_mission_fixtures.py`, `test_mission_fixture_reader.py`,
   `test_deterministic_evidence_provider.py` and `test_coach_evals.py`:
@@ -126,7 +129,8 @@ case content before completion.
 - Localization notes: P0 mission fixture prose is currently English. Preserve UI
   Ukrainian localization for chrome/error states, allow text expansion, and do
   not machine-translate claim/evidence text without reviewed localized mission
-  content.
+  content. `manifest.locales` lists only reviewed canonical pack locales; the
+  checked-in Ukrainian ARB file is a UI/demo-title stub.
 - Acceptance signal: both P0 missions are playable from public API data, evidence
   cards show source publisher/provenance without truth-oracle cues, and 200%
   text plus screen-reader paths still work.
@@ -240,7 +244,7 @@ deploy, mutate learner state or approve content alone.
 - `PYTHONPATH=/tmp/evidence-gym-pydeps:services/api/src:packages/data_access/src:packages/gameplay/src python3 -m pytest services/api packages/gameplay/tests -q -p no:cacheprovider` - 256 passed, 1 skipped.
 - `PYTHONPATH=/tmp/evidence-gym-pydeps:services/api/src:packages/data_access/src:packages/gameplay/src python3 -m pytest services/api packages/gameplay/tests --collect-only -q -p no:cacheprovider` - 257 tests collected.
 - `dart analyze` from `apps/learner` - no issues found.
-- `flutter test` from `apps/learner` - 53 passed.
+- `flutter test` from `apps/learner` - 55 passed.
 
 ## Risks / assumptions
 
@@ -248,8 +252,9 @@ deploy, mutate learner state or approve content alone.
   needs final human fact/content/accessibility/license sign-off, including a
   re-check of the USGS public-domain source page and attribution for Mission 1.
 - The eval gate is executable against `evals/coach/p0-fixture-results.json` for
-  the deterministic fixture path. A future live-model harness must produce its
-  own result artifact before live model exposure.
+  the deterministic fixture path. That file is intentionally labelled as
+  deterministic preflight, not model-run proof. A future live-model harness must
+  produce its own result artifact before live model exposure.
 - Coach eval suite `coach-p0-gate` is now version `0.3.0`; result JSON files
   from earlier fixture sets should be regenerated before release review.
 - JSON Schema validation is wired through the `services/api[test]` dependency

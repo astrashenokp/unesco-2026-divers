@@ -586,9 +586,7 @@
     "authorIds": [
       "role-3-ai-learning-content"
     ],
-    "reviewerIds": [
-      "evidence-guardian"
-    ],
+    "reviewerIds": [],
     "draftedAt": "2026-08-11T09:00:00Z",
     "expiresAt": "2026-09-14T21:59:00Z",
     "correctionPolicy": "Review packet is present but not a publication approval. Replace deterministic registry notes with reviewed adapter fixtures or lawful metadata snapshots before public publication."

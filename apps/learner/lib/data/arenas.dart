@@ -45,8 +45,27 @@ const demoArenaOf = <String, DisinfoArena>{
   'ai-citation-integrity': DisinfoArena.healthAndScience,
 };
 
-/// Display order. Crisis first because it is the one people meet without
-/// choosing to, and the one where sharing does the most damage fastest.
+/// Arenas that actually have a mission in them, in display order.
+///
+/// Derived rather than declared. The four below were written when the
+/// client carried seven made-up fixtures; the reviewed pack has two, so
+/// two of the rooms had signs and no doors — and a grid of empty cards
+/// reads as a broken product rather than as an honest one.
+///
+/// Deriving it means the grid grows by itself as content lands. Adding a
+/// mission to `demoArenaOf` is all it takes for its arena to appear, and
+/// nobody has to remember to update a second list.
+List<DisinfoArena> get kPopulatedArenas => [
+      for (final arena in kArenaOrder)
+        if (demoArenaOf.containsValue(arena)) arena,
+    ];
+
+/// Every arena the taxonomy defines, in display order.
+///
+/// Crisis first because it is the one people meet without choosing to,
+/// and the one where sharing does the most damage fastest. Kept complete
+/// so the taxonomy stays readable as an intention; use
+/// [kPopulatedArenas] for anything a learner sees.
 const kArenaOrder = [
   DisinfoArena.crisis,
   DisinfoArena.healthAndScience,

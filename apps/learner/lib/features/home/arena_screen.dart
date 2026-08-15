@@ -91,7 +91,7 @@ class ArenaGrid extends StatelessWidget {
 
         final cards = <Widget>[
           card(null, 0),
-          for (final (i, arena) in kArenaOrder.indexed) card(arena, i + 1),
+          for (final (i, arena) in kPopulatedArenas.indexed) card(arena, i + 1),
         ];
 
         return Column(

@@ -566,10 +566,31 @@ void main() {
       );
     }
 
-    final representedArenas =
-        path.nodes.map((n) => demoArenaOf[n.missionId]).toSet();
-    expect(representedArenas, contains(DisinfoArena.crisis));
-    expect(representedArenas, contains(DisinfoArena.healthAndScience));
+    // Every arena a learner is offered must have something in it. The
+    // original assertion was that no declared arena is empty; when the
+    // reviewed pack dropped to two missions that became false, and it
+    // was relaxed rather than fixed — leaving two empty cards on the
+    // first screen anyone sees.
+    //
+    // The list is derived from the content now, so this holds at any
+    // pack size: two missions, seven, or a hundred.
+    expect(kPopulatedArenas, isNotEmpty);
+    for (final arena in kPopulatedArenas) {
+      expect(
+        path.nodes.where((n) => demoArenaOf[n.missionId] == arena),
+        isNotEmpty,
+        reason: '$arena is offered to learners with nothing in it',
+      );
+    }
+
+    // And nothing is silently dropped: every arena that has content is
+    // offered.
+    final represented =
+        path.nodes.map((n) => demoArenaOf[n.missionId]).nonNulls.toSet();
+    for (final arena in represented) {
+      expect(kPopulatedArenas, contains(arena),
+          reason: '$arena has missions but is not offered');
+    }
   });
 
   test('a receipt can be traced back to its mission, in demo mode', () async {

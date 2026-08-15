@@ -97,6 +97,36 @@ class EvidenceActionSpec {
       );
 }
 
+
+/// The pack's own statement of how a mission can be completed without
+/// relying on sight, sound or timing.
+///
+/// Required by the contract and, until now, parsed by nobody. It is not
+/// decoration: `interactionNotes` is where content authors record that a
+/// mission must not need colour, image detail, audio or timed
+/// interaction — a promise the client is supposed to keep and a learner
+/// is entitled to see.
+class MissionAccessibility {
+  const MissionAccessibility({
+    required this.plainLanguageSummary,
+    required this.mediaAlternatives,
+    required this.interactionNotes,
+  });
+
+  final String plainLanguageSummary;
+  final List<String> mediaAlternatives;
+  final List<String> interactionNotes;
+
+  factory MissionAccessibility.fromJson(Map<String, dynamic> json) =>
+      MissionAccessibility(
+        plainLanguageSummary: json['plainLanguageSummary'] as String? ?? '',
+        mediaAlternatives:
+            (json['mediaAlternatives'] as List?)?.cast<String>() ?? const [],
+        interactionNotes:
+            (json['interactionNotes'] as List?)?.cast<String>() ?? const [],
+      );
+}
+
 class Mission {
   const Mission({
     required this.id,
@@ -111,6 +141,7 @@ class Mission {
     this.minimumCompletionEvidence = 1,
     this.contentWarnings,
     this.rubric = const [],
+    this.accessibility,
   });
 
   final String id;
@@ -162,6 +193,10 @@ class Mission {
   /// working the moment it does.
   final List<ProcessLevel> rubric;
 
+  /// How this mission can be completed without sight, sound or timing.
+  /// Null only when a source predates the field.
+  final MissionAccessibility? accessibility;
+
   factory Mission.fromJson(Map<String, dynamic> json) => Mission(
         id: json['id'] as String,
         version: json['version'] as String,
@@ -177,6 +212,10 @@ class Mission {
         minimumCompletionEvidence:
             (json['minimumCompletionEvidence'] as num?)?.toInt() ?? 1,
         contentWarnings: (json['contentWarnings'] as List?)?.cast<String>(),
+        accessibility: json['accessibility'] == null
+            ? null
+            : MissionAccessibility.fromJson(
+                json['accessibility'] as Map<String, dynamic>),
         rubric: [
           for (final level in (json['rubric']
                   as Map<String, dynamic>?)?['processLevels'] as List? ??

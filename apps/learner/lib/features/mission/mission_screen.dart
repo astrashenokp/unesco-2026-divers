@@ -11,6 +11,7 @@ import '../../l10n/strings.dart';
 import '../common/failure_view.dart';
 import '../receipt/receipt_screen.dart';
 import '../report/report_dialog.dart';
+import 'mission_media.dart';
 
 enum _Step { prediction, investigating, conclusion, receipt }
 
@@ -547,44 +548,95 @@ class _MissionBriefState extends State<_MissionBrief> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // The media is described in text as well as shown: alt text is the
-        // primary content here, not a fallback.
-        Semantics(
-          image: true,
-          label: mission.media.altText,
-          child: ExcludeSemantics(
-            child: Container(
-              width: double.infinity,
-              constraints: const BoxConstraints(minHeight: 160),
-              padding: EdgeInsets.all(tokens.space(2)),
-              decoration: BoxDecoration(
-                color: tokens.surfaceRaised,
-                borderRadius: BorderRadius.circular(tokens.space(2)),
-                border: Border.all(color: tokens.textMuted.withValues(alpha: 0.2)),
+        // The image, when the pack ships one, with its description
+        // always beside it rather than only when it is missing.
+        MissionMediaView(media: mission.media),
+        SizedBox(height: tokens.space(2)),
+
+        Text(mission.claim, style: Theme.of(context).textTheme.titleLarge),
+
+        // The pack's own statement of how this mission can be completed
+        // without sight, sound or timing. It was in the contract, sent
+        // by the API, and rendered by nothing — a promise made in a
+        // fixture and never kept where a learner could see it.
+        //
+        // Behind a disclosure rather than always open: most people do
+        // not need it, and the ones who do are best served by it being
+        // in a predictable place rather than in their way.
+        if (mission.accessibility != null) ...[
+          SizedBox(height: tokens.space(1.5)),
+          _AccessibilityNotes(accessibility: mission.accessibility!),
+        ],
+      ],
+    );
+  }
+}
+
+/// How this mission can be completed without relying on vision, hearing
+/// or timing, in the content author's own words.
+class _AccessibilityNotes extends StatelessWidget {
+  const _AccessibilityNotes({required this.accessibility});
+
+  final MissionAccessibility accessibility;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final tokens = context.tokens;
+    final a = accessibility;
+
+    Widget section(String heading, List<String> lines) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: tokens.space(1)),
+            Text(heading,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontWeight: FontWeight.w700)),
+            for (final line in lines)
+              Padding(
+                padding: EdgeInsets.only(top: tokens.space(0.25)),
+                child: Text('• $line',
+                    style: Theme.of(context).textTheme.bodySmall),
               ),
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    switch (mission.media.type) {
-                      'video' => Icons.videocam_outlined,
-                      'audio' => Icons.graphic_eq,
-                      'text' => Icons.article_outlined,
-                      _ => Icons.image_outlined,
-                    },
-                    color: tokens.textMuted,
-                  ),
-                  SizedBox(height: tokens.space(1)),
-                  Text(mission.media.altText, textAlign: TextAlign.center),
+          ],
+        );
+
+    return Theme(
+      // The default divider makes an ExpansionTile look like a form
+      // field, which this is not.
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: EdgeInsets.only(bottom: tokens.space(1)),
+        leading: Icon(Icons.accessibility_new, color: tokens.evidencePrimary),
+        title: Text(s.a11yTitle,
+            style: Theme.of(context).textTheme.bodyLarge),
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (a.plainLanguageSummary.isNotEmpty) ...[
+                  Text(s.a11yPlainSummary,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(a.plainLanguageSummary,
+                      style: Theme.of(context).textTheme.bodySmall),
                 ],
-              ),
+                if (a.mediaAlternatives.isNotEmpty)
+                  section(s.a11yAlternatives, a.mediaAlternatives),
+                if (a.interactionNotes.isNotEmpty)
+                  section(s.a11yNotes, a.interactionNotes),
+              ],
             ),
           ),
-        ),
-        SizedBox(height: tokens.space(2)),
-        Text(mission.claim, style: Theme.of(context).textTheme.titleLarge),
-      ],
+        ],
+      ),
     );
   }
 }

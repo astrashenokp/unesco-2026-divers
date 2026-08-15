@@ -145,7 +145,7 @@ class AdminScreen extends StatelessWidget {
           SizedBox(height: tokens.space(2)),
           Text(s.adminByArena, style: Theme.of(context).textTheme.titleLarge),
           SizedBox(height: tokens.space(1)),
-          for (final arena in kArenaOrder)
+          for (final arena in kPopulatedArenas)
             Padding(
               padding: EdgeInsets.only(bottom: tokens.space(1)),
               child: SkillMeter(

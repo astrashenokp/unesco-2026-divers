@@ -251,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               SizedBox(height: tokens.space(1)),
-              for (final arena in kArenaOrder)
+              for (final arena in kPopulatedArenas)
                 Builder(
                   builder: (context) {
                     final inArena =

@@ -407,6 +407,21 @@ class Strings {
       );
   String get navBoard => _s('Board', 'Дошка');
 
+  // ------------------------------------------------------------ media
+  String get mediaDescribed => _s('What this shows', 'Що тут зображено');
+
+  // --------------------------------------------- mission accessibility
+  //
+  // The pack states how a mission can be completed without sight, sound
+  // or timing. Shown rather than kept in the fixture, because a promise
+  // a learner cannot see is a promise they cannot rely on.
+  String get a11yTitle =>
+      _s('Ways through this mission', 'Способи пройти цю місію');
+  String get a11yPlainSummary => _s('In short', 'Коротко');
+  String get a11yAlternatives =>
+      _s('Instead of looking', 'Замість дивитися');
+  String get a11yNotes => _s('This mission never needs', 'Ця місія не вимагає');
+
   // ---------------------------------------------------------- connection
   String get offlineBadge => _s('Offline', 'Офлайн');
   String get offlineBannerText => _p(

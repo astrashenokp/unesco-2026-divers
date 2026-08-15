@@ -75,10 +75,18 @@ class _ReportDialogState extends State<_ReportDialog> {
       // Offline gets its own message: "try again" is bad advice when the
       // thing to do is wait, and it invites hammering a button that
       // cannot work yet.
-      final offline = e is EvidenceGymApiException && e.isOffline;
+      // Three outcomes, three messages. Offline means wait; unavailable
+      // means the service cannot take reports at all yet and retrying is
+      // pointless; anything else may genuinely be worth another go.
+      final api = e is EvidenceGymApiException ? e : null;
       if (mounted) setState(() => _sending = false);
       messenger.showSnackBar(SnackBar(
-        content: Text(offline ? s.reportFailedOffline : s.reportFailed),
+        content: Text(switch (api) {
+          _ when api?.isOffline ?? false => s.reportFailedOffline,
+          _ when api?.isServiceUnavailable ?? false => s.reportUnavailable,
+          _ => s.reportFailed,
+        }),
+        duration: const Duration(seconds: 6),
       ));
       return;
     }

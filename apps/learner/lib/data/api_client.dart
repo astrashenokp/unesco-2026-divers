@@ -68,6 +68,20 @@ class EvidenceGymApiException implements Exception {
         'evidence_action_already_used',
       }.contains(problem.code);
 
+  /// The service took the request but cannot store it right now.
+  ///
+  /// Distinct from a transport failure and from an ordinary error. The
+  /// reports endpoint answers this deliberately: the contract says a
+  /// `202` must not be returned before a report is durably stored, so a
+  /// service with nowhere to put it refuses rather than accepting
+  /// something it cannot stand behind.
+  ///
+  /// It matters for the wording. "Try again" is wrong advice here — the
+  /// next attempt fails identically until someone deploys persistence —
+  /// and it invites a learner to hammer a button over content they were
+  /// worried enough to report.
+  bool get isServiceUnavailable => problem.status == 503;
+
   /// The request never reached a server. Status 0 is not a real HTTP
   /// status — it is this client's marker for "no answer at all", which
   /// the UI must present as a connection problem rather than as

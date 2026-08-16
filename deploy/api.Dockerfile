@@ -58,6 +58,18 @@ COPY contracts/ contracts/
 RUN pip install ./packages/gameplay ./packages/data_access
 RUN pip install -e ./services/api
 
+# Prove the image can actually start, at build time.
+#
+# Every runtime failure so far has been this shape: the image builds
+# happily, the container starts, something it needs is not where it
+# looked, and the platform reports "connection refused" — which says
+# nothing about the cause. Importing the app here turns all of that into
+# a failed build with the real traceback in the build log.
+#
+# It also means a broken image is never deployed at all, rather than
+# deployed and then discovered.
+RUN python -c "import evidence_gym_api.main as m;     print('content root ->', m.REPOSITORY_ROOT);     assert (m.REPOSITORY_ROOT / 'content' / 'p0-demo-pack').is_dir(),         'content pack missing from image';     assert m.app is not None, 'app failed to compose';     print('startup check passed')"
+
 # Not root. A web-facing container running as root turns any code
 # execution bug into a container takeover.
 #
@@ -76,7 +88,16 @@ EXPOSE 8080
 # unreachable from outside itself — the most common reason a deployment
 # builds, starts, and never answers.
 #
+# Lets the platform tell "still starting" from "crashed" from "up but
+# not answering". Without one, all three look identical from outside and
+# the only symptom is `connection refused`.
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=3   CMD python -c "import os,urllib.request;       urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','8080')+'/health', timeout=4)"
+
 # Shell form so ${PORT} expands. `exec` keeps uvicorn as PID 1 so it
 # receives SIGTERM and shuts down cleanly instead of being killed after
 # the grace period.
-CMD exec uvicorn evidence_gym_api.main:app --host 0.0.0.0 --port ${PORT}
+#
+# The port is echoed first because a mismatch between what the container
+# listens on and what the platform routes to is the other way this fails,
+# and it is invisible from a log that only shows a stack trace.
+CMD echo "listening on 0.0.0.0:${PORT}" &&     exec uvicorn evidence_gym_api.main:app --host 0.0.0.0 --port ${PORT}

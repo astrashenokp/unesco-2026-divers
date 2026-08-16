@@ -7,7 +7,17 @@
 # toolchain, which is a few hundred megabytes that would otherwise ship
 # for no reason.
 
-FROM ghcr.io/cirruslabs/flutter:3.44.9 AS build
+# Pinned to a tag that is actually published, which is not the same as
+# the version installed locally. `3.44.9` was neither — the registry
+# answers 404 for it and the build fails on this line, before anything
+# else in the file runs.
+#
+# 3.44.0 is the only 3.44.x image there is, and it is also the floor
+# `apps/learner/pubspec.lock` records (flutter >=3.44.0, dart >=3.12.0),
+# so it satisfies the lock exactly. Raising the local Flutter version
+# without checking this file will break the build again; the tag list is
+# at ghcr.io/cirruslabs/flutter.
+FROM ghcr.io/cirruslabs/flutter:3.44.0 AS build
 
 WORKDIR /src
 COPY apps/learner/pubspec.yaml apps/learner/pubspec.lock apps/learner/

@@ -8,6 +8,7 @@ import '../../data/api_client.dart';
 import '../../data/audience.dart';
 import '../../data/connectivity.dart';
 import '../../data/demo_accounts.dart';
+import '../../data/demo_fixtures.dart';
 import '../../data/mission_cache.dart';
 import '../../app_settings.dart';
 import '../../data/mission_repository.dart';
@@ -122,13 +123,40 @@ class _AuthScreenState extends State<AuthScreen> {
     await _signIn(credential.role);
   }
 
+  /// Opens the product on the pack shipped inside the build.
+  ///
+  /// No account, because there is no server to hold one. Everything
+  /// finished stays on this device, and the banner says so — the same
+  /// state the app falls into when a signed-in session loses its
+  /// connection.
+  void _openBundledPack() {
+    final settings = AppSettingsScope.of(context);
+    setState(() {
+      _busy = false;
+      _error = null;
+    });
+    _open(
+      DemoMissionRepository(
+        localeCode: () => settings.locale.languageCode,
+        audience: () => settings.audience,
+      ),
+      const Account(id: '', role: AccountRole.learner, token: ''),
+    );
+  }
+
   Future<void> _signIn(AccountRole role) async {
     final s = Strings.of(context);
     final token = _tokenFor(role);
     if (token == null) {
-      // No credential configured for this build. Said plainly rather
-      // than failing with a 401 a learner cannot interpret.
-      setState(() => _error = s.signInNotConfigured);
+      // No credential in this build, which is what a release build
+      // always looks like: both tokens are discarded so none can ship.
+      //
+      // That used to be a dead end, and on a deployed copy it would be
+      // the *only* thing anyone met. The bundled pack is a real
+      // capability rather than a rehearsal, so it is offered here
+      // instead — clearly, as itself, with nothing pretending an
+      // account exists.
+      _openBundledPack();
       return;
     }
 

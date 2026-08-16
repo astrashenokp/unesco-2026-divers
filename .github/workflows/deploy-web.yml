@@ -1,0 +1,82 @@
+# Publishes the learner app to GitHub Pages.
+#
+# The app was only ever reachable by running two processes on a
+# developer's laptop, which means anyone given a link met nothing. A
+# product a reviewer cannot open is assessed as one that does not exist.
+#
+# What gets published is the client alone. There is no API behind it, so
+# the app opens on the reviewed pack bundled into the build — the same
+# missions, rubric and scoring, read from the build instead of fetched.
+# That is a real capability rather than a rehearsal, and the banner in
+# the app says plainly that nothing is being sent anywhere.
+#
+# No credentials are injected. Release builds discard both tokens by
+# design so that none can ever ship in a bundle a stranger can read, and
+# nothing here overrides that.
+name: Deploy web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time, and a run already in flight is allowed to
+# finish: cancelling mid-deploy can leave Pages serving half an upload.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.44.9
+          channel: stable
+
+      - name: Resolve dependencies
+        working-directory: apps/learner
+        run: flutter pub get
+
+      # The gate, not a formality. A published copy that fails its own
+      # tests is worse than no published copy, because it looks finished.
+      - name: Analyze and test
+        working-directory: apps/learner
+        run: |
+          flutter analyze
+          flutter test
+
+      # The base href must match the repository name for a project page,
+      # or every asset 404s and the app renders as a blank white screen.
+      - name: Build
+        working-directory: apps/learner
+        run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+
+      # Pages serves 404.html for unknown paths. Handing it the app means
+      # a deep link or a refresh lands in the product rather than on a
+      # GitHub error page.
+      - name: Add SPA fallback
+        run: cp apps/learner/build/web/index.html apps/learner/build/web/404.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/learner/build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

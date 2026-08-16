@@ -59,7 +59,7 @@ void main() {
     expect(find.textContaining('operator / cohort2026'), findsOneWidget);
   });
 
-  testWidgets('signing in without a credential says so plainly', (
+  testWidgets('a build without credentials still lets someone in', (
     tester,
   ) async {
     // No token is compiled into a test build, so this is the path any
@@ -83,14 +83,17 @@ void main() {
     expect(find.text('Your path'), findsNothing,
         reason: 'a failed sign-in must not let anyone through');
 
-    // The right pairing gets past the form and stops at the credential
-    // this build does not carry — which is a different failure, and has
-    // to say so rather than repeating the first one.
+    // The right pairing gets past the form. This build carries no
+    // token — which is what every release build looks like, since both
+    // are discarded so neither can ship — so it opens the bundled pack
+    // rather than dead-ending. On a deployed copy that dead end would
+    // be the only thing anyone ever met.
     await tester.enterText(
         find.byKey(const ValueKey('auth.password')), 'evidence2026');
     await tester.tap(find.byKey(const ValueKey('auth.signIn')));
     await _settle(tester);
-    expect(find.textContaining('no credential'), findsOneWidget);
+    expect(find.text('What are you up against?'), findsOneWidget,
+        reason: 'a build without credentials must still be usable');
   });
 
   testWidgets('sign-in is reachable on a small phone', (tester) async {

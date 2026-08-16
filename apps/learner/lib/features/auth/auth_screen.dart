@@ -7,6 +7,7 @@ import '../../data/account.dart';
 import '../../data/api_client.dart';
 import '../../data/audience.dart';
 import '../../data/connectivity.dart';
+import '../../data/demo_accounts.dart';
 import '../../data/mission_cache.dart';
 import '../../app_settings.dart';
 import '../../data/mission_repository.dart';
@@ -61,8 +62,32 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  final _loginController = TextEditingController();
+  final _passwordController = TextEditingController();
   String? _error;
   bool _busy = false;
+  bool _showPassword = false;
+
+  @override
+  void dispose() {
+    _loginController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  /// Fills the fields from a printed credential.
+  ///
+  /// The credentials are on screen anyway, so making someone retype them
+  /// tests their patience rather than the product. They still land in
+  /// the fields rather than signing in directly, so what is about to be
+  /// sent is visible before it is sent.
+  void _fill(DemoCredential credential) {
+    setState(() {
+      _loginController.text = credential.login;
+      _passwordController.text = credential.password;
+      _error = null;
+    });
+  }
 
   void _open(MissionRepository repository, Account account) {
     Navigator.of(context).push(
@@ -78,6 +103,25 @@ class _AuthScreenState extends State<AuthScreen> {
   /// credential the server accepts. Holding the operator token is what
   /// makes someone an operator; without it the server issues a learner
   /// principal regardless of which button was pressed.
+  /// Signs in with whatever is typed in the fields.
+  ///
+  /// The password check is presentation. The real gate is the bearer
+  /// token the server accepts — matching a password here only decides
+  /// which configured token to send, and the API refuses anything it was
+  /// not configured with.
+  Future<void> _submit() async {
+    final s = Strings.of(context);
+    final credential = credentialFor(
+      _loginController.text,
+      _passwordController.text,
+    );
+    if (credential == null) {
+      setState(() => _error = s.signInWrong);
+      return;
+    }
+    await _signIn(credential.role);
+  }
+
   Future<void> _signIn(AccountRole role) async {
     final s = Strings.of(context);
     final token = _tokenFor(role);
@@ -180,42 +224,63 @@ class _AuthScreenState extends State<AuthScreen> {
                     const DataNotice(isDemo: false),
                     SizedBox(height: tokens.space(2)),
 
-                    // Two accounts, named for what they are. Which one
-                    // someone gets is decided by the credential the
-                    // server accepts, not by which button they press —
-                    // the button only chooses which credential to send.
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        key: const ValueKey('auth.signInLearner'),
-                        onPressed:
-                            _busy ? null : () => _signIn(AccountRole.learner),
-                        icon: const Icon(Icons.person_outline),
-                        label: Text(s.signInAsLearner),
+                    // Real fields, and the credentials for both
+                    // accounts printed below them. These are
+                    // demonstration accounts: a credential that must
+                    // stay secret would not be printed, and one that is
+                    // printed is not a secret.
+                    TextField(
+                      key: const ValueKey('auth.login'),
+                      controller: _loginController,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      textInputAction: TextInputAction.next,
+                      decoration: InputDecoration(
+                        labelText: s.loginLabel,
+                        prefixIcon: const Icon(Icons.person_outline),
+                        border: const OutlineInputBorder(),
                       ),
                     ),
-                    SizedBox(height: tokens.space(1)),
-                    Text(
-                      s.signInAsLearnerHint,
-                      style: Theme.of(context).textTheme.bodySmall,
+                    SizedBox(height: tokens.space(1.5)),
+                    TextField(
+                      key: const ValueKey('auth.password'),
+                      controller: _passwordController,
+                      obscureText: !_showPassword,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      onSubmitted: (_) => _busy ? null : _submit(),
+                      decoration: InputDecoration(
+                        labelText: s.passwordLabel,
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: IconButton(
+                          // Revealing is standard now and it is the
+                          // accessible choice: someone typing a password
+                          // off a screen with a tremor or a screen
+                          // reader needs to see what landed.
+                          onPressed: () =>
+                              setState(() => _showPassword = !_showPassword),
+                          icon: Icon(_showPassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined),
+                          tooltip: _showPassword
+                              ? s.passwordHide
+                              : s.passwordShow,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: tokens.space(1.5)),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        key: const ValueKey('auth.signIn'),
+                        onPressed: _busy ? null : _submit,
+                        child: Text(s.signInAction),
+                      ),
                     ),
                     SizedBox(height: tokens.space(2.5)),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        key: const ValueKey('auth.signInOperator'),
-                        onPressed:
-                            _busy ? null : () => _signIn(AccountRole.operator),
-                        icon: const Icon(Icons.insights_outlined),
-                        label: Text(s.signInAsOperator),
-                      ),
-                    ),
-                    SizedBox(height: tokens.space(1)),
-                    Text(
-                      s.signInAsOperatorHint,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
 
+                    _CredentialsCard(onUse: _fill),
                     if (_error != null) ...[
                       SizedBox(height: tokens.space(2)),
                       // Arrives in response to a press, so it announces
@@ -320,6 +385,118 @@ class _AudiencePicker extends StatelessWidget {
         ),
         Text(s.audienceNotAGate, style: Theme.of(context).textTheme.bodySmall),
       ],
+    );
+  }
+}
+
+
+/// The credentials for both accounts, printed.
+///
+/// On the screen rather than in a README, because the person who needs
+/// them is looking at the screen. Each row fills the fields rather than
+/// signing in directly, so what is about to be sent is visible first.
+class _CredentialsCard extends StatelessWidget {
+  const _CredentialsCard({required this.onUse});
+
+  final void Function(DemoCredential) onUse;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Strings.of(context);
+    final tokens = context.tokens;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(tokens.space(1.75)),
+      decoration: BoxDecoration(
+        color: tokens.surfaceRaised,
+        borderRadius: BorderRadius.circular(tokens.space(2)),
+        border: Border.all(color: tokens.textMuted.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.key_outlined, size: 18, color: tokens.evidencePrimary),
+              SizedBox(width: tokens.space(1)),
+              Expanded(
+                child: Text(s.accountsTitle,
+                    style: Theme.of(context).textTheme.titleLarge),
+              ),
+            ],
+          ),
+          SizedBox(height: tokens.space(0.5)),
+          Text(s.accountsIntro,
+              style: Theme.of(context).textTheme.bodySmall),
+          SizedBox(height: tokens.space(1.5)),
+          for (final credential in kDemoCredentials) ...[
+            Semantics(
+              button: true,
+              label: '${s.roleName(credential.role)}. '
+                  '${s.loginLabel}: ${credential.login}. '
+                  '${s.passwordLabel}: ${credential.password}',
+              onTap: () => onUse(credential),
+              child: ExcludeSemantics(
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => onUse(credential),
+                    borderRadius: BorderRadius.circular(tokens.space(1.5)),
+                    child: Padding(
+                      padding: EdgeInsets.all(tokens.space(1)),
+                      child: Row(
+                        children: [
+                          Icon(
+                            credential.role == AccountRole.operator
+                                ? Icons.insights_outlined
+                                : Icons.person_outline,
+                            size: 18,
+                            color: tokens.textMuted,
+                          ),
+                          SizedBox(width: tokens.space(1)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  s.roleName(credential.role),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                // Monospace: these are strings to copy
+                                // exactly, and a proportional font makes
+                                // an l and a 1 the same shape.
+                                Text(
+                                  '${credential.login} / ${credential.password}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(fontFamily: 'monospace'),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Text(s.accountsUse,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: tokens.action,
+                                    fontWeight: FontWeight.w700,
+                                  )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

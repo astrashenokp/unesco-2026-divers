@@ -40,7 +40,7 @@ void main() {
     expect(find.text('Перевіряй, а не вгадуй.'), findsOneWidget);
   });
 
-  testWidgets('Skip reaches sign-in, and both accounts are offered', (
+  testWidgets('Skip reaches sign-in, with both accounts printed', (
     tester,
   ) async {
     await tester.pumpWidget(EvidenceGymApp(settings: _english()));
@@ -48,11 +48,15 @@ void main() {
     await tester.tap(find.text('Skip'));
     await _settle(tester);
 
-    // Two named accounts rather than a guest button and a hidden demo
-    // key. Which one someone gets is decided by the credential the
-    // server accepts; the button only chooses which one to send.
-    expect(find.text('Sign in as a learner'), findsOneWidget);
-    expect(find.text('Sign in as an operator'), findsOneWidget);
+    // Real fields, with both accounts printed underneath. They are
+    // demonstration credentials: one that had to stay secret would not
+    // be on the screen.
+    expect(find.byKey(const ValueKey('auth.login')), findsOneWidget);
+    expect(find.byKey(const ValueKey('auth.password')), findsOneWidget);
+    expect(find.text('Learner'), findsOneWidget);
+    expect(find.text('Operator'), findsOneWidget);
+    expect(find.textContaining('learner / evidence2026'), findsOneWidget);
+    expect(find.textContaining('operator / cohort2026'), findsOneWidget);
   });
 
   testWidgets('signing in without a credential says so plainly', (
@@ -66,15 +70,30 @@ void main() {
     await tester.tap(find.text('Skip'));
     await _settle(tester);
 
-    await tester.tap(find.byKey(const ValueKey('auth.signInLearner')));
+    // A wrong pairing is refused before any token is chosen.
+    await tester.enterText(
+        find.byKey(const ValueKey('auth.login')), 'learner');
+    await tester.enterText(
+        find.byKey(const ValueKey('auth.password')), 'wrong');
+    await tester.ensureVisible(find.byKey(const ValueKey('auth.signIn')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('auth.signIn')));
     await _settle(tester);
-
-    expect(find.textContaining('no credential'), findsOneWidget);
+    expect(find.textContaining('do not match'), findsOneWidget);
     expect(find.text('Your path'), findsNothing,
         reason: 'a failed sign-in must not let anyone through');
+
+    // The right pairing gets past the form and stops at the credential
+    // this build does not carry — which is a different failure, and has
+    // to say so rather than repeating the first one.
+    await tester.enterText(
+        find.byKey(const ValueKey('auth.password')), 'evidence2026');
+    await tester.tap(find.byKey(const ValueKey('auth.signIn')));
+    await _settle(tester);
+    expect(find.textContaining('no credential'), findsOneWidget);
   });
 
-  testWidgets('both accounts are reachable on a small phone', (tester) async {
+  testWidgets('sign-in is reachable on a small phone', (tester) async {
     // Guarding a regression I caused twice: things added above the entry
     // points pushed them off the screen, and the only symptom was
     // unrelated-looking failures on the screen people meet first.
@@ -88,13 +107,15 @@ void main() {
     await _settle(tester);
 
     expect(
-      find.text('Sign in as a learner').hitTestable(),
+      find.byKey(const ValueKey('auth.login')).hitTestable(),
       findsOneWidget,
-      reason: 'the main way in is not reachable at 360x640 without scrolling',
+      reason: 'the login field is not reachable at 360x640 without scrolling',
     );
-    // The second account may sit below the fold — the privacy notice
-    // and audience choice legitimately come first — but it must exist.
-    expect(find.text('Sign in as an operator'), findsOneWidget);
+    // The printed credentials may sit below the fold — the privacy
+    // notice and audience choice legitimately come first — but both
+    // accounts must be there.
+    expect(find.text('Learner'), findsOneWidget);
+    expect(find.text('Operator'), findsOneWidget);
   });
 
   test('the bundled pack advances the path as missions are completed', () {

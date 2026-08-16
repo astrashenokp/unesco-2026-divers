@@ -60,7 +60,39 @@ def identity_verifier(environment: Mapping[str, str]) -> IdentityVerifier | None
         raise RuntimeConfigurationError(
             "development identity requires a token of at least 16 characters and a learner ID"
         )
-    return FakeIdentityVerifier({token: Principal(LearnerId(learner_id))})
+
+    principals = {token: Principal(LearnerId(learner_id))}
+
+    # A second, optional account carrying the operator role.
+    #
+    # Roles have always been on ``Principal`` and nothing set them, so
+    # there was no way to sign in as anything but a learner. This is what
+    # makes an operator account demonstrable without inventing a parallel
+    # login path.
+    #
+    # It is opt-in on top of an already opt-in verifier, and it inherits
+    # every guard above: development only, explicit token, minimum
+    # length. Configuring one without the other simply means there is no
+    # operator account, rather than a broken one.
+    admin_token = environment.get("EVIDENCE_GYM_DEV_ADMIN_TOKEN", "").strip()
+    admin_id = environment.get("EVIDENCE_GYM_DEV_ADMIN_ID", "").strip()
+    if admin_token or admin_id:
+        if len(admin_token) < 16 or not admin_id:
+            raise RuntimeConfigurationError(
+                "development operator identity requires a token of at least "
+                "16 characters and an operator ID"
+            )
+        if admin_token == token:
+            # Two accounts sharing one credential is one account wearing
+            # two hats, and the role check would then be meaningless.
+            raise RuntimeConfigurationError(
+                "the operator token must differ from the learner token"
+            )
+        principals[admin_token] = Principal(
+            LearnerId(admin_id), roles=frozenset({"operator"})
+        )
+
+    return FakeIdentityVerifier(principals)
 
 
 def _boolean(value: str) -> bool:

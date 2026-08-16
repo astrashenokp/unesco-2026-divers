@@ -3,12 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../data/account.dart';
 import '../../data/api_client.dart';
 import '../../data/audience.dart';
 import '../../data/connectivity.dart';
 import '../../data/mission_cache.dart';
 import '../../app_settings.dart';
-import '../../data/demo_fixtures.dart';
 import '../../data/mission_repository.dart';
 import '../../l10n/strings.dart';
 import '../common/data_notice.dart';
@@ -32,21 +32,25 @@ const _apiBaseUrl = String.fromEnvironment(
 /// ADR-008 already fixes guest auth as Firebase Anonymous Auth, verified
 /// server-side like any other principal — not a bespoke demo principal.
 const _devAuthToken = String.fromEnvironment('DEV_AUTH_TOKEN');
+const _devAdminToken = String.fromEnvironment('DEV_ADMIN_TOKEN');
 
-/// Ignored entirely in a release build.
+/// Both are ignored entirely in a release build.
 ///
 /// `String.fromEnvironment` is resolved at compile time and baked into
 /// the bundle, so nothing stopped someone running
 /// `flutter build web --release --dart-define=DEV_AUTH_TOKEN=...` and
 /// shipping a working credential to every visitor — readable with view
 /// source. The guard makes that impossible rather than merely
-/// discouraged: in release the value is discarded whatever was passed.
+/// discouraged: in release the value is discarded whatever was passed,
+/// and the constant is tree-shaken out rather than carried as a dead
+/// string.
 ///
-/// It is a compile-time constant, so the release build also tree-shakes
-/// the token out instead of carrying a dead string.
-Future<String?> _guestTokenProvider() async {
+/// Once Firebase is configured, this whole path is replaced by real
+/// sign-in. ADR-008 already fixes that as the destination.
+String? _tokenFor(AccountRole role) {
   if (kReleaseMode) return null;
-  return _devAuthToken.isEmpty ? null : _devAuthToken;
+  final token = role == AccountRole.operator ? _devAdminToken : _devAuthToken;
+  return token.isEmpty ? null : token;
 }
 
 class AuthScreen extends StatefulWidget {
@@ -57,39 +61,47 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  /// Pre-filled in debug builds only.
-  ///
-  /// `SCREEN_INVENTORY.md` calls the demo route a *hidden* entry, and it
-  /// should stay hidden in anything shipped — pre-filling a release
-  /// build would put every visitor one tap from fixture data. `flutter
-  /// run` is debug by default, so development and rehearsal get the
-  /// convenience while `flutter build --release` keeps the gate.
-  final _demoKeyController =
-      TextEditingController(text: kDebugMode ? demoAccessKey : '');
   String? _error;
+  bool _busy = false;
 
-  @override
-  void dispose() {
-    _demoKeyController.dispose();
-    super.dispose();
-  }
-
-  void _open(MissionRepository repository) {
+  void _open(MissionRepository repository, Account account) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => HomeShell(repository: repository)),
+      MaterialPageRoute(
+        builder: (_) => HomeShell(repository: repository, account: account),
+      ),
     );
   }
 
-  Future<void> _continueAsGuest() async {
+  /// Signs in with the credential configured for [role].
+  ///
+  /// The role is not asserted by the client — it is carried by which
+  /// credential the server accepts. Holding the operator token is what
+  /// makes someone an operator; without it the server issues a learner
+  /// principal regardless of which button was pressed.
+  Future<void> _signIn(AccountRole role) async {
+    final s = Strings.of(context);
+    final token = _tokenFor(role);
+    if (token == null) {
+      // No credential configured for this build. Said plainly rather
+      // than failing with a 401 a learner cannot interpret.
+      setState(() => _error = s.signInNotConfigured);
+      return;
+    }
+
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+
     final connectivity = ConnectivityScope.of(context);
     final settings = AppSettingsScope.of(context);
     final client = EvidenceGymApiClient(
       baseUrl: Uri.parse(_apiBaseUrl),
-      authTokenProvider: _guestTokenProvider,
+      authTokenProvider: () async => token,
     )
       // Every request reports whether the server answered, which is what
       // drives the offline banner. Nothing is gated on it: a stale flag
-      // must never lock out a learner who is in fact online.
+      // must never lock out someone who is in fact online.
       ..onReachability = ({required bool reachable}) =>
           connectivity.report(reachable: reachable);
 
@@ -104,27 +116,22 @@ class _AuthScreenState extends State<AuthScreen> {
     }
     if (!mounted) return;
 
-    _open(LiveMissionRepository(
+    final repository = LiveMissionRepository(
       client,
       cache: MissionCache(store),
       prefetch: settings.prefetchMissions,
-    ));
-  }
+      // The offline pack. Not a demo mode and not labelled as one: it is
+      // the reviewed content that ships with the app, and it is what the
+      // product falls back to when the server cannot be reached. Calling
+      // it a demo made a real capability look like a rehearsal.
+      fallback: DemoMissionRepository(
+        localeCode: () => settings.locale.languageCode,
+        audience: () => settings.audience,
+      ),
+    );
 
-  void _enterDemoKey() {
-    final entered = _demoKeyController.text.trim().toUpperCase();
-    if (entered != demoAccessKey) {
-      setState(() => _error = Strings.of(context).demoKeyWrong(demoAccessKey));
-      return;
-    }
-    setState(() => _error = null);
-    // The settings object is stable for the app's lifetime, so reading
-    // .locale through it later always yields the current language.
-    final settings = AppSettingsScope.of(context);
-    _open(DemoMissionRepository(
-      localeCode: () => settings.locale.languageCode,
-      audience: () => settings.audience,
-    ));
+    setState(() => _busy = false);
+    _open(repository, Account(id: '', role: role, token: token));
   }
 
   @override
@@ -170,72 +177,68 @@ class _AuthScreenState extends State<AuthScreen> {
                     // Above the buttons, not below them. PRIVACY.md asks
                     // for clear notice, and notice placed after the
                     // action it describes is not notice.
-                    //
-                    // One notice, not one per route. A second copy for
-                    // the demo pushed the demo button below the fold on
-                    // a phone-sized screen — a notice that hides the
-                    // thing it is explaining is worse than none. The
-                    // demo already carries its own line further down,
-                    // and it collapses by default so the screen stays
-                    // short for someone who does not want to read it.
                     const DataNotice(isDemo: false),
                     SizedBox(height: tokens.space(2)),
+
+                    // Two accounts, named for what they are. Which one
+                    // someone gets is decided by the credential the
+                    // server accepts, not by which button they press —
+                    // the button only chooses which credential to send.
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _continueAsGuest,
-                        child: Text(s.continueAsGuest),
+                      child: ElevatedButton.icon(
+                        key: const ValueKey('auth.signInLearner'),
+                        onPressed:
+                            _busy ? null : () => _signIn(AccountRole.learner),
+                        icon: const Icon(Icons.person_outline),
+                        label: Text(s.signInAsLearner),
                       ),
                     ),
-                    SizedBox(height: tokens.space(3)),
-                    Text(s.orDivider, style: Theme.of(context).textTheme.bodySmall),
-                    SizedBox(height: tokens.space(2)),
-                    TextField(
-                      key: const ValueKey('auth.demoKey'),
-                      controller: _demoKeyController,
-                      textCapitalization: TextCapitalization.characters,
-                      autocorrect: false,
-                      decoration: InputDecoration(
-                        labelText: s.demoKeyLabel,
-                        errorText: _error,
-                        border: const OutlineInputBorder(),
-                      ),
-                      onSubmitted: (_) => _enterDemoKey(),
+                    SizedBox(height: tokens.space(1)),
+                    Text(
+                      s.signInAsLearnerHint,
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                    // `errorText` above draws the error and is only read
-                    // aloud while the field has focus — but the error is
-                    // produced by pressing the button below it, so a
-                    // learner who cannot see the field is told nothing
-                    // and simply appears unable to get in.
-                    //
-                    // This node carries no visible text of its own: the
-                    // decoration already shows the message, and a second
-                    // copy on screen would be a duplicate for everyone
-                    // else. It exists only to speak.
-                    if (_error != null)
+                    SizedBox(height: tokens.space(2.5)),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('auth.signInOperator'),
+                        onPressed:
+                            _busy ? null : () => _signIn(AccountRole.operator),
+                        icon: const Icon(Icons.insights_outlined),
+                        label: Text(s.signInAsOperator),
+                      ),
+                    ),
+                    SizedBox(height: tokens.space(1)),
+                    Text(
+                      s.signInAsOperatorHint,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+
+                    if (_error != null) ...[
+                      SizedBox(height: tokens.space(2)),
+                      // Arrives in response to a press, so it announces
+                      // itself rather than waiting to be found.
                       Semantics(
                         liveRegion: true,
-                        label: _error,
-                        child: const SizedBox.shrink(),
-                      ),
-                    SizedBox(height: tokens.space(1)),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        key: const ValueKey('auth.enterDemo'),
-                        onPressed: _enterDemoKey,
-                        child: Text(s.enterDemo),
-                      ),
-                    ),
-                    if (kDebugMode) ...[
-                      SizedBox(height: tokens.space(1)),
-                      Text(
-                        s.demoKeyPrefilled,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: tokens.evidenceSecondary),
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(tokens.space(1.5)),
+                          decoration: BoxDecoration(
+                            color: tokens.misleading.withValues(alpha: 0.10),
+                            borderRadius:
+                                BorderRadius.circular(tokens.space(1.5)),
+                            border: Border.all(
+                              color:
+                                  tokens.misleading.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          child: Text(
+                            _error!,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
                       ),
                     ],
                     SizedBox(height: tokens.space(2)),

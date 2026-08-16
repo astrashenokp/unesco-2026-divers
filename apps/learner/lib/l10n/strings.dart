@@ -96,6 +96,41 @@ class Strings {
             'без звернень до зовнішніх сервісів, саме те, що показують журі.',
       );
 
+  // ------------------------------------------------------------- sign in
+  //
+  // Two accounts, named for what they do rather than for their rank.
+  // "Admin" would suggest someone who can change a learner's record;
+  // nobody can, and the screen behind this account is deliberately
+  // incapable of it.
+  String get signInAsLearner => _s('Sign in as a learner', 'Увійти як учасник');
+  String get signInAsLearnerHint => _p(
+        'The product as someone practising sees it: the path, missions, '
+            'your own receipts and progress.',
+        "Продукт таким, яким його бачить людина, що тренується: шлях, "
+            "місії, власні квитанції та прогрес.",
+        'What a learner sees: missions, receipts, progress.',
+        "Те, що бачить учасник: місії, квитанції, прогрес.",
+      );
+  String get signInAsOperator =>
+      _s('Sign in as an operator', 'Увійти як оператор');
+  String get signInAsOperatorHint => _p(
+        'The same product, plus a cohort overview. It shows group figures '
+            'only — never one person\'s answers, confidence or conclusions.',
+        "Той самий продукт плюс огляд групи. Він показує лише групові "
+            "цифри — ніколи відповіді, впевненість чи висновки конкретної "
+            "людини.",
+        'The same product, plus group figures. Never one person\'s answers.',
+        "Той самий продукт плюс групові цифри. Ніколи чиїсь відповіді.",
+      );
+  String get signInNotConfigured => _p(
+        'This build has no credential for that account, so there is nothing '
+            'to sign in with. It is a build setting, not something you did.',
+        "У цій збірці немає облікових даних для цього акаунта, тож увійти "
+            "нічим. Це налаштування збірки, а не щось, що ти зробила.",
+        'This build has no login for that account.',
+        "У цій збірці немає входу для цього акаунта.",
+      );
+
   // ------------------------------------------------- sign-in unavailable
   String get signInUnavailableTitle =>
       _s('Signing in is not available yet', 'Вхід поки недоступний');
@@ -406,6 +441,7 @@ class Strings {
         "Інші учасники це побачать. Будь ласка, не використовуй справжнє ім'я.",
       );
   String get navBoard => _s('Board', 'Дошка');
+  String get navCohort => _s('Cohort', 'Група');
 
   // ------------------------------------------------------------ media
   String get mediaDescribed => _s('What this shows', 'Що тут зображено');
@@ -1425,8 +1461,24 @@ class Strings {
       };
 
   // -------------------------------------------------------------- a11y/etc
-  String get demoBadge => _s('DEMO DATA', 'ДЕМО-ДАНІ');
-  String get demoBadgeShort => _s('Demo', 'Демо');
+  /// Replaces "DEMO DATA".
+  ///
+  /// That label was wrong in both halves: the content is the same
+  /// reviewed pack the server serves, and reading it locally is a
+  /// capability rather than a rehearsal. What actually differs is that
+  /// nothing is being sent anywhere, which is what this says.
+  String get offlinePackNote => _p(
+        'Working from the pack on this device — the server is not '
+            'reachable. Same missions and same scoring; what you finish is '
+            'kept here rather than on your account.',
+        "Працюємо з паком на цьому пристрої — сервер недоступний. Ті самі "
+            "місії й те саме оцінювання; завершене зберігається тут, а не в "
+            "обліковому записі.",
+        'Working offline from the pack on this device. Same missions.',
+        "Працюємо офлайн із паком на цьому пристрої. Ті самі місії.",
+      );
+  String get demoBadge => _s('Offline', 'Офлайн');
+  String get demoBadgeShort => _s('Off', 'Офл');
   String get demoBannerText => _s(
         'Demo pack — offline, reviewed fixtures. Not live evidence.',
         'Демо-пак — офлайн, перевірені фікстури. Це не живі дані.',

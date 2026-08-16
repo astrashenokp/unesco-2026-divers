@@ -12,6 +12,19 @@ import '../../l10n/strings.dart';
 ///
 /// Styled in `evidenceSecondary`, not `danger` — a fixture is not a
 /// hazard, and red here would spend the alarm colour on nothing.
+/// Shown while the app is reading the pack bundled in the build because
+/// the server cannot be reached.
+///
+/// This used to say "DEMO DATA — not live evidence", which was wrong in
+/// both halves. The content is the same reviewed pack the server serves,
+/// with the same rubric and the same scoring; reading it locally is a
+/// capability of the product rather than a rehearsal of one. Calling it
+/// a demo made the offline path look like something you would switch off
+/// before showing anyone.
+///
+/// What it does say is the thing that actually differs: nothing is being
+/// sent anywhere, so a conclusion reached now is recorded on this device
+/// and not on an account.
 class DemoBanner extends StatelessWidget {
   const DemoBanner({super.key});
 
@@ -21,29 +34,25 @@ class DemoBanner extends StatelessWidget {
     final tokens = context.tokens;
 
     return Semantics(
-      label: '${s.demoBadge}. ${s.demoBannerText}',
-      child: ExcludeSemantics(
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(
-            horizontal: tokens.space(2),
-            vertical: tokens.space(0.75),
-          ),
-          color: tokens.evidenceSecondary.withValues(alpha: 0.18),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.science_outlined, size: 14, color: tokens.textMuted),
-              SizedBox(width: tokens.space(0.75)),
-              Flexible(
-                child: Text(
-                  s.demoBannerText,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+      liveRegion: true,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: tokens.space(2),
+          vertical: tokens.space(1),
+        ),
+        color: tokens.evidenceSecondary.withValues(alpha: 0.14),
+        child: Row(
+          children: [
+            Icon(Icons.cloud_off_outlined, size: 18, color: tokens.textMuted),
+            SizedBox(width: tokens.space(1)),
+            Expanded(
+              child: Text(
+                s.offlinePackNote,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

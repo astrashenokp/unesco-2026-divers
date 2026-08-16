@@ -1,6 +1,9 @@
 import 'package:evidence_gym_learner/app.dart';
 import 'package:evidence_gym_learner/app_settings.dart';
-import 'package:evidence_gym_learner/data/demo_fixtures.dart';
+import 'package:evidence_gym_learner/data/account.dart';
+import 'package:evidence_gym_learner/data/audience.dart';
+import 'package:evidence_gym_learner/data/mission_repository.dart';
+import 'package:evidence_gym_learner/features/shell/home_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,21 +15,28 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
-/// Walks onboarding into the demo path.
+/// Opens the shell directly on the bundled pack.
 ///
-/// Finds controls by key, not by label or by widget type. Labels are
-/// localized, and byType is fragile here: SegmentedButton renders its
-/// segments as TextButtons, so `find.byType(TextButton).first` grabbed
-/// the language switch instead of Skip.
-Future<void> _enterDemo(WidgetTester tester) async {
-  await tester.tap(find.byKey(const ValueKey('onboarding.skip')));
-  await _settle(tester);
-  await tester.enterText(
-      find.byKey(const ValueKey('auth.demoKey')), demoAccessKey);
-  await tester.ensureVisible(find.byKey(const ValueKey('auth.enterDemo')));
-  await tester.tap(find.byKey(const ValueKey('auth.enterDemo')));
-  await _settle(tester);
-}
+/// These tests are about layout at 200% text, not about the sign-in
+/// journey — and sign-in now needs a credential no test build carries.
+/// Going through the front door would make every one of them a test of
+/// authentication instead of a test of whether the path clips.
+Widget _shell({required String locale, required double scale}) =>
+    EvidenceGymApp(
+      settings: AppSettings(locale: Locale(locale), textScale: scale),
+      home: HomeShell(
+        repository: DemoMissionRepository(
+          localeCode: () => locale,
+          audience: () => AudienceMode.adult,
+        ),
+        account: const Account(
+          id: 'test',
+          role: AccountRole.learner,
+          token: 'test',
+        ),
+      ),
+    );
+
 
 /// Fails if anything overflowed its bounds during the test.
 ///
@@ -53,11 +63,8 @@ void main() {
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.reset);
 
-        await tester.pumpWidget(EvidenceGymApp(
-          settings: AppSettings(locale: Locale(locale), textScale: scale),
-        ));
+        await tester.pumpWidget(_shell(locale: locale, scale: scale));
         await _settle(tester);
-        await _enterDemo(tester);
 
         _expectNoOverflow();
       });
@@ -73,7 +80,6 @@ void main() {
       settings: AppSettings(locale: const Locale('uk'), textScale: 2.0),
     ));
     await _settle(tester);
-    await _enterDemo(tester);
 
     _expectNoOverflow();
   });
@@ -88,11 +94,13 @@ void main() {
     await tester.pumpWidget(
       MediaQuery(
         data: const MediaQueryData(disableAnimations: true),
-        child: EvidenceGymApp(settings: AppSettings(locale: const Locale('en'))),
+        // Straight into the shell, like the layout tests above: this is
+        // about whether reduced motion strands someone mid-reveal, not
+        // about the journey to the shell.
+        child: _shell(locale: 'en', scale: 1.0),
       ),
     );
     await _settle(tester);
-    await _enterDemo(tester);
 
     expect(find.text('What are you up against?'), findsOneWidget);
     await tester.ensureVisible(find.text('Everything'));

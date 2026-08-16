@@ -88,3 +88,72 @@ def test_development_identity_accepts_only_the_explicit_token() -> None:
     with pytest.raises(IdentityVerificationError):
         asyncio.run(verifier.verify("any-other-token"))
 
+
+
+def test_operator_account_carries_the_role_and_the_learner_does_not() -> None:
+    """Two accounts, one credential each, and only one is an operator.
+
+    The role lives on the principal the server builds, not on anything a
+    client asserts. A client-side flag would be a lock with the key taped
+    to it.
+    """
+    from evidence_gym_api.runtime import identity_verifier
+
+    verifier = identity_verifier(
+        {
+            "EVIDENCE_GYM_ENV": "development",
+            "EVIDENCE_GYM_DEV_IDENTITY_ENABLED": "true",
+            "EVIDENCE_GYM_DEV_IDENTITY_TOKEN": "learner-token-0123456789",
+            "EVIDENCE_GYM_DEV_LEARNER_ID": "demo-learner",
+            "EVIDENCE_GYM_DEV_ADMIN_TOKEN": "operator-token-0123456789",
+            "EVIDENCE_GYM_DEV_ADMIN_ID": "demo-operator",
+        }
+    )
+    assert verifier is not None
+
+    import asyncio
+
+    learner = asyncio.run(verifier.verify("learner-token-0123456789"))
+    operator = asyncio.run(verifier.verify("operator-token-0123456789"))
+
+    assert "operator" not in learner.roles
+    assert "operator" in operator.roles
+
+
+def test_two_accounts_may_not_share_one_credential() -> None:
+    """One credential for both is one account wearing two hats, and the
+    role check would then mean nothing."""
+    from evidence_gym_api.runtime import RuntimeConfigurationError, identity_verifier
+
+    import pytest
+
+    with pytest.raises(RuntimeConfigurationError):
+        identity_verifier(
+            {
+                "EVIDENCE_GYM_ENV": "development",
+                "EVIDENCE_GYM_DEV_IDENTITY_ENABLED": "true",
+                "EVIDENCE_GYM_DEV_IDENTITY_TOKEN": "same-token-0123456789",
+                "EVIDENCE_GYM_DEV_LEARNER_ID": "demo-learner",
+                "EVIDENCE_GYM_DEV_ADMIN_TOKEN": "same-token-0123456789",
+                "EVIDENCE_GYM_DEV_ADMIN_ID": "demo-operator",
+            }
+        )
+
+
+def test_a_half_configured_operator_is_refused_rather_than_ignored() -> None:
+    """Silently dropping it would leave someone believing they had an
+    operator account when they had none."""
+    from evidence_gym_api.runtime import RuntimeConfigurationError, identity_verifier
+
+    import pytest
+
+    with pytest.raises(RuntimeConfigurationError):
+        identity_verifier(
+            {
+                "EVIDENCE_GYM_ENV": "development",
+                "EVIDENCE_GYM_DEV_IDENTITY_ENABLED": "true",
+                "EVIDENCE_GYM_DEV_IDENTITY_TOKEN": "learner-token-0123456789",
+                "EVIDENCE_GYM_DEV_LEARNER_ID": "demo-learner",
+                "EVIDENCE_GYM_DEV_ADMIN_ID": "demo-operator",
+            }
+        )

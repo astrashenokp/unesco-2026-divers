@@ -2,6 +2,7 @@ import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
 
 import '../../app_settings.dart';
+import '../../data/account.dart';
 import '../../data/audience.dart';
 import '../../data/connectivity.dart';
 import '../../data/mission_repository.dart';
@@ -9,6 +10,7 @@ import '../../l10n/strings.dart';
 import '../common/demo_banner.dart';
 import '../common/offline_banner.dart';
 import '../home/path_screen.dart';
+import '../admin/admin_screen.dart';
 import '../leaderboard/leaderboard_tab.dart';
 import '../profile/profile_screen.dart';
 import '../profile/progress_screen.dart';
@@ -23,9 +25,21 @@ import '../settings/settings_screen.dart';
 /// learner switching between phone and laptop does not have to relearn
 /// anything.
 class HomeShell extends StatefulWidget {
-  const HomeShell({super.key, required this.repository});
+  const HomeShell({
+    super.key,
+    required this.repository,
+    required this.account,
+  });
 
   final MissionRepository repository;
+
+  /// Who is signed in. Decides whether the operator destination exists.
+  ///
+  /// Client-side routing, not authorisation — see `account.dart`. It is
+  /// acceptable only while the operator screen has no privileged data
+  /// behind it; the moment an operator endpoint exists, the server has
+  /// to check the role on every request.
+  final Account account;
 
   @override
   State<HomeShell> createState() => _HomeShellState();
@@ -33,6 +47,15 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
+
+  /// True while content is coming from the bundled pack rather than the
+  /// server — either because this build has no server, or because the
+  /// server could not be reached.
+  bool get _readingBundledPack {
+    final repo = widget.repository;
+    if (repo is LiveMissionRepository) return repo.isServingOffline;
+    return repo.isDemo;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +85,15 @@ class _HomeShellState extends State<HomeShell> {
         selectedIcon: Icons.settings,
         label: s.navSettings
       ),
+      // Present only for an operator account. Nothing marks it as
+      // special beyond being there — an "admin" badge would announce a
+      // door to everyone who cannot open it.
+      if (widget.account.isOperator)
+        (
+          icon: Icons.insights_outlined,
+          selectedIcon: Icons.insights,
+          label: s.navCohort
+        ),
     ];
 
     final pages = [
@@ -81,6 +113,20 @@ class _HomeShellState extends State<HomeShell> {
           if (repo is LiveMissionRepository) repo.setPrefetch(on);
         },
       ),
+      // Same condition as the destination, so the two lists cannot fall
+      // out of step and land a learner on the operator screen.
+      if (widget.account.isOperator)
+        const AdminScreen(
+          stats: CohortStats(
+            learners: 0,
+            missionsCompleted: 0,
+            medianProcessLevel: 0,
+            uncertaintyShare: 0,
+            evidenceBeforeConclusion: 0,
+            perArenaCompletion: {},
+            reportsOpen: 0,
+          ),
+        ),
     ];
 
     // Keyed so switching tabs rebuilds the body but Flutter still reuses
@@ -106,7 +152,7 @@ class _HomeShellState extends State<HomeShell> {
           child: SafeArea(
             child: Column(
               children: [
-                if (widget.repository.isDemo) const DemoBanner(),
+                if (_readingBundledPack) const DemoBanner(),
                 if (!ConnectivityScope.of(context).isOnline)
                   const OfflineBanner(),
                 Expanded(child: body),
@@ -216,7 +262,7 @@ class _HomeShellState extends State<HomeShell> {
                 artwork: onPath ? board : null,
                 child: Column(
                   children: [
-                    if (widget.repository.isDemo) const DemoBanner(),
+                    if (_readingBundledPack) const DemoBanner(),
                     if (!ConnectivityScope.of(context).isOnline)
                       const OfflineBanner(),
                     Expanded(child: body),
@@ -332,8 +378,8 @@ class _RailFooter extends StatelessWidget {
                 fact(Icons.child_care_outlined, s.audienceChildShort,
                     s.audienceChild, tokens.evidencePrimary),
               if (repository.isDemo)
-                fact(Icons.science_outlined, s.demoBadgeShort, s.demoBadge,
-                    tokens.action),
+                fact(Icons.cloud_off_outlined, s.demoBadgeShort, s.demoBadge,
+                    tokens.textMuted),
             ],
           ),
         ),

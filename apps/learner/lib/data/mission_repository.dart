@@ -569,9 +569,14 @@ class LiveMissionRepository implements MissionRepository {
   @override
   void resumeStreak() {}
 
-  LiveMissionRepository(this._client, {MissionCache? cache, bool prefetch = true})
-      : _cache = cache,
-        _prefetch = prefetch {
+  LiveMissionRepository(
+    this._client, {
+    MissionCache? cache,
+    bool prefetch = true,
+    MissionRepository? fallback,
+  })  : _cache = cache,
+        _prefetch = prefetch,
+        _fallback = fallback {
     // Published content is written to the cache as it arrives, so the
     // cache fills from ordinary use rather than from a separate download
     // the learner did not ask for.
@@ -587,6 +592,25 @@ class LiveMissionRepository implements MissionRepository {
 
   final MissionCache? _cache;
   bool _prefetch;
+
+  /// The reviewed content that ships with the app, used when the server
+  /// cannot be reached at all.
+  ///
+  /// Not a demo mode and no longer labelled as one. It is the same
+  /// missions, the same rubric and the same scoring, read from the pack
+  /// bundled in the build rather than fetched — which is a real
+  /// capability of the product, not a rehearsal of it. Calling it a demo
+  /// made the offline path look like something you would switch off
+  /// before showing anyone.
+  ///
+  /// Only reached on transport failure. Everything the server *can*
+  /// answer, it answers.
+  final MissionRepository? _fallback;
+
+  /// True while the app is reading the bundled pack because the server
+  /// is unreachable. Screens use it to say so plainly.
+  var _servingOffline = false;
+  bool get isServingOffline => _servingOffline;
 
   /// Turning the setting off stops caching *and* drops what is held.
   /// A switch that only stops adding has not really been turned off.
@@ -631,8 +655,17 @@ class LiveMissionRepository implements MissionRepository {
       if (_prefetch) unawaited(_warm(path));
       return path;
     } on EvidenceGymApiException catch (e) {
-      final cached = e.isOffline ? _cache?.readPath() : null;
-      if (cached != null) return cached;
+      if (!e.isOffline) rethrow;
+      final cached = _cache?.readPath();
+      if (cached != null) {
+        _servingOffline = true;
+        return cached;
+      }
+      final fallback = _fallback;
+      if (fallback != null) {
+        _servingOffline = true;
+        return fallback.getLearningPath();
+      }
       rethrow;
     }
   }
@@ -664,8 +697,17 @@ class LiveMissionRepository implements MissionRepository {
       // genuinely gone and showing a cached copy of withdrawn content
       // would be worse than an error — content can be withdrawn for
       // safety reasons, and ADR-005 makes corrections a new version.
-      final cached = e.isOffline ? _cache?.readMission(missionId) : null;
-      if (cached != null) return cached;
+      if (!e.isOffline) rethrow;
+      final cached = _cache?.readMission(missionId);
+      if (cached != null) {
+        _servingOffline = true;
+        return cached;
+      }
+      final fallback = _fallback;
+      if (fallback != null) {
+        _servingOffline = true;
+        return fallback.getMission(missionId);
+      }
       rethrow;
     }
   }

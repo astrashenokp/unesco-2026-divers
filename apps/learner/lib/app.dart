@@ -7,7 +7,14 @@ import 'data/connectivity.dart';
 import 'features/onboarding/onboarding_carousel_screen.dart';
 
 class EvidenceGymApp extends StatefulWidget {
-  const EvidenceGymApp({super.key, this.settings});
+  const EvidenceGymApp({super.key, this.settings, this.home});
+
+  /// Overrides the first screen.
+  ///
+  /// For tests that are about a screen's layout rather than about the
+  /// journey to it. Sign-in needs a credential no test build carries, so
+  /// without this every layout test would become an authentication test.
+  final Widget? home;
 
   /// Injectable so widget tests can start in a chosen language or at a
   /// given text scale without driving the settings UI.
@@ -73,7 +80,7 @@ class _EvidenceGymAppState extends State<EvidenceGymApp> {
                   child: child ?? const SizedBox.shrink(),
                 );
               },
-              home: const OnboardingCarouselScreen(),
+              home: widget.home ?? const OnboardingCarouselScreen(),
             );
           },
         ),

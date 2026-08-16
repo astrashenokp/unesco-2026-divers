@@ -1344,6 +1344,25 @@ class Strings {
         'Не вдалося надіслати. Спробуй ще раз.',
       );
 
+  /// The service is up and cannot take reports yet.
+  ///
+  /// Says so plainly rather than pretending it is a glitch. Someone who
+  /// took the trouble to report something is owed the truth about where
+  /// it went, and "try again" would be false — the next attempt fails
+  /// the same way until persistence exists.
+  String get reportUnavailable => _p(
+        "We can't take reports right now — the part that stores them is "
+            "not running yet. Nothing was sent, and nothing was lost on your "
+            "side. This is on us.",
+        "Ми зараз не можемо прийняти скаргу — частина, яка їх зберігає, ще "
+            "не працює. Нічого не надіслано, і на твоєму боці нічого не "
+            "втрачено. Це на нас.",
+        "We can't take reports right now. Nothing was sent. This is our "
+            "problem.",
+        "Ми зараз не можемо прийняти скаргу. Нічого не надіслано. Це наша "
+            "проблема.",
+      );
+
   /// Offline needs its own line: "try again" is bad advice when the
   /// thing to do is wait, and it invites someone to hammer a button
   /// that cannot work yet. What they typed is still in the box.

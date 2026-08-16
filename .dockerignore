@@ -1,0 +1,36 @@
+# Keeps the build context to what the images actually need.
+#
+# Without this the context includes build output, the Dart tool cache and
+# the whole of .git — hundreds of megabytes uploaded to the builder on
+# every deploy, for files no image copies. On a hosted builder that is
+# the difference between a fast deploy and a slow one, and slow deploys
+# are the ones people stop waiting for.
+
+.git
+.github
+
+# Build output, regenerated inside the image.
+**/build/
+**/.dart_tool/
+**/.pub-cache/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.venv/
+**/venv/
+**/node_modules/
+
+# Local editor and OS noise.
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Notes kept out of the repository's shared history, and out of images.
+private/
+
+# Never copy a local environment file into an image. One committed by
+# accident would otherwise be baked in and served.
+**/.env
+**/.env.*
+!**/.env.example

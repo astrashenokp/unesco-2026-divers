@@ -68,6 +68,11 @@ ui-debug.log*
 *.tfstate.*
 .terragrunt-cache/
 
+# Screen recordings and everything derived from them: frames, extracted
+# audio, transcripts. Hundreds of megabytes of source material that the
+# edit needs and the repository does not.
+capture/
+
 # Logs, caches, artifacts
 *.log
 .cache/

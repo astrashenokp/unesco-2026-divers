@@ -813,3 +813,174 @@ class LiveMissionRepository implements MissionRepository {
         idempotencyKey: _key('report:$missionId:$reason:${detail ?? ""}'),
       );
 }
+
+/// The catalog from the server, the practice on this device.
+///
+/// This exists because of what a published build actually has to work
+/// with. The API's catalog is public, and everything past "start an
+/// attempt" needs an account this build cannot hold: release builds
+/// discard the development credentials on purpose so none can ship in a
+/// bundle a stranger can read, and Firebase sign-in is not configured
+/// yet (ADR-008).
+///
+/// Both obvious responses are wrong.
+///
+/// Sending unauthenticated writes anyway means a learner reads a real
+/// mission, presses start, and meets a 401 — [LiveMissionRepository]
+/// falls back only on transport failure, so an auth refusal surfaces as
+/// an error wall. Ignoring the server entirely is what shipped before
+/// this, and it was worse than it looked: `_signIn` took the bundled
+/// branch unconditionally in release, so the whole live path was
+/// unreachable, the compiler removed it, and `API_BASE_URL` never
+/// appeared in the bundle at all. A deployed API could not have been
+/// contacted no matter what it was set to.
+///
+/// So: ask the server for what it will answer, do the rest here.
+/// Nothing is attempted that is known to be refused, which means there
+/// is no error path to explain to a learner.
+class ConnectedCatalogRepository implements MissionRepository {
+  ConnectedCatalogRepository(this._client, {required MissionRepository local})
+      : _local = local;
+
+  final EvidenceGymApiClient _client;
+
+  /// The reviewed pack bundled in the build. Owns everything a learner
+  /// does, because that is what stays on this device.
+  final MissionRepository _local;
+
+  /// True once a catalog read has failed and the bundled pack answered
+  /// instead, so a screen can say the server is not being reached rather
+  /// than leaving the difference invisible.
+  var _servingLocal = false;
+  bool get isServingLocal => _servingLocal;
+
+  /// Nothing a learner does leaves this device, so the notices that
+  /// depend on this stay accurate. Reading a public catalog is not the
+  /// same as recording anything, and claiming otherwise here would make
+  /// the privacy notice wrong in the direction that matters.
+  @override
+  bool get isDemo => _local.isDemo;
+
+  /// The server lists the missions; this device knows how far the
+  /// learner got.
+  ///
+  /// Without the overlay the path would be frozen: attempts complete
+  /// locally and the server, which never saw them, keeps reporting every
+  /// node as `available`. Finishing a mission would leave the path
+  /// looking untouched — a regression against reading the bundled pack
+  /// alone, and the kind that is easy to miss because nothing errors.
+  @override
+  Future<LearningPath> getLearningPath() async {
+    final LearningPath local = await _local.getLearningPath();
+    try {
+      final remote = await _client.getLearningPath();
+      final states = {for (final n in local.nodes) n.missionId: n};
+      return LearningPath(
+        version: remote.version,
+        locale: remote.locale,
+        nodes: [
+          for (final node in remote.nodes)
+            if (states[node.missionId] case final known?)
+              LearningPathNode(
+                missionId: node.missionId,
+                title: node.title,
+                state: known.state,
+                boosterDue: known.boosterDue,
+              )
+            else
+              node,
+        ],
+      );
+    } on EvidenceGymApiException {
+      // Any refusal, not only a transport failure. The bundled pack is
+      // the same reviewed content, so degrading to it costs a learner
+      // nothing and loses nothing — unlike a write, where swallowing an
+      // error would discard work.
+      _servingLocal = true;
+      return local;
+    }
+  }
+
+  @override
+  Future<Mission> getMission(String missionId) async {
+    try {
+      return await _client.getMission(missionId);
+    } on EvidenceGymApiException {
+      _servingLocal = true;
+      return _local.getMission(missionId);
+    }
+  }
+
+  // Everything below is the learner's own activity. It stays here.
+
+  @override
+  StreakState get streak => _local.streak;
+
+  @override
+  int get hiddenByAudience => _local.hiddenByAudience;
+
+  @override
+  Future<List<BoardEntry>> getLeaderboard() => _local.getLeaderboard();
+
+  @override
+  bool get boardHandleSet => _local.boardHandleSet;
+
+  @override
+  void joinBoard(String handle) => _local.joinBoard(handle);
+
+  @override
+  void leaveBoard() => _local.leaveBoard();
+
+  @override
+  void pauseStreak(DateTime until) => _local.pauseStreak(until);
+
+  @override
+  void resumeStreak() => _local.resumeStreak();
+
+  @override
+  Future<Attempt> startAttempt(String missionId, String missionVersion) =>
+      _local.startAttempt(missionId, missionVersion);
+
+  @override
+  Future<Attempt> submitPrediction(String attemptId, PredictionInput input) =>
+      _local.submitPrediction(attemptId, input);
+
+  @override
+  Future<EvidenceResult> useEvidenceAction(
+    String attemptId,
+    String missionId,
+    String actionId,
+    int version,
+  ) =>
+      _local.useEvidenceAction(attemptId, missionId, actionId, version);
+
+  @override
+  Future<({String receiptId, int xpAwarded, Progress progress})>
+      submitConclusion(String attemptId, ConclusionInput input) =>
+          _local.submitConclusion(attemptId, input);
+
+  @override
+  Future<Hint> requestHint(String attemptId, String missionId) =>
+      _local.requestHint(attemptId, missionId);
+
+  @override
+  Future<Progress> getMyProgress() => _local.getMyProgress();
+
+  @override
+  Future<Receipt> getReceipt(String receiptId) => _local.getReceipt(receiptId);
+
+  @override
+  Future<List<Receipt>> listReceipts() => _local.listReceipts();
+
+  @override
+  Future<void> reportContent({
+    required String missionId,
+    required String reason,
+    String? detail,
+  }) =>
+      _local.reportContent(
+        missionId: missionId,
+        reason: reason,
+        detail: detail,
+      );
+}

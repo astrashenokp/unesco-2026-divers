@@ -15,9 +15,20 @@ import '../../l10n/strings.dart';
 import '../common/data_notice.dart';
 import '../shell/home_shell.dart';
 
+/// Where the client should look for the API, or empty for "nowhere".
+///
+/// The localhost default is for `flutter run` and must not survive into
+/// a release build that was never told an address. A published copy
+/// pointed at localhost tries to reach the *visitor's* own machine,
+/// fails every request, and looks broken for a reason nobody looking at
+/// it could work out. The Pages workflow passes no address at all, so
+/// this is not hypothetical.
+///
+/// Empty is therefore the release default, and it is a meaningful value
+/// rather than a missing one: it selects the pack bundled in the build.
 const _apiBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://localhost:8000/',
+  defaultValue: kReleaseMode ? '' : 'http://localhost:8000/',
 );
 
 /// A token for local development, supplied at build time.
@@ -143,18 +154,60 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
+  /// Opens on the deployed API's catalog, with the practice kept here.
+  ///
+  /// The server publishes its catalog without a credential; everything
+  /// past starting an attempt needs one. Rather than reach for an
+  /// endpoint that is known to refuse, this reads what is public and
+  /// keeps the rest on the device — see [ConnectedCatalogRepository].
+  void _openConnectedCatalog() {
+    final connectivity = ConnectivityScope.of(context);
+    final settings = AppSettingsScope.of(context);
+    final client = EvidenceGymApiClient(
+      baseUrl: Uri.parse(_apiBaseUrl),
+      // No credential, deliberately, and null rather than an empty
+      // string: the client omits the Authorization header entirely when
+      // this is null, and a `Bearer ` with nothing after it would be a
+      // malformed header rather than an absent one.
+      authTokenProvider: () async => null,
+    )..onReachability = ({required bool reachable}) =>
+        connectivity.report(reachable: reachable);
+
+    setState(() {
+      _busy = false;
+      _error = null;
+    });
+    _open(
+      ConnectedCatalogRepository(
+        client,
+        local: DemoMissionRepository(
+          localeCode: () => settings.locale.languageCode,
+          audience: () => settings.audience,
+        ),
+      ),
+      const Account(id: '', role: AccountRole.learner, token: ''),
+    );
+  }
+
   Future<void> _signIn(AccountRole role) async {
     final token = _tokenFor(role);
     if (token == null) {
       // No credential in this build, which is what a release build
       // always looks like: both tokens are discarded so none can ship.
       //
-      // That used to be a dead end, and on a deployed copy it would be
-      // the *only* thing anyone met. The bundled pack is a real
-      // capability rather than a rehearsal, so it is offered here
-      // instead — clearly, as itself, with nothing pretending an
-      // account exists.
-      _openBundledPack();
+      // Where an API is configured, that is not a reason to ignore it.
+      // This branch used to go straight to the bundled pack, which made
+      // the entire live path unreachable in release — the compiler
+      // removed it, and a deployed copy never contacted its own API no
+      // matter what `API_BASE_URL` was set to.
+      if (_apiBaseUrl.isEmpty) {
+        // Nothing configured to talk to. The bundled pack is a real
+        // capability rather than a rehearsal, so it is offered as
+        // itself, with nothing pretending an account exists.
+        _openBundledPack();
+      } else {
+        _openConnectedCatalog();
+      }
       return;
     }
 

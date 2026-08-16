@@ -13,6 +13,10 @@
 # No credentials are injected. Release builds discard both tokens by
 # design so that none can ever ship in a bundle a stranger can read, and
 # nothing here overrides that.
+# Every action is pinned to a full commit SHA, which the workflow policy
+# enforces and which is worth more than the inconvenience: a tag is a
+# moving pointer, and an action that changes under a tag runs code
+# nobody in this repository reviewed.
 name: Deploy web
 
 on:
@@ -35,9 +39,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           flutter-version: 3.44.9
           channel: stable
@@ -66,8 +70,8 @@ jobs:
       - name: Add SPA fallback
         run: cp apps/learner/build/web/index.html apps/learner/build/web/404.html
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: apps/learner/build/web
 
@@ -79,4 +83,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

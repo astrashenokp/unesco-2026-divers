@@ -8,7 +8,6 @@ import '../../data/api_client.dart';
 import '../../data/audience.dart';
 import '../../data/connectivity.dart';
 import '../../data/demo_accounts.dart';
-import '../../data/demo_fixtures.dart';
 import '../../data/mission_cache.dart';
 import '../../app_settings.dart';
 import '../../data/mission_repository.dart';
@@ -145,7 +144,6 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _signIn(AccountRole role) async {
-    final s = Strings.of(context);
     final token = _tokenFor(role);
     if (token == null) {
       // No credential in this build, which is what a release build

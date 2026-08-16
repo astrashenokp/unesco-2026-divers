@@ -38,11 +38,34 @@ COPY services/api/ services/api/
 COPY content/ content/
 COPY contracts/ contracts/
 
-RUN pip install ./packages/gameplay ./packages/data_access ./services/api
+# The API is installed editable, and that is load-bearing rather than a
+# convenience.
+#
+# `main.py` locates the content pack with
+# `Path(__file__).resolve().parents[4]`, so the root it finds depends on
+# where the package physically sits. A normal install copies it into
+# site-packages, four levels above which is `/usr/local/lib` — and the
+# container then starts, fails to read the schemas, and dies with
+# `cannot read valid JSON from ...`.
+#
+# Editable leaves it at /app/services/api/src/evidence_gym_api/, whose
+# fourth parent is /app — exactly where content/ and contracts/ are
+# copied above.
+#
+# The alternative is an environment variable for the content root, which
+# would be the better design and is a change to Role 2's module rather
+# than to this file.
+RUN pip install ./packages/gameplay ./packages/data_access
+RUN pip install -e ./services/api
 
 # Not root. A web-facing container running as root turns any code
 # execution bug into a container takeover.
+#
+# After the install, not before: an editable install writes an egg-link
+# and build metadata into the source tree, and doing it as a user who
+# cannot write there fails.
 RUN useradd --create-home --uid 10001 evidencegym
+RUN chown -R evidencegym:evidencegym /app
 USER evidencegym
 
 # Northflank injects PORT; 8080 is the fallback for a plain `docker run`.

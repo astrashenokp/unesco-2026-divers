@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../app_settings.dart';
+import '../data/account.dart';
 
 /// Ukrainian + English UI strings (P0 in `MVP_SCOPE.md`).
 ///
@@ -130,6 +131,32 @@ class Strings {
         'This build has no login for that account.',
         "У цій збірці немає входу для цього акаунта.",
       );
+
+  String get loginLabel => _s('Login', 'Логін');
+  String get passwordLabel => _s('Password', 'Пароль');
+  String get passwordShow => _s('Show password', 'Показати пароль');
+  String get passwordHide => _s('Hide password', 'Сховати пароль');
+  String get signInAction => _s('Sign in', 'Увійти');
+  String get signInWrong => _s(
+        'That login and password do not match an account.',
+        'Такий логін і пароль не збігаються з жодним акаунтом.',
+      );
+  String get accountsTitle => _s('Accounts for this demo', 'Акаунти для показу');
+  String get accountsIntro => _p(
+        'Two accounts, printed here on purpose. They are demonstration '
+            'accounts — a credential that had to stay secret would not be on '
+            'the screen. Tap one to fill the fields.',
+        "Два акаунти, і вони тут навмисно. Це облікові записи для показу — "
+            "дані, які мали б лишатися таємними, не друкували б на екрані. "
+            "Натисни, щоб підставити в поля.",
+        'Two accounts, shown on purpose. Tap one to fill the fields.',
+        "Два акаунти, показані навмисно. Натисни, щоб підставити в поля.",
+      );
+  String get accountsUse => _s('Use', 'Взяти');
+  String roleName(AccountRole role) => switch (role) {
+        AccountRole.learner => _s('Learner', 'Учасник'),
+        AccountRole.operator => _s('Operator', 'Оператор'),
+      };
 
   // ------------------------------------------------- sign-in unavailable
   String get signInUnavailableTitle =>
